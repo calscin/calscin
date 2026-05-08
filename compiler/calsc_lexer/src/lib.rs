@@ -46,12 +46,6 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> Vec<Token> {
         if c.is_numeric() {
             tokens.push(parse_number_token(content, &mut i, &pos));
         }
-
-        if c == '-' {
-            if content.chars().nth(i).is_some() && content.chars().nth(i).unwrap().is_numeric() {
-                tokens.push(parse_number_token(content, &mut i, &pos))
-            }
-        }
     }
 
     tokens
@@ -102,7 +96,7 @@ pub fn parse_number_token(content: &str, ind: &mut usize, start_pos: &FilePositi
     } else {
         let lit: i128 = match slice.parse() {
             Ok(v) => v,
-            Err(_) => panic!("Cannot parse int literal"),
+            Err(e) => panic!("Cannot parse int literal {}", e),
         };
 
         Token::new(TokenKind::IntLiteral(lit), end_pos)
