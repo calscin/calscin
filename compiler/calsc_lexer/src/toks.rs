@@ -1,11 +1,16 @@
 //! Lexer token related definitions.
 
+use calsc_utils::pos::FilePosition;
+
 /// A parsed token by the lexer.
 /// Contains the kind of token as well as the data such as literal values.
 /// Also contains a position of where the token starts and ends
 pub struct Token {
+    /// The kind of token. Holds the data such as literal values and the overall type of token
     pub kind: TokenKind,
-    // TODO: add position
+
+    /// The position of the token inside of the file
+    pub pos: FilePosition,
 }
 
 /// Enum representing common lexer token kinds.

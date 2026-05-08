@@ -5,6 +5,9 @@ version = 4
 [[package]]
 name = "calsc_lexer"
 version = "0.1.0"
+dependencies = [
+ "calsc_utils",
+]
 
 [[package]]
 name = "calsc_utils"
