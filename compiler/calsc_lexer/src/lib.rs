@@ -11,6 +11,9 @@ use crate::toks::{Token, TokenKind};
 
 pub mod toks;
 
+#[cfg(test)]
+pub mod tests;
+
 /// Converts raw texts into lexer tokens.
 /// # Examples
 /// ```

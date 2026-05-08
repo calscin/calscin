@@ -14,7 +14,7 @@ pub struct Token {
 }
 
 /// Enum representing common lexer token kinds.
-#[derive(PartialEq)]
+#[derive(PartialEq, Debug)]
 pub enum TokenKind {
     /// ;
     SemiColon,
