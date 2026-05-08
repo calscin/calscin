@@ -21,6 +21,9 @@ impl FilePosition {
     ///
     /// # Example
     /// ```
+    /// use std::path::PathBuf;
+    /// use calsc_utils::pos::FilePosition;
+    ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
     /// ```
     pub fn new(file_path: PathBuf, line: usize, column: usize) -> Self {
@@ -36,6 +39,9 @@ impl FilePosition {
     ///
     /// # Example
     /// ```
+    /// use std::path::PathBuf;
+    /// use calsc_utils::pos::FilePosition;
+    ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
     /// let pos2: FilePosition = pos.step_line(12);
     ///
@@ -54,15 +60,19 @@ impl FilePosition {
     ///
     /// # Example
     /// ```
-    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// use std::path::PathBuf;
+    /// use calsc_utils::pos::FilePosition;
+    ///
+    /// let mut pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
     /// pos.new_line();
     ///
-    /// assert!(pos2.line == 2);
+    /// assert!(pos.line == 2);
     /// assert!(pos.column == 0);
     /// ```
     #[inline]
     pub fn new_line(&mut self) {
         self.line += 1;
+        self.column = 0;
     }
 
     /// Clones the current `FilePosition` and adds the given amount of column to the column counter.
@@ -70,10 +80,13 @@ impl FilePosition {
     ///
     /// # Example
     /// ```
+    /// use std::path::PathBuf;
+    /// use calsc_utils::pos::FilePosition;
+    ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
     /// let pos2: FilePosition = pos.step_col(2);
     ///
-    /// assert!(pos2.col == 30)
+    /// assert!(pos2.column == 30)
     /// ```
     #[inline]
     pub fn step_col(&self, gain_column: usize) -> Self {

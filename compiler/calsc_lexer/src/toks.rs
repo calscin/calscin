@@ -120,6 +120,10 @@ impl Token {
     ///
     /// # Example
     /// ```
+    /// use calsc_lexer::toks::{TokenKind, Token};
+    /// use calsc_utils::pos::FilePosition;
+    /// use std::path::PathBuf;
+    ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
     /// let tok: Token = Token::new(TokenKind::Eof, pos);
     /// ```
