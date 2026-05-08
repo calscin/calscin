@@ -14,6 +14,7 @@ pub struct Token {
 }
 
 /// Enum representing common lexer token kinds.
+#[derive(PartialEq)]
 pub enum TokenKind {
     /// ;
     SemiColon,
@@ -217,3 +218,10 @@ impl Token {
         }
     }
 }
+
+impl PartialEq for Token {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind // Uses a loosy check in order to only compare the kind
+    }
+}
+impl Eq for Token {}
