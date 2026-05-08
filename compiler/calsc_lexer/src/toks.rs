@@ -114,3 +114,16 @@ pub enum TokenKind {
     /// The end of file
     Eof,
 }
+
+impl Token {
+    /// Creates a new lexer token.
+    ///
+    /// # Example
+    /// ```
+    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// let tok: Token = Token::new(TokenKind::Eof, pos);
+    /// ```
+    pub fn new(kind: TokenKind, pos: FilePosition) -> Self {
+        Self { kind, pos }
+    }
+}

@@ -50,6 +50,21 @@ impl FilePosition {
         }
     }
 
+    /// Adds 1 to the current line counter and resets the column counter for the given line.
+    ///
+    /// # Example
+    /// ```
+    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// pos.new_line();
+    ///
+    /// assert!(pos2.line == 2);
+    /// assert!(pos.column == 0);
+    /// ```
+    #[inline]
+    pub fn new_line(&mut self) {
+        self.line += 1;
+    }
+
     /// Clones the current `FilePosition` and adds the given amount of column to the column counter.
     /// This doesn't handle line breaks over the actual file
     ///
