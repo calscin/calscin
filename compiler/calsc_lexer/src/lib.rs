@@ -12,12 +12,14 @@ use crate::toks::{Token, TokenKind};
 pub mod toks;
 
 /// Converts raw texts into lexer tokens.
-/// # Example
+/// # Examples
 /// ```
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_lexer::toks::Token;
 ///
 /// let tokens: Vec<Token> = lexer_tokenize("3.14", "test.cl".to_string());
+/// assert!(tokens[0].is_float_lit());
+///
 /// ```
 pub fn lexer_tokenize(content: &str, file_path: String) -> Vec<Token> {
     let mut tokens = vec![];

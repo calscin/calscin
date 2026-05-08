@@ -130,4 +130,90 @@ impl Token {
     pub fn new(kind: TokenKind, pos: FilePosition) -> Self {
         Self { kind, pos }
     }
+
+    /// Checks if the token is a keyword.
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::toks::{TokenKind, Token};
+    /// use calsc_utils::pos::FilePosition;
+    /// use std::path::PathBuf;
+    ///
+    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// let tok: Token = Token::new(TokenKind::Keyword("test".to_string()), pos);
+    ///
+    /// assert!(tok.is_keyword());
+    /// assert!(!tok.is_string_lit());
+    ///
+    /// ```
+    pub fn is_keyword(&self) -> bool {
+        match self.kind {
+            TokenKind::Keyword(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Checks if the token is a string literal.
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::toks::{TokenKind, Token};
+    /// use calsc_utils::pos::FilePosition;
+    /// use std::path::PathBuf;
+    ///
+    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// let tok: Token = Token::new(TokenKind::StringLiteral("test".to_string()), pos);
+    ///
+    /// assert!(tok.is_string_lit());
+    /// assert!(!tok.is_keyword());
+    ///
+    /// ```
+    pub fn is_string_lit(&self) -> bool {
+        match self.kind {
+            TokenKind::StringLiteral(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Checks if the token is a int literal.
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::toks::{TokenKind, Token};
+    /// use calsc_utils::pos::FilePosition;
+    /// use std::path::PathBuf;
+    ///
+    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// let tok: Token = Token::new(TokenKind::IntLiteral(123), pos);
+    ///
+    /// assert!(tok.is_int_lit());
+    /// assert!(!tok.is_float_lit());
+    ///
+    pub fn is_int_lit(&self) -> bool {
+        match self.kind {
+            TokenKind::IntLiteral(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Checks if the token is a int literal.
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::toks::{TokenKind, Token};
+    /// use calsc_utils::pos::FilePosition;
+    /// use std::path::PathBuf;
+    ///
+    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// let tok: Token = Token::new(TokenKind::FloatLiteral(123.0), pos);
+    ///
+    /// assert!(tok.is_float_lit());
+    /// assert!(!tok.is_int_lit());
+    ///
+    pub fn is_float_lit(&self) -> bool {
+        match self.kind {
+            TokenKind::FloatLiteral(_) => true,
+            _ => false,
+        }
+    }
 }
