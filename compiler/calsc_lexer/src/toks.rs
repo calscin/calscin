@@ -1,3 +1,14 @@
+//! Lexer token related definitions.
+
+/// A parsed token by the lexer.
+/// Contains the kind of token as well as the data such as literal values.
+/// Also contains a position of where the token starts and ends
+pub struct Token {
+    pub kind: TokenKind,
+    // TODO: add position
+}
+
+/// Enum representing common lexer token kinds.
 pub enum TokenKind {
     /// ;
     SemiColon,

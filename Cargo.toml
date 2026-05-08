@@ -1,2 +1,2 @@
 [workspace]
-members = ["compiler/calsc_lexer"]
+members = ["compiler/calsc_lexer", "compiler/calsc_utils"]
