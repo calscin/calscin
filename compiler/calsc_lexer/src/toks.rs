@@ -223,6 +223,28 @@ impl Token {
         }
     }
 
+    /// Checks if the token is a char literal.
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::toks::{TokenKind, Token};
+    /// use calsc_utils::pos::FilePosition;
+    /// use std::path::PathBuf;
+    ///
+    /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// let tok: Token = Token::new(TokenKind::Char('e'), pos.clone(), pos);
+    ///
+    /// assert!(tok.is_char_lit());
+    /// assert!(!tok.is_keyword());
+    ///
+    /// ```
+    pub fn is_char_lit(&self) -> bool {
+        match self.kind {
+            TokenKind::CharLiteral(_) => true,
+            _ => false,
+        }
+    }
+
     /// Checks if the token is a int literal.
     ///
     /// # Example

@@ -48,6 +48,10 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
             tokens.push(parse_string_token(content, &mut i, &pos)?);
         }
 
+        if c == '\'' {
+            tokens.push(parse_char_token(content, &mut i, &pos)?);
+        }
+
         if c.is_numeric() {
             tokens.push(parse_number_token(content, &mut i, &pos)?);
         }
@@ -120,6 +124,7 @@ pub fn parse_number_token(
     }
 }
 
+/// Parses the raw text at the given position in the given string as a string literal.
 pub fn parse_string_token(
     content: &str,
     ind: &mut usize,
@@ -128,6 +133,7 @@ pub fn parse_string_token(
     *ind += 1; // Increment to skip the first " 
 
     let start = *ind;
+    let mut closed = false;
 
     while *ind < content.len() {
         let c = match content.chars().nth(*ind) {
@@ -136,10 +142,15 @@ pub fn parse_string_token(
         };
 
         if c == '"' {
+            closed = true;
             break;
         }
 
         *ind += 1;
+    }
+
+    if !closed {
+        panic!("Couldn't parse string token");
     }
 
     let end = *ind;
@@ -151,6 +162,53 @@ pub fn parse_string_token(
 
     Ok(Token::new(
         TokenKind::StringLiteral(slice),
+        start_pos.clone(),
+        end_pos,
+    ))
+}
+
+pub fn parse_char_token(
+    content: &str,
+    ind: &mut usize,
+    start_pos: &FilePosition,
+) -> DiagResult<Token> {
+    *ind += 1;
+
+    let start = *ind;
+    let mut closed = false;
+
+    while *ind < content.len() {
+        let c = match content.chars().nth(*ind) {
+            Some(v) => v,
+            None => break,
+        };
+
+        if c == '\'' {
+            closed = true;
+            break;
+        }
+
+        *ind += 1;
+    }
+
+    if !closed {
+        panic!("Couldn't parse char lit");
+    }
+
+    let end = *ind;
+    let end_pos = start_pos.step_col(end - start);
+
+    let slice = &content[start..end];
+
+    *ind += 1; // Increment to increment i post function usage
+
+    let lit: char = match slice.parse() {
+        Ok(v) => v,
+        Err(_) => panic!("Couldn't parse char lit"),
+    };
+
+    Ok(Token::new(
+        TokenKind::CharLiteral(lit),
         start_pos.clone(),
         end_pos,
     ))
