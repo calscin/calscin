@@ -1,5 +1,9 @@
 //! Lexer token related definitions.
 
+use calsc_diagnostics::{
+    Diagnostic, DiagnosticCode, DiagnosticSource,
+    span::{Span, SpanKind},
+};
 use calsc_utils::pos::FilePosition;
 
 /// A parsed token by the lexer.
@@ -11,6 +15,7 @@ pub struct Token {
 
     /// The position of the token inside of the file
     pub pos: FilePosition,
+    pub size: usize,
 }
 
 /// Enum representing common lexer token kinds.
@@ -166,10 +171,10 @@ impl Token {
     /// use std::path::PathBuf;
     ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
-    /// let tok: Token = Token::new(TokenKind::Eof, pos);
+    /// let tok: Token = Token::new(TokenKind::Eof, pos, 0);
     /// ```
-    pub fn new(kind: TokenKind, pos: FilePosition) -> Self {
-        Self { kind, pos }
+    pub fn new(kind: TokenKind, pos: FilePosition, size: usize) -> Self {
+        Self { kind, pos, size }
     }
 
     /// Checks if the token is a keyword.
@@ -256,6 +261,39 @@ impl Token {
             TokenKind::FloatLiteral(_) => true,
             _ => false,
         }
+    }
+}
+
+impl DiagnosticSource for Token {
+    fn get_start_pos(&self) -> FilePosition {
+        self.pos.clone()
+    }
+
+    fn get_end_pos(&self) -> FilePosition {
+        self.pos.step_col(self.size)
+    }
+
+    fn make_span(&self, kind: SpanKind, msg: Option<String>) -> Span {
+        Span::new(kind, self.get_start_pos(), self.get_end_pos(), msg)
+    }
+
+    fn make_diagnostic_simple(
+        &self,
+        code: DiagnosticCode,
+        message: String,
+        primary_span_msg: Option<String>,
+        spans: Vec<Span>,
+        notes: Vec<String>,
+        helps: Vec<String>,
+    ) -> Diagnostic {
+        Diagnostic::new(
+            code,
+            message,
+            self.make_span(SpanKind::Primary, primary_span_msg),
+            spans,
+            notes,
+            helps,
+        )
     }
 }
 

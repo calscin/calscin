@@ -5,6 +5,7 @@
 
 use std::path::PathBuf;
 
+use calsc_diagnostics::DiagResult;
 use calsc_utils::pos::FilePosition;
 
 use crate::toks::{Token, TokenKind};
@@ -24,7 +25,7 @@ pub mod tests;
 /// assert!(tokens[0].is_float_lit());
 ///
 /// ```
-pub fn lexer_tokenize(content: &str, file_path: String) -> Vec<Token> {
+pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>> {
     let mut tokens = vec![];
 
     let mut i = 0;
@@ -44,16 +45,21 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> Vec<Token> {
         }
 
         if c.is_numeric() {
-            tokens.push(parse_number_token(content, &mut i, &pos));
+            let t = parse_number_token(content, &mut i, &pos)?;
+            pos = t.pos.clone();
         }
     }
 
-    tokens
+    Ok(tokens)
 }
 
 /// Parses the given string at the given position as an number literal token.
 /// The result token can either be a float literal or an integer literal.
-pub fn parse_number_token(content: &str, ind: &mut usize, start_pos: &FilePosition) -> Token {
+pub fn parse_number_token(
+    content: &str,
+    ind: &mut usize,
+    start_pos: &FilePosition,
+) -> DiagResult<Token> {
     let start = *ind;
 
     let mut met_dot = false;
@@ -92,13 +98,13 @@ pub fn parse_number_token(content: &str, ind: &mut usize, start_pos: &FilePositi
             Err(_) => panic!("Cannot parse float literal"),
         };
 
-        Token::new(TokenKind::FloatLiteral(lit), end_pos)
+        Ok(Token::new(TokenKind::FloatLiteral(lit), end_pos))
     } else {
         let lit: i128 = match slice.parse() {
             Ok(v) => v,
             Err(e) => panic!("Cannot parse int literal {}", e),
         };
 
-        Token::new(TokenKind::IntLiteral(lit), end_pos)
+        Ok(Token::new(TokenKind::IntLiteral(lit), end_pos))
     }
 }
