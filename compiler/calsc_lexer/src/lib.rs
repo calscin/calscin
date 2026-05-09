@@ -45,19 +45,65 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
         }
 
         if c == '"' {
-            tokens.push(parse_string_token(content, &mut i, &pos)?);
+            tokens.push(parse_string_token(content, &mut i, &mut pos)?);
+            continue;
         }
 
         if c == '\'' {
-            tokens.push(parse_char_token(content, &mut i, &pos)?);
+            tokens.push(parse_char_token(content, &mut i, &mut pos)?);
+            continue;
         }
 
         if c.is_numeric() {
-            tokens.push(parse_number_token(content, &mut i, &pos)?);
+            tokens.push(parse_number_token(content, &mut i, &mut pos)?);
+            continue;
+        }
+
+        if c.is_alphabetic() {
+            tokens.push(parse_keyword(content, &mut i, &mut pos)?);
+            continue;
         }
     }
 
     Ok(tokens)
+}
+
+pub fn parse_keyword(
+    content: &str,
+    ind: &mut usize,
+    start_pos: &mut FilePosition,
+) -> DiagResult<Token> {
+    let start = *ind;
+
+    while *ind < content.len() {
+        let c = match content.chars().nth(*ind) {
+            Some(v) => v,
+            None => break,
+        };
+
+        if !c.is_alphanumeric() {
+            break;
+        }
+
+        *ind += 1;
+    }
+
+    let end = *ind;
+    let end_pos = FilePosition::step_col(&start_pos, end - start);
+
+    let slice = content[start..end].to_string();
+
+    *ind += 1; // Increment to increment i post function usage
+
+    let res = Ok(Token::new(
+        TokenKind::Keyword(slice),
+        start_pos.clone(),
+        end_pos.clone(),
+    ));
+
+    *start_pos = end_pos.step_col(1);
+
+    res
 }
 
 /// Parses the given string at the given position as an number literal token.
@@ -65,7 +111,7 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
 pub fn parse_number_token(
     content: &str,
     ind: &mut usize,
-    start_pos: &FilePosition,
+    start_pos: &mut FilePosition,
 ) -> DiagResult<Token> {
     let start = *ind;
 
@@ -116,11 +162,15 @@ pub fn parse_number_token(
             Err(e) => panic!("Cannot parse int literal {}", e),
         };
 
-        Ok(Token::new(
+        let res = Ok(Token::new(
             TokenKind::IntLiteral(lit),
             start_pos.clone(),
-            end_pos,
-        ))
+            end_pos.clone(),
+        ));
+
+        *start_pos = end_pos.step_col(1);
+
+        res
     }
 }
 
@@ -128,7 +178,7 @@ pub fn parse_number_token(
 pub fn parse_string_token(
     content: &str,
     ind: &mut usize,
-    start_pos: &FilePosition,
+    start_pos: &mut FilePosition,
 ) -> DiagResult<Token> {
     *ind += 1; // Increment to skip the first " 
 
@@ -160,17 +210,21 @@ pub fn parse_string_token(
 
     *ind += 1; // Increment to increment i post function usage
 
-    Ok(Token::new(
+    let res = Ok(Token::new(
         TokenKind::StringLiteral(slice),
         start_pos.clone(),
-        end_pos,
-    ))
+        end_pos.clone(),
+    ));
+
+    *start_pos = end_pos.step_col(1);
+
+    res
 }
 
 pub fn parse_char_token(
     content: &str,
     ind: &mut usize,
-    start_pos: &FilePosition,
+    start_pos: &mut FilePosition,
 ) -> DiagResult<Token> {
     *ind += 1;
 
@@ -207,9 +261,13 @@ pub fn parse_char_token(
         Err(_) => panic!("Couldn't parse char lit"),
     };
 
-    Ok(Token::new(
+    let res = Ok(Token::new(
         TokenKind::CharLiteral(lit),
         start_pos.clone(),
-        end_pos,
-    ))
+        end_pos.clone(),
+    ));
+
+    *start_pos = end_pos.step_col(1);
+
+    res
 }

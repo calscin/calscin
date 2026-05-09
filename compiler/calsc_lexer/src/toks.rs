@@ -60,6 +60,9 @@ pub enum TokenKind {
     /// `decl`
     Decl,
 
+    /// `return`
+    Return,
+
     /// ;
     SemiColon,
 
@@ -140,9 +143,6 @@ pub enum TokenKind {
 
     /// \n
     Newline,
-
-    /// // Comment
-    LineComment,
 
     /// A keyword literal (eg: `myTestKeyword`)
     Keyword(String),
