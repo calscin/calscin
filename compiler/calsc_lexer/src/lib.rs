@@ -45,8 +45,7 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
         }
 
         if c.is_numeric() {
-            let t = parse_number_token(content, &mut i, &pos)?;
-            pos = t.pos.clone();
+            tokens.push(parse_number_token(content, &mut i, &pos)?);
         }
     }
 
@@ -98,13 +97,21 @@ pub fn parse_number_token(
             Err(_) => panic!("Cannot parse float literal"),
         };
 
-        Ok(Token::new(TokenKind::FloatLiteral(lit), end_pos))
+        Ok(Token::new(
+            TokenKind::FloatLiteral(lit),
+            start_pos.clone(),
+            end_pos,
+        ))
     } else {
         let lit: i128 = match slice.parse() {
             Ok(v) => v,
             Err(e) => panic!("Cannot parse int literal {}", e),
         };
 
-        Ok(Token::new(TokenKind::IntLiteral(lit), end_pos))
+        Ok(Token::new(
+            TokenKind::IntLiteral(lit),
+            start_pos.clone(),
+            end_pos,
+        ))
     }
 }

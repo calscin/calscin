@@ -13,9 +13,11 @@ pub struct Token {
     /// The kind of token. Holds the data such as literal values and the overall type of token
     pub kind: TokenKind,
 
-    /// The position of the token inside of the file
-    pub pos: FilePosition,
-    pub size: usize,
+    /// The start position of the token inside of the file
+    pub start: FilePosition,
+
+    /// The end position of the token inside of the file
+    pub end: FilePosition,
 }
 
 /// Enum representing common lexer token kinds.
@@ -171,10 +173,10 @@ impl Token {
     /// use std::path::PathBuf;
     ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
-    /// let tok: Token = Token::new(TokenKind::Eof, pos, 0);
+    /// let tok: Token = Token::new(TokenKind::Eof, pos.clone(), pos);
     /// ```
-    pub fn new(kind: TokenKind, pos: FilePosition, size: usize) -> Self {
-        Self { kind, pos, size }
+    pub fn new(kind: TokenKind, start: FilePosition, end: FilePosition) -> Self {
+        Self { kind, start, end }
     }
 
     /// Checks if the token is a keyword.
@@ -186,7 +188,7 @@ impl Token {
     /// use std::path::PathBuf;
     ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
-    /// let tok: Token = Token::new(TokenKind::Keyword("test".to_string()), pos);
+    /// let tok: Token = Token::new(TokenKind::Keyword("test".to_string()), pos.clone(), pos);
     ///
     /// assert!(tok.is_keyword());
     /// assert!(!tok.is_string_lit());
@@ -208,7 +210,7 @@ impl Token {
     /// use std::path::PathBuf;
     ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
-    /// let tok: Token = Token::new(TokenKind::StringLiteral("test".to_string()), pos);
+    /// let tok: Token = Token::new(TokenKind::StringLiteral("test".to_string()), pos.clone(), pos);
     ///
     /// assert!(tok.is_string_lit());
     /// assert!(!tok.is_keyword());
@@ -230,7 +232,7 @@ impl Token {
     /// use std::path::PathBuf;
     ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
-    /// let tok: Token = Token::new(TokenKind::IntLiteral(123), pos);
+    /// let tok: Token = Token::new(TokenKind::IntLiteral(123), pos.clone(), pos);
     ///
     /// assert!(tok.is_int_lit());
     /// assert!(!tok.is_float_lit());
@@ -251,7 +253,7 @@ impl Token {
     /// use std::path::PathBuf;
     ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
-    /// let tok: Token = Token::new(TokenKind::FloatLiteral(123.0), pos);
+    /// let tok: Token = Token::new(TokenKind::FloatLiteral(123.0), pos.clone(), pos);
     ///
     /// assert!(tok.is_float_lit());
     /// assert!(!tok.is_int_lit());
@@ -266,11 +268,11 @@ impl Token {
 
 impl DiagnosticSource for Token {
     fn get_start_pos(&self) -> FilePosition {
-        self.pos.clone()
+        self.start.clone()
     }
 
     fn get_end_pos(&self) -> FilePosition {
-        self.pos.step_col(self.size)
+        self.end.clone()
     }
 
     fn make_span(&self, kind: SpanKind, msg: Option<String>) -> Span {
