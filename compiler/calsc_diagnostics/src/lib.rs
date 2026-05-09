@@ -16,6 +16,12 @@ pub mod container;
 pub mod fmt;
 pub mod span;
 
+/// Represents a `Result` type with a diagnostic as the error type. The error type is intentionally `()` in order to handle diagnostics better and make them compound.
+pub type DiagResult<K> = Result<K, ()>;
+
+/// Represents a `DiagResult` that doesn't hold any value and merely represents potentially a diagnostic as an error.
+pub type DiagPossible = DiagResult<()>;
+
 /// Represents a source of diagnostics. A source of diagnostics should be able to do the following:
 /// - Create a span
 /// - Create a diagnostic
