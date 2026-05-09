@@ -5,13 +5,14 @@
 #[cfg(feature = "backtraces")]
 use std::backtrace::Backtrace;
 
-use crate::span::Span;
+use crate::{container::push_diagnostic, span::Span};
 
+pub mod container;
 pub mod fmt;
 pub mod span;
 
 /// The level of diagnostics. Represents the type of diagnostic (eg: error, warning or information).
-#[derive(Clone)]
+#[derive(Clone, PartialEq)]
 pub enum Level {
     Error,
     Warning,
@@ -127,6 +128,8 @@ impl Diagnostic {
                 backtrace: format!("{}", Backtrace::capture()),
             };
         }
+
+        push_diagnostic(d.clone());
 
         d
     }
