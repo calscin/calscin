@@ -44,6 +44,10 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
             continue;
         }
 
+        if c == '"' {
+            tokens.push(parse_string_token(content, &mut i, &pos)?);
+        }
+
         if c.is_numeric() {
             tokens.push(parse_number_token(content, &mut i, &pos)?);
         }
@@ -114,4 +118,40 @@ pub fn parse_number_token(
             end_pos,
         ))
     }
+}
+
+pub fn parse_string_token(
+    content: &str,
+    ind: &mut usize,
+    start_pos: &FilePosition,
+) -> DiagResult<Token> {
+    *ind += 1; // Increment to skip the first " 
+
+    let start = *ind;
+
+    while *ind < content.len() {
+        let c = match content.chars().nth(*ind) {
+            Some(v) => v,
+            None => break,
+        };
+
+        if c == '"' {
+            break;
+        }
+
+        *ind += 1;
+    }
+
+    let end = *ind;
+    let end_pos = start_pos.step_col(end - start);
+
+    let slice = content[start..end].to_string();
+
+    *ind += 1; // Increment to increment i post function usage
+
+    Ok(Token::new(
+        TokenKind::StringLiteral(slice),
+        start_pos.clone(),
+        end_pos,
+    ))
 }
