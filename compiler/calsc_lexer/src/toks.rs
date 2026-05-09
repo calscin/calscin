@@ -16,6 +16,43 @@ pub struct Token {
 /// Enum representing common lexer token kinds.
 #[derive(PartialEq, Debug)]
 pub enum TokenKind {
+    // Keywords
+    /// `func`
+    Function,
+
+    /// `true`
+    True,
+
+    /// `false`
+    False,
+
+    /// `if`
+    If,
+
+    /// `else`
+    Else,
+
+    /// `externfunc`
+    ExternFunc,
+
+    /// `use`
+    Use,
+
+    /// `std`
+    Std,
+
+    /// `var`
+    Var,
+
+    /// `mut`
+    Mut,
+
+    /// `struct`
+    Struct,
+
+    /// `decl`
+    Decl,
+
     /// ;
     SemiColon,
 
@@ -105,6 +142,9 @@ pub enum TokenKind {
 
     /// A string literal (eg: `"hello"`)
     StringLiteral(String),
+
+    /// A char literal (eg: `'c'`)
+    CharLiteral(char),
 
     /// An integer literal (eg: `11`)
     IntLiteral(i128),
