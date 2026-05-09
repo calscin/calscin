@@ -16,7 +16,12 @@ pub enum Level {
 /// Contains the diagnostic level and a code representing the diagnostic.
 ///
 /// # Example
+/// ```
+/// use calsc_diagnostics::{Level, DiagnosticCode};
 ///
+/// // Represents the diagnostic "E123"
+/// let code: DiagnosticCode = DiagnosticCode::new(Level::Error, 123);
+/// ```
 pub struct DiagnosticCode {
     pub level: Level,
     pub code: usize,
