@@ -6,14 +6,29 @@
 use std::path::PathBuf;
 
 use calsc_diagnostics::DiagResult;
-use calsc_utils::pos::FilePosition;
+use calsc_utils::{fnvhash, pos::FilePosition};
 
 use crate::toks::{Token, TokenKind};
 
-pub mod toks;
-
 #[cfg(test)]
 pub mod tests;
+
+pub mod toks;
+
+pub const FUNCTION_HASH: u64 = fnvhash!("func");
+pub const TRUE_HASH: u64 = fnvhash!("true");
+pub const FALSE_HASH: u64 = fnvhash!("false");
+pub const IF_HASH: u64 = fnvhash!("if");
+pub const ELSE_HASH: u64 = fnvhash!("else");
+pub const EXTERNFUNC_HASH: u64 = fnvhash!("externfunc");
+pub const USE_HASH: u64 = fnvhash!("use");
+pub const STD_HASH: u64 = fnvhash!("std");
+pub const VAR_HASH: u64 = fnvhash!("var");
+pub const MUT_HASH: u64 = fnvhash!("mut");
+pub const STRUCT_HASH: u64 = fnvhash!("struct");
+pub const DECL_HASH: u64 = fnvhash!("decl");
+pub const RETURN_HASH: u64 = fnvhash!("return");
+pub const FOR_HASH: u64 = fnvhash!("for");
 
 /// Converts raw texts into lexer tokens.
 /// # Examples
@@ -132,13 +147,27 @@ pub fn parse_keyword(
 
     let slice = content[start..end].to_string();
 
+    let kind = match fnvhash!(slice) {
+        FUNCTION_HASH => TokenKind::Function,
+        TRUE_HASH => TokenKind::True,
+        FALSE_HASH => TokenKind::False,
+        IF_HASH => TokenKind::If,
+        ELSE_HASH => TokenKind::Else,
+        EXTERNFUNC_HASH => TokenKind::ExternFunc,
+        USE_HASH => TokenKind::Use,
+        STD_HASH => TokenKind::Std,
+        VAR_HASH => TokenKind::Var,
+        MUT_HASH => TokenKind::Mut,
+        STRUCT_HASH => TokenKind::Struct,
+        DECL_HASH => TokenKind::Decl,
+        RETURN_HASH => TokenKind::Return,
+        FOR_HASH => TokenKind::For,
+        _ => TokenKind::Keyword(slice),
+    };
+
     *ind += 1; // Increment to increment i post function usage
 
-    let res = Ok(Token::new(
-        TokenKind::Keyword(slice),
-        start_pos.clone(),
-        end_pos.clone(),
-    ));
+    let res = Ok(Token::new(kind, start_pos.clone(), end_pos.clone()));
 
     *start_pos = end_pos.step_col(1);
 

@@ -63,6 +63,9 @@ pub enum TokenKind {
     /// `return`
     Return,
 
+    /// `for`
+    For,
+
     /// ;
     SemiColon,
 
