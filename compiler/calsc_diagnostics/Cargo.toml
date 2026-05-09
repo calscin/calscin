@@ -1,0 +1,8 @@
+[package]
+name = "calsc_diagnostics"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+colored = "3.1.1"
+calsc_utils = { path = "../calsc_utils" }
