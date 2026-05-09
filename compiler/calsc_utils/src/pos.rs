@@ -1,6 +1,6 @@
 //! Utilities related to position
 
-use std::path::PathBuf;
+use std::{fmt::Display, path::PathBuf};
 
 /// A position within a file.
 /// Is used to generate errors with positions
@@ -95,5 +95,17 @@ impl FilePosition {
             line: self.line,
             column: self.column + gain_column,
         }
+    }
+}
+
+impl Display for FilePosition {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(
+            f,
+            "{}:{}:{}",
+            self.file_path.to_string_lossy(),
+            self.line,
+            self.column
+        )
     }
 }

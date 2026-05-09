@@ -5,11 +5,46 @@
 #[cfg(feature = "backtraces")]
 use std::backtrace::Backtrace;
 
-use crate::{container::push_diagnostic, span::Span};
+use calsc_utils::pos::FilePosition;
+
+use crate::{
+    container::push_diagnostic,
+    span::{Span, SpanKind},
+};
 
 pub mod container;
 pub mod fmt;
 pub mod span;
+
+/// Represents a source of diagnostics. A source of diagnostics should be able to do the following:
+/// - Create a span
+/// - Create a diagnostic
+/// - Have a start position
+/// - Have an ending position
+///
+/// This trait ensures that the given source follows these conditions
+pub trait DiagnosticSource {
+    /// Makes a span based on the source's position with the given kind and the given message
+    fn make_span(&self, kind: SpanKind, msg: Option<String>) -> Span;
+
+    /// Makes a simple diagnostic with the primary span at the source's position with the given code, message,
+    /// primary span message, additional spans, notes and help messages
+    fn make_diagnostic_simple(
+        &self,
+        code: DiagnosticCode,
+        message: String,
+        primary_span_msg: Option<String>,
+        spans: Vec<Span>,
+        notes: Vec<String>,
+        helps: Vec<String>,
+    ) -> Diagnostic;
+
+    /// Gets the source's start position
+    fn get_start_pos(&self) -> FilePosition;
+
+    /// Get's the source ending position
+    fn get_end_pos(&self) -> FilePosition;
+}
 
 /// The level of diagnostics. Represents the type of diagnostic (eg: error, warning or information).
 #[derive(Clone, PartialEq)]

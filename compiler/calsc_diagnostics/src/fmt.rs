@@ -6,7 +6,7 @@ use calsc_utils::{
 };
 use colored::Colorize;
 
-use crate::{DiagnosticCode, Level, span::Span};
+use crate::{Diagnostic, DiagnosticCode, Level, span::Span};
 
 impl Display for Span {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -71,5 +71,50 @@ impl Display for DiagnosticCode {
         str = str.bold();
 
         write!(f, "{}", str)
+    }
+}
+
+impl Display for Diagnostic {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "[{}]: {}", self.code, self.message)?;
+
+        writeln!(
+            f,
+            "  {} {}",
+            "-->".bright_magenta(),
+            self.primary_span.start
+        )?;
+        writeln!(f, "   {}", "|".bright_magenta())?;
+
+        write!(f, "{}", self.primary_span)?;
+
+        for span in &self.spans {
+            writeln!(f, "{}", span)?;
+        }
+
+        writeln!(f, "   {}", "|".bright_magenta())?;
+
+        let mut ind = 0;
+        for note in &self.notes {
+            writeln!(f, "   {} {}: {}", "=".bright_blue(), "note".bold(), note)?;
+            writeln!(
+                f,
+                "   {} {}: {}",
+                "=".bright_blue(),
+                "help".bold(),
+                self.helps[ind]
+            )?;
+            write!(f, "   {}", "|".bright_magenta())?;
+
+            ind += 1;
+        }
+
+        #[cfg(feature = "backtraces")]
+        {
+            writeln!(f, "Captured in:")?;
+            writeln!(f, "{}", self.backtrace)?;
+        }
+
+        Ok(())
     }
 }
