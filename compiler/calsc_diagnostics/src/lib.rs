@@ -11,6 +11,7 @@ pub mod fmt;
 pub mod span;
 
 /// The level of diagnostics. Represents the type of diagnostic (eg: error, warning or information).
+#[derive(Clone)]
 pub enum Level {
     Error,
     Warning,
@@ -27,6 +28,7 @@ pub enum Level {
 /// // Represents the diagnostic "E123"
 /// let code: DiagnosticCode = DiagnosticCode::new(Level::Error, 123);
 /// ```
+#[derive(Clone)]
 pub struct DiagnosticCode {
     pub level: Level,
     pub code: usize,
@@ -35,6 +37,7 @@ pub struct DiagnosticCode {
 /// Represents a diagnostic inside of the diagnostic system. Can be directly used with a formatter to get the display version of the Diagnostic.
 /// Contains the diagnostic code, the message of the diagnostic, the spans, info messages and help messages.
 /// Also potentially holds a backtrace if the `backtrace` feature is enabled
+#[derive(Clone)]
 pub struct Diagnostic {
     /// The warning / error code of the diagnostic
     pub code: DiagnosticCode,
@@ -52,7 +55,7 @@ pub struct Diagnostic {
     pub helps: Vec<String>,
 
     #[cfg(feature = "backtraces")]
-    pub backtrace: Backtrace,
+    pub backtrace: String,
 }
 
 impl DiagnosticCode {
@@ -121,7 +124,7 @@ impl Diagnostic {
                 spans,
                 notes,
                 helps,
-                backtrace: Backtrace::capture(),
+                backtrace: format!("{}", Backtrace::capture()),
             };
         }
 

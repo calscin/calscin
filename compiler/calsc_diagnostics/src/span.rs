@@ -5,6 +5,7 @@ use calsc_utils::pos::FilePosition;
 
 /// Struct representing a span.
 /// Holds a position, a label and a span kind.
+#[derive(Clone)]
 pub struct Span {
     pub start: FilePosition,
     pub end: FilePosition,
@@ -14,6 +15,7 @@ pub struct Span {
 }
 
 /// The kind of `Span`. Can be either a primary span or a secondary span.
+#[derive(Clone)]
 pub enum SpanKind {
     Primary,
     Secondary,
