@@ -9,6 +9,7 @@ use calsc_diagnostics::DiagResult;
 use calsc_utils::{fnvhash, pos::FilePosition};
 
 use crate::toks::{Token, TokenKind};
+use calsc_utils::hash::hash_fnv_1a;
 
 #[cfg(test)]
 pub mod tests;
@@ -147,7 +148,7 @@ pub fn parse_keyword(
 
     let slice = content[start..end].to_string();
 
-    let kind = match fnvhash!(slice) {
+    let kind = match fnvhash!(&slice) {
         FUNCTION_HASH => TokenKind::Function,
         TRUE_HASH => TokenKind::True,
         FALSE_HASH => TokenKind::False,
