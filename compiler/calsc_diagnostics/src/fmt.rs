@@ -6,7 +6,7 @@ use calsc_utils::{
 };
 use colored::Colorize;
 
-use crate::span::Span;
+use crate::{DiagnosticCode, Level, span::Span};
 
 impl Display for Span {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -48,5 +48,28 @@ impl Display for Span {
         }
 
         Ok(())
+    }
+}
+
+impl Display for DiagnosticCode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut str = match self.level {
+            Level::Error => "E",
+            Level::Warning => "W",
+            Level::Info => "I",
+        }
+        .to_string();
+
+        str.push_str(&format!("{}", self.code));
+
+        let mut str = match self.level {
+            Level::Error => str.red(),
+            Level::Warning => str.bright_yellow(),
+            Level::Info => str.bright_purple(),
+        };
+
+        str = str.bold();
+
+        write!(f, "{}", str)
     }
 }
