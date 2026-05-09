@@ -161,6 +161,9 @@ pub enum TokenKind {
 
     /// The end of file
     Eof,
+
+    /// An unknown token type
+    Unknown,
 }
 
 impl Token {

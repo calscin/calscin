@@ -63,6 +63,45 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
             tokens.push(parse_keyword(content, &mut i, &mut pos)?);
             continue;
         }
+
+        let kind = match c {
+            ';' => TokenKind::SemiColon,
+            ',' => TokenKind::Comma,
+            '.' => TokenKind::Dot,
+            '(' => TokenKind::ParenOpen,
+            ')' => TokenKind::ParenClose,
+            '{' => TokenKind::BraceOpen,
+            '}' => TokenKind::BraceClose,
+            '[' => TokenKind::BracketOpen,
+            ']' => TokenKind::BracketClose,
+            '@' => TokenKind::At,
+            '#' => TokenKind::Pound,
+            '~' => TokenKind::Tilde,
+            '?' => TokenKind::Question,
+            ':' => TokenKind::Colon,
+            '!' => TokenKind::Bang,
+            '<' => TokenKind::AngelBracketOpen,
+            '>' => TokenKind::AngelBracketClose,
+            '-' => TokenKind::Minus,
+            '&' => TokenKind::And,
+            '|' => TokenKind::Or,
+            '+' => TokenKind::Plus,
+            '*' => TokenKind::Star,
+            '/' => TokenKind::Slash,
+            '\\' => TokenKind::BackSlash,
+            '^' => TokenKind::Caret,
+            '%' => TokenKind::Percent,
+            '\n' => TokenKind::Newline,
+            _ => TokenKind::Unknown,
+        };
+
+        let end_pos = pos.step_col(1);
+        let token = Token::new(kind, pos.clone(), end_pos.clone());
+
+        tokens.push(token);
+        i += 1;
+
+        pos = end_pos;
     }
 
     Ok(tokens)
