@@ -65,7 +65,7 @@ impl Display for DiagnosticCode {
         let mut str = match self.level {
             Level::Error => str.red(),
             Level::Warning => str.bright_yellow(),
-            Level::Info => str.bright_purple(),
+            Level::Info => str.bright_green(),
         };
 
         str = str.bold();
