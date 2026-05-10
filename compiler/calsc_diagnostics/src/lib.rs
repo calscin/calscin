@@ -190,6 +190,7 @@ impl PosDiagnosticSource {
     /// ```
     /// use std::path::PathBuf;
     /// use calsc_utils::pos::FilePosition;
+    /// use calsc_diagnostics::PosDiagnosticSource;
     ///
     /// let start: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
     /// let end: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 35);
