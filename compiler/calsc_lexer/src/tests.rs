@@ -40,3 +40,10 @@ fn parse_hashed_keyword_token() {
 
     assert!(tokens[0].kind == TokenKind::Function);
 }
+
+#[test]
+fn parse_broken_float_literal_token() {
+    let tokens = lexer_tokenize("1.2.3.54", "test".to_string());
+
+    assert!(tokens.is_err());
+}

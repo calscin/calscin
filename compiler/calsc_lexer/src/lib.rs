@@ -198,7 +198,12 @@ pub fn parse_number_token(
 
         if c == '.' {
             if met_dot {
-                break;
+                let end = *ind;
+                let end_pos = FilePosition::step_col(&start_pos, end - start);
+
+                let source = PosDiagnosticSource::new(start_pos.clone(), end_pos);
+
+                return Err(build_cannot_parse_error(&"float literal".to_string(), &source).into());
             }
 
             met_dot = true;
