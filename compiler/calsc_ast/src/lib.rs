@@ -1,3 +1,6 @@
 //! The main AST declarations of Calscin. AST is used to lower the lexer tokens into parsed structures.
 
 pub mod nodes;
+
+#[cfg(feature = "parser")]
+pub mod parser;
