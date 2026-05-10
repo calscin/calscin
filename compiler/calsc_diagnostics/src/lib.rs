@@ -234,3 +234,7 @@ impl DiagnosticSource for PosDiagnosticSource {
         )
     }
 }
+
+impl Into<()> for Diagnostic {
+    fn into(self) -> () {}
+}

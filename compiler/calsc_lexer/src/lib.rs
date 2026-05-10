@@ -5,7 +5,7 @@
 
 use std::path::PathBuf;
 
-use calsc_diagnostics::{DiagResult, diags::errors::build_cannot_parse_error};
+use calsc_diagnostics::{DiagResult, PosDiagnosticSource, diags::errors::build_cannot_parse_error};
 use calsc_utils::{fnvhash, pos::FilePosition};
 
 use crate::toks::{Token, TokenKind};
@@ -210,6 +210,8 @@ pub fn parse_number_token(
     let end = *ind;
     let end_pos = FilePosition::step_col(&start_pos, end - start);
 
+    let source = PosDiagnosticSource::new(start_pos.clone(), end_pos.clone());
+
     let slice = content[start..end].to_string();
 
     *ind += 1; // Increment to increment i post function usage
@@ -217,7 +219,9 @@ pub fn parse_number_token(
     if met_dot {
         let lit: f64 = match slice.parse() {
             Ok(v) => v,
-            Err(_) => return Err(build_cannot_parse_error("float literal", source)),
+            Err(_) => {
+                return Err(build_cannot_parse_error(&"float literal".to_string(), &source).into());
+            }
         };
 
         Ok(Token::new(
@@ -228,7 +232,9 @@ pub fn parse_number_token(
     } else {
         let lit: i128 = match slice.parse() {
             Ok(v) => v,
-            Err(e) => panic!("Cannot parse int literal {}", e),
+            Err(_) => {
+                return Err(build_cannot_parse_error(&"int literal".to_string(), &source).into());
+            }
         };
 
         let res = Ok(Token::new(
@@ -268,12 +274,16 @@ pub fn parse_string_token(
         *ind += 1;
     }
 
-    if !closed {
-        panic!("Couldn't parse string token");
-    }
-
     let end = *ind;
     let end_pos = start_pos.step_col(end - start);
+
+    if !closed {
+        return Err(build_cannot_parse_error(
+            &"string literal".to_string(),
+            &PosDiagnosticSource::new(start_pos.clone(), end_pos.clone()),
+        )
+        .into());
+    }
 
     let slice = content[start..end].to_string();
 
@@ -314,12 +324,14 @@ pub fn parse_char_token(
         *ind += 1;
     }
 
-    if !closed {
-        panic!("Couldn't parse char lit");
-    }
-
     let end = *ind;
     let end_pos = start_pos.step_col(end - start);
+
+    let source = PosDiagnosticSource::new(start_pos.clone(), end_pos.clone());
+
+    if !closed {
+        return Err(build_cannot_parse_error(&"char literal".to_string(), &source).into());
+    }
 
     let slice = &content[start..end];
 
@@ -327,7 +339,9 @@ pub fn parse_char_token(
 
     let lit: char = match slice.parse() {
         Ok(v) => v,
-        Err(_) => panic!("Couldn't parse char lit"),
+        Err(_) => {
+            return Err(build_cannot_parse_error(&"char literal".to_string(), &source).into());
+        }
     };
 
     let res = Ok(Token::new(
