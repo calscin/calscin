@@ -7,6 +7,7 @@ use calsc_diagnostics::{
 use calsc_utils::pos::FilePosition;
 
 /// The kind of AST tree node. Holds information about the node itself.
+#[derive(Debug, PartialEq)]
 pub enum ASTNodeKind {
     /// An integer literal
     IntLiteral(i128),

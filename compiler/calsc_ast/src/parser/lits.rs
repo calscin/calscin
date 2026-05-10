@@ -5,6 +5,28 @@ use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::nodes::{ASTNode, ASTNodeKind};
 
+/// Parses the lexer literal tokens into AST variants.
+///
+/// # Compatible token types and potentially returns:
+/// - `IntLiteral`
+/// - `FloatLiteral`
+/// - `StringLiteral`
+/// - `CharLiteral`
+///
+/// # Example
+/// ```
+/// use calsc_lexer::lexer_tokenize;
+/// use calsc_ast::parser::lits::parse_ast_literal;
+/// use calsc_ast::nodes::ASTNodeKind;
+///
+/// let mut ind: usize = 0;
+/// let tokens = lexer_tokenize("16", "test".to_string()).unwrap();
+///
+/// let parsed = parse_ast_literal(&tokens, &mut ind).unwrap();
+///
+/// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
+/// ```
+///
 pub fn parse_ast_literal(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
