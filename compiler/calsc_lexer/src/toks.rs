@@ -379,7 +379,7 @@ impl Display for TokenKind {
             Self::BackSlash => "\\",
             Self::Caret => "^",
             Self::Percent => "%",
-            Self::Newline => "\n",
+            Self::Newline => "Newline",
             Self::Keyword(str) => str,
             Self::StringLiteral(str) => str,
             Self::CharLiteral(char) => &format!("{}", char),

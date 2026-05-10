@@ -7,16 +7,19 @@ use crate::nodes::{ASTNode, ASTNodeKind};
 
 /// Parses the lexer literal tokens into AST variants.
 ///
-/// # Compatible token types and potentially returns:
+/// # Accepted token types:
 /// - `IntLiteral`
 /// - `FloatLiteral`
 /// - `StringLiteral`
 /// - `CharLiteral`
 ///
+/// # Panics
+/// This function will panic if tokens with kinds that aren't accepted as being literals are passed
+///
 /// # Example
 /// ```
 /// use calsc_lexer::lexer_tokenize;
-/// use calsc_ast::parser::lits::parse_ast_literal;
+/// use calsc_ast::parser::values::lits::parse_ast_literal;
 /// use calsc_ast::nodes::ASTNodeKind;
 ///
 /// let mut ind: usize = 0;
