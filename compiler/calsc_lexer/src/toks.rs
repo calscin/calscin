@@ -1,5 +1,7 @@
 //! Lexer token related definitions.
 
+use std::fmt::Display;
+
 use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
@@ -333,3 +335,60 @@ impl PartialEq for Token {
     }
 }
 impl Eq for Token {}
+
+impl Display for TokenKind {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Self::Function => "func",
+            Self::True => "true",
+            Self::False => "false",
+            Self::If => "if",
+            Self::Else => "else",
+            Self::For => "for",
+            Self::ExternFunc => "externfunc",
+            Self::Use => "use",
+            Self::Std => "std",
+            Self::Var => "var",
+            Self::Mut => "mut",
+            Self::Struct => "struct",
+            Self::Decl => "decl",
+            Self::Return => "return",
+            Self::SemiColon => ";",
+            Self::Comma => ",",
+            Self::Dot => ".",
+            Self::ParenOpen => "(",
+            Self::ParenClose => ")",
+            Self::BraceOpen => "{",
+            Self::BraceClose => "}",
+            Self::BracketOpen => "[",
+            Self::BracketClose => "]",
+            Self::At => "@",
+            Self::Pound => "#",
+            Self::Tilde => "~",
+            Self::Question => "?",
+            Self::Colon => ":",
+            Self::Bang => "!",
+            Self::AngelBracketOpen => "<",
+            Self::AngelBracketClose => ">",
+            Self::Minus => "-",
+            Self::And => "&",
+            Self::Or => "|",
+            Self::Plus => "+",
+            Self::Star => "*",
+            Self::Slash => "/",
+            Self::BackSlash => "\\",
+            Self::Caret => "^",
+            Self::Percent => "%",
+            Self::Newline => "\n",
+            Self::Keyword(str) => str,
+            Self::StringLiteral(str) => str,
+            Self::CharLiteral(char) => &format!("{}", char),
+            Self::IntLiteral(val) => &format!("{}", val),
+            Self::FloatLiteral(val) => &format!("{}", val),
+            Self::Eof => "",
+            Self::Unknown => "Unknown token",
+        };
+
+        write!(f, "{}", s)
+    }
+}
