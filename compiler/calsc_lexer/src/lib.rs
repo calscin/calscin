@@ -5,7 +5,7 @@
 
 use std::path::PathBuf;
 
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{DiagResult, diags::errors::build_cannot_parse_error};
 use calsc_utils::{fnvhash, pos::FilePosition};
 
 use crate::toks::{Token, TokenKind};
@@ -217,7 +217,7 @@ pub fn parse_number_token(
     if met_dot {
         let lit: f64 = match slice.parse() {
             Ok(v) => v,
-            Err(_) => panic!("Cannot parse float literal"),
+            Err(_) => return Err(build_cannot_parse_error("float literal", source)),
         };
 
         Ok(Token::new(

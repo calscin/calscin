@@ -53,6 +53,13 @@ pub trait DiagnosticSource {
     fn get_end_pos(&self) -> FilePosition;
 }
 
+/// An implementation of `DiagnosticSource` that only relies on a start and end position.
+/// Allowing to use diagnostic builders where there isn't really a diagnostic source.
+pub struct PosDiagnosticSource {
+    pub start: FilePosition,
+    pub end: FilePosition,
+}
+
 /// The level of diagnostics. Represents the type of diagnostic (eg: error, warning or information).
 #[derive(Clone, PartialEq)]
 pub enum Level {
@@ -174,5 +181,56 @@ impl Diagnostic {
         push_diagnostic(d.clone());
 
         d
+    }
+}
+
+impl PosDiagnosticSource {
+    /// Create a new position based diagnostic source.
+    /// # Example
+    /// ```
+    /// use std::path::PathBuf;
+    /// use calsc_utils::pos::FilePosition;
+    ///
+    /// let start: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
+    /// let end: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 35);
+    ///
+    /// let source: PosDiagnosticSource = PosDiagnosticSource::new(start, end);
+    ///
+    /// ```
+    pub fn new(start: FilePosition, end: FilePosition) -> Self {
+        Self { start, end }
+    }
+}
+
+impl DiagnosticSource for PosDiagnosticSource {
+    fn get_start_pos(&self) -> FilePosition {
+        self.start.clone()
+    }
+
+    fn get_end_pos(&self) -> FilePosition {
+        self.end.clone()
+    }
+
+    fn make_span(&self, kind: SpanKind, msg: Option<String>) -> Span {
+        Span::new(kind, self.start.clone(), self.end.clone(), msg)
+    }
+
+    fn make_diagnostic_simple(
+        &self,
+        code: DiagnosticCode,
+        message: String,
+        primary_span_msg: Option<String>,
+        spans: Vec<Span>,
+        notes: Vec<String>,
+        helps: Vec<String>,
+    ) -> Diagnostic {
+        Diagnostic::new(
+            code,
+            message,
+            self.make_span(SpanKind::Primary, primary_span_msg),
+            spans,
+            notes,
+            helps,
+        )
     }
 }
