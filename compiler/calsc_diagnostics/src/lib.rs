@@ -13,6 +13,7 @@ use crate::{
 };
 
 pub mod container;
+pub mod diags;
 pub mod fmt;
 pub mod span;
 
