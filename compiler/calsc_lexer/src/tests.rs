@@ -25,3 +25,18 @@ fn parse_int_float_token() {
     assert_eq!(tokens[0].kind, TokenKind::FloatLiteral(1.123));
     assert_eq!(tokens[1].kind, TokenKind::IntLiteral(456));
 }
+
+#[test]
+fn parse_keyword_token() {
+    let tokens = lexer_tokenize("abcdef", "test".to_string()).unwrap();
+
+    assert!(tokens[0].is_keyword());
+    assert_eq!(tokens[0].kind, TokenKind::Keyword("abcdef".to_string()));
+}
+
+#[test]
+fn parse_hashed_keyword_token() {
+    let tokens = lexer_tokenize("func", "test".to_string()).unwrap();
+
+    assert!(tokens[0].kind == TokenKind::Function);
+}

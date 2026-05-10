@@ -238,7 +238,7 @@ impl Token {
     /// use std::path::PathBuf;
     ///
     /// let pos: FilePosition = FilePosition::new(PathBuf::from("./test"), 1, 28);
-    /// let tok: Token = Token::new(TokenKind::Char('e'), pos.clone(), pos);
+    /// let tok: Token = Token::new(TokenKind::CharLiteral('e'), pos.clone(), pos);
     ///
     /// assert!(tok.is_char_lit());
     /// assert!(!tok.is_keyword());
