@@ -3,7 +3,8 @@
 use std::fmt::Display;
 
 use calsc_diagnostics::{
-    Diagnostic, DiagnosticCode, DiagnosticSource,
+    DiagPossible, DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
+    diags::errors::build_expected_error,
     span::{Span, SpanKind},
 };
 use calsc_utils::pos::FilePosition;
@@ -292,6 +293,115 @@ impl Token {
         match self.kind {
             TokenKind::FloatLiteral(_) => true,
             _ => false,
+        }
+    }
+
+    /// Enforces that the given token is of a given kind.
+    ///
+    /// # Errors
+    /// **This function will throw an error if the token is not of the given kind**.
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::lexer_tokenize;
+    /// use calsc_lexer::toks::{Token, TokenKind};
+    ///
+    /// let tokens: Vec<Token> = lexer_tokenize("func", "test.cal".to_string()).unwrap();
+    /// assert!(tokens[0].expects(TokenKind::Function).is_ok());
+    ///
+    pub fn expects(&self, kind: TokenKind) -> DiagPossible {
+        if self.kind == kind {
+            Ok(())
+        } else {
+            Err(build_expected_error(&kind, &self.kind, self).into())
+        }
+    }
+
+    /// Enforces that the given token is of an integer literal
+    /// and will return the literal's value if the token is of the given kind.
+    ///
+    /// # Errors
+    /// **This function will throw an error if the token is not of the given kind**
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::lexer_tokenize;
+    /// use calsc_lexer::toks::{Token, TokenKind};
+    ///
+    /// let tokens: Vec<Token> = lexer_tokenize("12", "test.cal".to_string()).unwrap();
+    /// assert!(tokens[0].expects_int_lit().unwrap() == 12);
+    ///
+    pub fn expects_int_lit(&self) -> DiagResult<i128> {
+        if let TokenKind::IntLiteral(v) = &self.kind {
+            Ok(*v)
+        } else {
+            Err(build_expected_error(&"string literal".to_string(), &self.kind, self).into())
+        }
+    }
+
+    /// Enforces that the given token is of an float literal
+    /// and will return the literal's value if the token is of the given kind.
+    ///
+    /// # Errors
+    /// **This function will throw an error if the token is not of the given kind**
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::lexer_tokenize;
+    /// use calsc_lexer::toks::{Token, TokenKind};
+    ///
+    /// let tokens: Vec<Token> = lexer_tokenize("12.12", "test.cal".to_string()).unwrap();
+    /// assert!(tokens[0].expects_float_lit().unwrap() == 12.12);
+    ///
+    pub fn expects_float_lit(&self) -> DiagResult<f64> {
+        if let TokenKind::FloatLiteral(v) = &self.kind {
+            Ok(*v)
+        } else {
+            Err(build_expected_error(&"float literal".to_string(), &self.kind, self).into())
+        }
+    }
+
+    /// Enforces that the given token is of an string literal
+    /// and will return the literal's value if the token is of the given kind.
+    ///
+    /// # Errors
+    /// **This function will throw an error if the token is not of the given kind**
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::lexer_tokenize;
+    /// use calsc_lexer::toks::{Token, TokenKind};
+    ///
+    /// let tokens: Vec<Token> = lexer_tokenize("\"test\"", "test.cal".to_string()).unwrap();
+    /// assert!(tokens[0].expects_string_lit().unwrap() == String::from("test"));
+    ///
+    pub fn expects_string_lit(&self) -> DiagResult<String> {
+        if let TokenKind::StringLiteral(v) = &self.kind {
+            Ok(v.clone())
+        } else {
+            Err(build_expected_error(&"string literal".to_string(), &self.kind, self).into())
+        }
+    }
+
+    /// Enforces that the given token is of an string literal
+    /// and will return the literal's value if the token is of the given kind.
+    ///
+    /// # Errors
+    /// **This function will throw an error if the token is not of the given kind**
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::lexer_tokenize;
+    /// use calsc_lexer::toks::{Token, TokenKind};
+    ///
+    /// let tokens: Vec<Token> = lexer_tokenize("'\n'", "test.cal".to_string()).unwrap();
+    /// assert!(tokens[0].expects_char_lit().unwrap() == '\n');
+    ///
+    pub fn expects_char_lit(&self) -> DiagResult<char> {
+        if let TokenKind::CharLiteral(v) = &self.kind {
+            Ok(*v)
+        } else {
+            Err(build_expected_error(&"char literal".to_string(), &self.kind, self).into())
         }
     }
 }
