@@ -24,7 +24,7 @@ pub struct Token {
 }
 
 /// Enum representing common lexer token kinds.
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum TokenKind {
     // Keywords
     /// `func`
@@ -402,6 +402,28 @@ impl Token {
             Ok(*v)
         } else {
             Err(build_expected_error(&"char literal".to_string(), &self.kind, self).into())
+        }
+    }
+
+    /// Enforces that the given token is of an keyword
+    /// and will return the keyword's value if the token is of the given kind.
+    ///
+    /// # Errors
+    /// **This function will throw an error if the token is not of the given kind**
+    ///
+    /// # Example
+    /// ```
+    /// use calsc_lexer::lexer_tokenize;
+    /// use calsc_lexer::toks::{Token, TokenKind};
+    ///
+    /// let tokens: Vec<Token> = lexer_tokenize("test", "test.cal".to_string()).unwrap();
+    /// assert!(tokens[0].expects_keyword().unwrap() == String::from("test"));
+    ///
+    pub fn expects_keyword(&self) -> DiagResult<String> {
+        if let TokenKind::Keyword(v) = &self.kind {
+            Ok(v.clone())
+        } else {
+            Err(build_expected_error(&"keyword".to_string(), &self.kind, self).into())
         }
     }
 }

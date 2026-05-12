@@ -108,6 +108,14 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
             '^' => TokenKind::Caret,
             '%' => TokenKind::Percent,
             '\n' => TokenKind::Newline,
+
+            '\t' | ' ' => {
+                i += 1;
+                pos = pos.step_col(1);
+
+                continue;
+            }
+
             _ => TokenKind::Unknown,
         };
 
@@ -119,6 +127,8 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
 
         pos = end_pos;
     }
+
+    tokens.push(Token::new(TokenKind::Eof, pos.clone(), pos));
 
     Ok(tokens)
 }
@@ -165,8 +175,6 @@ pub fn parse_keyword(
         FOR_HASH => TokenKind::For,
         _ => TokenKind::Keyword(slice),
     };
-
-    *ind += 1; // Increment to increment i post function usage
 
     let res = Ok(Token::new(kind, start_pos.clone(), end_pos.clone()));
 
@@ -218,8 +226,6 @@ pub fn parse_number_token(
     let source = PosDiagnosticSource::new(start_pos.clone(), end_pos.clone());
 
     let slice = content[start..end].to_string();
-
-    *ind += 1; // Increment to increment i post function usage
 
     if met_dot {
         let lit: f64 = match slice.parse() {
@@ -292,8 +298,6 @@ pub fn parse_string_token(
 
     let slice = content[start..end].to_string();
 
-    *ind += 1; // Increment to increment i post function usage
-
     let res = Ok(Token::new(
         TokenKind::StringLiteral(slice),
         start_pos.clone(),
@@ -339,8 +343,6 @@ pub fn parse_char_token(
     }
 
     let slice = &content[start..end];
-
-    *ind += 1; // Increment to increment i post function usage
 
     let lit: char = match slice.parse() {
         Ok(v) => v,
