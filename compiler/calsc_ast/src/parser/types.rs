@@ -1,9 +1,6 @@
 //! Parsing related to types
 
-use calsc_diagnostics::{
-    DiagResult,
-    diags::errors::{build_expected_error, build_unexpected_error},
-};
+use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
@@ -12,6 +9,30 @@ use crate::{
     types::{ASTType, SimpleASTType},
 };
 
+/// Parses the tokens as an AST type ([`ASType`][`crate::types::ASTType`])
+///
+/// Uses a two stage algorithm to parse the type:
+/// 1. The simple type stage: A stage where types just hold information and are stored in a vector rather than a tree like storage
+/// 2. The actual type stage: The stage where simple types that are stored in an array gets converted into actual [`ASType`][`crate::types::ASTType`]) objects
+///
+/// # Errors
+/// This function will error if the parsing of the type is invalid at any step of the parsing (regardless of the stage).
+///
+/// # Example
+/// ```
+/// use calsc_ast::parser::types::parse_type;
+/// use calsc_lexer::lexer_tokenize;
+/// use calsc_lexer::toks::{Token, TokenKind};
+///
+/// let tokens: Vec<Token> = lexer_tokenize("s32**", "test.cal".to_string()).unwrap();
+/// let mut ind = 0;
+///
+/// let ty = parse_type(&tokens, &mut ind).unwrap();
+///
+/// println!("{:#?}", ty)
+///
+/// ```
+///
 pub fn parse_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
     let mut simples = vec![];
 
@@ -25,7 +46,7 @@ pub fn parse_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
         }
     }
 
-    let len = simples.len();
+    let len = simples.len() - 1;
 
     lower_simple_type(simples, len)
 }

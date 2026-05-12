@@ -18,7 +18,7 @@ macro_rules! fnvhash {
 ///
 /// assert_eq!(hash.hash(), hash::hash_fnv_1a("test"))
 /// ```
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct HashedString {
     hash: u64,
     val: String,
