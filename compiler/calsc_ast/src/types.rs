@@ -2,8 +2,6 @@
 
 use calsc_utils::hash::HashedString;
 
-use crate::nodes::ASTNode;
-
 /// The AST representation of type. Works on a tree-like structure where nodes can have an "inner" child node that is deeper.
 ///
 /// # Example
@@ -24,11 +22,18 @@ pub enum ASTType {
     /// `s32[56]` would be `Array(56, Generic(s32))`
     ///
     /// `s32*[56]` would be `Array(56, Pointer(Generic(s32)))`
-    Array(Box<ASTNode>, Box<ASTType>),
+    Array(usize, Box<ASTType>),
 
-    /// Represents a generic / normal type. The parameter represents the generic type name as an `HashedString`
+    /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`. The second parameter represents the size specifier
     ///
     /// # Example
     /// `s32` would be `Generic(s32)`
-    Generic(HashedString),
+    Generic(HashedString, Option<usize>),
+}
+
+/// Represents a simpler stage of AST types that are basically used to generate full `ASTType` trees.
+pub enum SimpleASTType {
+    Pointer,
+    Array(usize),
+    Generic(HashedString, Option<usize>),
 }
