@@ -28,9 +28,6 @@ use crate::{
 /// let mut ind = 0;
 ///
 /// let ty = parse_type(&tokens, &mut ind).unwrap();
-///
-/// println!("{:#?}", ty)
-///
 /// ```
 ///
 pub fn parse_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
