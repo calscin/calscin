@@ -45,10 +45,17 @@ pub fn parse_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
 
     let len = simples.len() - 1;
 
-    lower_simple_type(simples, len)
+    Ok(lower_simple_type(simples, len))
 }
 
-pub fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> DiagResult<ASTType> {
+/// The function used in [`parse_type`][`crate::parser::types::parse_type`]'s second stage
+/// in order to lower simple types to actual AST types.
+///
+/// # Errors
+/// **This function will never output any errors or panics**
+///
+#[inline(always)]
+pub fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTType {
     // We do not need to check the index since it cannot go deper than 0. Furthermore, it is guaranteed that a generic will be at the first
     let res = match &simples[ind] {
         SimpleASTType::Generic(name, size_specifier, type_params) => {
@@ -56,15 +63,30 @@ pub fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> DiagResult<
         }
 
         SimpleASTType::Array(size) => {
-            ASTType::Array(*size, Box::new(lower_simple_type(simples, ind - 1)?))
+            ASTType::Array(*size, Box::new(lower_simple_type(simples, ind - 1)))
         }
 
-        SimpleASTType::Pointer => ASTType::Pointer(Box::new(lower_simple_type(simples, ind - 1)?)),
+        SimpleASTType::Pointer => ASTType::Pointer(Box::new(lower_simple_type(simples, ind - 1))),
     };
 
-    Ok(res)
+    res
 }
 
+/// The function that actually does the type parsing in [`parse_type`][`crate::parser::types::parse_type`]'s first stage.
+/// Parses the actual lexer tokens into [`SimpleASTType`]
+///
+///
+/// # Returns
+/// Returns a [`None`] whenever the parsing for the type ended. Meaning that the type cannot possibly be parsed this way
+///
+/// Returns a [`Some`] whenever the parsing for the type was a success and that a type could be parsed this way.
+///
+/// # Errors
+///
+/// This function may error out if the type parsing fails when trying to parse an array or generic type.
+///
+///
+#[inline(always)]
 pub fn parse_type_step(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Option<SimpleASTType>> {
     let kind = match &tokens[*ind].kind {
         TokenKind::Star => {
@@ -92,6 +114,14 @@ pub fn parse_type_step(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Optio
     Ok(Some(kind))
 }
 
+/// Function used by [`parse_ast_step`][`crate::parser::types::parse_type_step`] in order to parse type generics as [`SimpleASTType`] values.
+///
+/// Is part of the functions used by [`parse_type`][`crate::parser::types::parse_type`] in order to parse types
+///
+/// # Errors
+/// This function will error out if the parsing goes wrong.
+///
+#[inline(always)]
 pub fn parse_type_generic(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<SimpleASTType> {
     if let TokenKind::Keyword(name) = tokens[*ind].kind.clone() {
         *ind += 1; // keyword
