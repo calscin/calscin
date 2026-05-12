@@ -298,6 +298,8 @@ pub fn parse_string_token(
 
     let slice = content[start..end].to_string();
 
+    *ind += 1;
+
     let res = Ok(Token::new(
         TokenKind::StringLiteral(slice),
         start_pos.clone(),
@@ -343,6 +345,8 @@ pub fn parse_char_token(
     }
 
     let slice = &content[start..end];
+
+    *ind += 1;
 
     let lit: char = match slice.parse() {
         Ok(v) => v,
