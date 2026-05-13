@@ -15,7 +15,24 @@ pub mod vars;
 
 /// Parses a member of a function block. A function block is most of the time refereing to a function body.
 ///
+/// # Errors
+/// This function will error if the starting token cannot possibly be from a body node.
 ///
+/// This function will error if the sub parsing function fails.
+///
+/// # Example
+/// ```
+/// use calsc_ast::parser::parse_node_body_member;
+/// use calsc_lexer::lexer_tokenize;
+/// use calsc_lexer::toks::{Token, TokenKind};
+///
+/// let tokens: Vec<Token> = lexer_tokenize("var s32", "test.cal".to_string()).unwrap();
+/// let mut ind: usize = 0;
+///
+/// let node = parse_not_body_member(tokens, &mut ind).unwrap();
+///
+///
+/// ```
 ///
 pub fn parse_node_body_member(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
     match tokens[*ind].kind {

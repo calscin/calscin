@@ -4,7 +4,7 @@ use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_utils::pos::FilePosition;
+use calsc_utils::{hash::HashedString, pos::FilePosition};
 
 use crate::types::ASTType;
 
@@ -26,6 +26,7 @@ pub enum ASTNodeKind {
     VariableDeclaration {
         mutable: bool,
         var_type: ASTType,
+        name: HashedString,
         value: Option<Box<ASTNode>>,
     },
 }

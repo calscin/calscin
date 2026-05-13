@@ -2,12 +2,14 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::hash::HashedString;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::{types::parse_type, values::parse_ast_value},
 };
 
+#[inline(always)]
 pub fn parse_ast_variable_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
@@ -25,6 +27,9 @@ pub fn parse_ast_variable_declaration(
     let ty = parse_type(tokens, ind)?; // Auto increments
     let val;
 
+    let name = HashedString::new(tokens[*ind].expects_keyword()?);
+    *ind += 1; // keyword
+
     if tokens[*ind].kind == TokenKind::Equal {
         *ind += 1; // =
 
@@ -39,6 +44,7 @@ pub fn parse_ast_variable_declaration(
         ASTNodeKind::VariableDeclaration {
             mutable,
             var_type: ty,
+            name,
             value: val,
         },
         start,
