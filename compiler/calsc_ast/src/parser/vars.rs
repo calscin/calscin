@@ -53,7 +53,10 @@ pub fn parse_ast_variable_declaration(
 }
 
 #[inline]
-pub fn parse_variable_reference(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_variable_reference(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<Box<ASTNode>> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 
