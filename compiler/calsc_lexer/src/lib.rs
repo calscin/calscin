@@ -108,6 +108,7 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
             '^' => TokenKind::Caret,
             '%' => TokenKind::Percent,
             '\n' => TokenKind::Newline,
+            '=' => TokenKind::Equal,
 
             '\t' | ' ' => {
                 i += 1;

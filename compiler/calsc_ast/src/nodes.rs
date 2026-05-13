@@ -6,6 +6,8 @@ use calsc_diagnostics::{
 };
 use calsc_utils::pos::FilePosition;
 
+use crate::types::ASTType;
+
 /// The kind of AST tree node. Holds information about the node itself.
 #[derive(Debug, PartialEq)]
 pub enum ASTNodeKind {
@@ -20,9 +22,16 @@ pub enum ASTNodeKind {
 
     /// A char literal
     CharLiteral(char),
+
+    VariableDeclaration {
+        mutable: bool,
+        var_type: ASTType,
+        value: Option<Box<ASTNode>>,
+    },
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.
+#[derive(Debug, PartialEq)]
 pub struct ASTNode {
     pub kind: ASTNodeKind,
     pub start: FilePosition,

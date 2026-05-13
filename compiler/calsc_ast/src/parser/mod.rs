@@ -3,3 +3,4 @@
 pub mod types;
 pub mod utils;
 pub mod values;
+pub mod vars;

@@ -4,7 +4,7 @@ use std::{fmt::Display, path::PathBuf};
 
 /// A position within a file.
 /// Is used to generate errors with positions
-#[derive(Clone)]
+#[derive(Clone, Debug, PartialEq)]
 pub struct FilePosition {
     /// The path of the file as a path
     pub file_path: PathBuf,

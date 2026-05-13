@@ -150,6 +150,9 @@ pub enum TokenKind {
     /// \n
     Newline,
 
+    /// =
+    Equal,
+
     /// A keyword literal (eg: `myTestKeyword`)
     Keyword(String),
 
@@ -512,6 +515,7 @@ impl Display for TokenKind {
             Self::Caret => "^",
             Self::Percent => "%",
             Self::Newline => "Newline",
+            Self::Equal => "=",
             Self::Keyword(str) => str,
             Self::StringLiteral(str) => str,
             Self::CharLiteral(char) => &format!("{}", char),

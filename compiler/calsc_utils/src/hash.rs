@@ -97,3 +97,9 @@ impl Deref for HashedString {
         &self.val
     }
 }
+
+impl PartialEq for HashedString {
+    fn eq(&self, other: &Self) -> bool {
+        self.hash == other.hash
+    }
+}
