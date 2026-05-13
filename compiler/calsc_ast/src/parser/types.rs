@@ -32,9 +32,10 @@ use crate::{
 ///
 pub fn parse_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
     let mut simples = vec![];
+    let mut already_parsed_generic = false;
 
     loop {
-        let parsed_type = parse_type_step(tokens, ind)?;
+        let parsed_type = parse_type_step(tokens, ind, &mut already_parsed_generic)?;
 
         if let Some(parsed_type) = parsed_type {
             simples.push(parsed_type);
@@ -87,7 +88,11 @@ pub fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTType {
 ///
 ///
 #[inline(always)]
-pub fn parse_type_step(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Option<SimpleASTType>> {
+pub fn parse_type_step(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    already_parsed_generic: &mut bool,
+) -> DiagResult<Option<SimpleASTType>> {
     let kind = match &tokens[*ind].kind {
         TokenKind::Star => {
             *ind += 1; // *
@@ -106,7 +111,14 @@ pub fn parse_type_step(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Optio
             SimpleASTType::Array(size as usize)
         }
 
-        TokenKind::Keyword(_) => return Ok(Some(parse_type_generic(tokens, ind)?)),
+        TokenKind::Keyword(_) => {
+            if *already_parsed_generic {
+                return Ok(None);
+            }
+
+            *already_parsed_generic = true;
+            return Ok(Some(parse_type_generic(tokens, ind)?));
+        }
 
         _ => return Ok(None),
     };

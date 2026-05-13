@@ -36,8 +36,9 @@ pub const FOR_HASH: u64 = fnvhash!("for");
 /// ```
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_lexer::toks::Token;
+/// use calsc_diagnostics::result::CalscinResult;
 ///
-/// let tokens: Vec<Token> = lexer_tokenize("3.14", "test.cal".to_string()).unwrap();
+/// let tokens: Vec<Token> = lexer_tokenize("3.14", "test.cal".to_string()).unwrap_cleanly();
 /// assert!(tokens[0].is_float_lit());
 ///
 /// ```

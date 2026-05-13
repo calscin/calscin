@@ -25,11 +25,12 @@ pub mod vars;
 /// use calsc_ast::parser::parse_node_body_member;
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_lexer::toks::{Token, TokenKind};
+/// use calsc_diagnostics::result::CalscinResult;
 ///
-/// let tokens: Vec<Token> = lexer_tokenize("var s32", "test.cal".to_string()).unwrap();
+/// let tokens: Vec<Token> = lexer_tokenize("var s32 test = 5", "test.cal".to_string()).unwrap();
 /// let mut ind: usize = 0;
 ///
-/// let node = parse_node_body_member(&tokens, &mut ind).unwrap();
+/// let node = parse_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 ///
 ///
 /// ```
