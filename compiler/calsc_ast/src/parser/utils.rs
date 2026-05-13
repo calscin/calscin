@@ -3,6 +3,8 @@ use calsc_lexer::toks::{Token, TokenKind};
 
 /// Parses an list of elements in the AST of type `R` by using the given element parsing function.
 ///
+/// **The provided parsing function should not post-increment** as it is already handled by the `parse_ast_list` function.
+///
 /// # Errors
 /// The function will return an error **if `requires_at_least_one` is true and that the list is empty at the end.**
 ///
