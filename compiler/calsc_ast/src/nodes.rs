@@ -23,12 +23,15 @@ pub enum ASTNodeKind {
     /// A char literal
     CharLiteral(char),
 
+    /// A variable declaration
     VariableDeclaration {
         mutable: bool,
         var_type: ASTType,
         name: HashedString,
         value: Option<Box<ASTNode>>,
     },
+
+    VariableReference(HashedString),
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.

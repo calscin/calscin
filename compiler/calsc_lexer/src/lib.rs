@@ -148,7 +148,7 @@ pub fn parse_keyword(
             None => break,
         };
 
-        if !c.is_alphanumeric() {
+        if !c.is_alphanumeric() && c != '_' {
             break;
         }
 
