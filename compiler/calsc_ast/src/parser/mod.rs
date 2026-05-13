@@ -29,7 +29,7 @@ pub mod vars;
 /// let tokens: Vec<Token> = lexer_tokenize("var s32", "test.cal".to_string()).unwrap();
 /// let mut ind: usize = 0;
 ///
-/// let node = parse_not_body_member(tokens, &mut ind).unwrap();
+/// let node = parse_node_body_member(&tokens, &mut ind).unwrap();
 ///
 ///
 /// ```
