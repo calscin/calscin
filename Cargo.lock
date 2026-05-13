@@ -3,6 +3,16 @@
 version = 4
 
 [[package]]
+name = "ast"
+version = "0.1.0"
+dependencies = [
+ "calsc_ast",
+ "calsc_diagnostics",
+ "calsc_lexer",
+ "calsc_utils",
+]
+
+[[package]]
 name = "calsc_ast"
 version = "0.1.0"
 dependencies = [

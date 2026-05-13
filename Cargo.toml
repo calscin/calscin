@@ -4,4 +4,5 @@ members = [
 	"compiler/calsc_diagnostics",
 	"compiler/calsc_lexer",
 	"compiler/calsc_utils",
+	"tests/ast",
 ]

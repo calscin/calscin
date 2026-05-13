@@ -1,0 +1,10 @@
+[package]
+name = "ast"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+calsc_lexer = { path = "../../compiler/calsc_lexer" }
+calsc_ast = { path = "../../compiler/calsc_ast" }
+calsc_utils = { path = "../../compiler/calsc_utils" }
+calsc_diagnostics = { path = "../../compiler/calsc_diagnostics" }

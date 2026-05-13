@@ -1,5 +1,3 @@
-use std::process;
-
 use crate::container::dump_diagnostics;
 
 pub trait CalscinResult<K, V> {
@@ -18,6 +16,6 @@ impl<K, V> CalscinResult<K, V> for Result<K, V> {
 
         dump_diagnostics();
 
-        process::exit(-1);
+        panic!()
     }
 }
