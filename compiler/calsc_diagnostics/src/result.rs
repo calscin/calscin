@@ -18,6 +18,6 @@ impl<K, V> CalscinResult<K, V> for Result<K, V> {
 
         dump_diagnostics();
 
-        process::exit(0)
+        process::exit(-1);
     }
 }
