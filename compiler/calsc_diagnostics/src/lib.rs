@@ -15,6 +15,7 @@ use crate::{
 pub mod container;
 pub mod diags;
 pub mod fmt;
+pub mod result;
 pub mod span;
 
 /// Represents a `Result` type with a diagnostic as the error type. The error type is intentionally `()` in order to handle diagnostics better and make them compound.
