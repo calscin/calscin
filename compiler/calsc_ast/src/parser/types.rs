@@ -126,9 +126,9 @@ pub(crate) fn parse_type_step(
     Ok(Some(kind))
 }
 
-/// Function used by [`parse_ast_step`][`crate::parser::types::parse_type_step`] in order to parse type generics as [`SimpleASTType`] values.
+/// Function used by [`parse_type_step`][`crate::parser::types::parse_type_step`] in order to parse type generics as [`SimpleASTType`] values.
 ///
-/// Is part of the functions used by [`parse_type`][`crate::parser::types::parse_type`] in order to parse types
+/// Is part of the functions used by [`parse_ast_type`][`crate::parser::types::parse_ast_type`] in order to parse types
 ///
 /// # Errors
 /// This function will error out if the parsing goes wrong.

@@ -1,3 +1,5 @@
+use calsc_ast::parser::func::parse_extern_function_declaration;
+#[allow(unused)]
 use calsc_ast::{
     nodes::ASTNodeKind,
     parser::{
@@ -74,4 +76,38 @@ pub fn parse_call_parsing_args_test() {
     } else {
         assert!(false)
     }
+}
+
+#[test]
+pub fn parse_extern_function_decl_base_test() {
+    let tokens = lexer_tokenize("externfunc test()", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let call = parse_extern_function_declaration(&tokens, &mut ind).unwrap_cleanly();
+
+    assert_eq!(
+        call.kind,
+        ASTNodeKind::ExternFunctionDeclaration {
+            name: HashedString::new("test".to_string()),
+            arguments: vec![],
+            triple_dot_position: None
+        }
+    )
+}
+
+#[test]
+pub fn parse_extern_function_decl_test() {
+    let tokens = lexer_tokenize("externfunc test(...)", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let call = parse_extern_function_declaration(&tokens, &mut ind).unwrap_cleanly();
+
+    assert_eq!(
+        call.kind,
+        ASTNodeKind::ExternFunctionDeclaration {
+            name: HashedString::new("test".to_string()),
+            arguments: vec![],
+            triple_dot_position: Some(0)
+        }
+    )
 }

@@ -2,6 +2,7 @@
 
 pub mod fs;
 pub mod hash;
+pub mod math;
 pub mod pos;
 pub mod str;
 

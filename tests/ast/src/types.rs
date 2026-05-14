@@ -1,5 +1,6 @@
 //! Parsing tests related to type parsing
 
+#[allow(unused)]
 use calsc_ast::{parser::types::parse_ast_type, types::ASTType};
 use calsc_diagnostics::result::CalscinResult;
 use calsc_lexer::lexer_tokenize;

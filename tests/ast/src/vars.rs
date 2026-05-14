@@ -1,3 +1,4 @@
+#[allow(unused)]
 use calsc_ast::{
     nodes::ASTNodeKind,
     parser::vars::{parse_ast_variable_declaration, parse_ast_variable_reference},
