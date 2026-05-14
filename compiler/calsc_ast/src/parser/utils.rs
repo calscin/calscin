@@ -3,14 +3,17 @@ use calsc_lexer::toks::{Token, TokenKind};
 
 /// Parses an list of elements in the AST of type `R` by using the given element parsing function.
 ///
-/// **The provided parsing function should not post-increment** as it is already handled by the `parse_ast_list` function.
+/// **The provided parsing function should not post-increment** as it is already handled by the `parse_ast_list` function if `post_increments` is true.
+/// If it is false, the `parse_ast_list` function will not post-increment after the provided parsing function.
+///
+/// This function post-increments after the closing token.
 ///
 /// # Errors
 /// The function will return an error **if `requires_at_least_one` is true and that the list is empty at the end.**
 ///
 /// The function will return an error **if the element parsing function fails**
 ///
-/// The function willr return an error **if elements aren't properly seperated or if the parsing fails**
+/// The function will return an error **if elements aren't properly seperated or if the parsing fails**
 ///
 /// # Example
 /// ```
@@ -34,6 +37,7 @@ pub fn parse_ast_list<F, R>(
     func: F,
     closing_point: TokenKind,
     requires_at_least_one: bool,
+    post_increments: bool,
 ) -> DiagResult<Vec<R>>
 where
     F: Fn(&Vec<Token>, &mut usize) -> DiagResult<R>,
@@ -57,10 +61,11 @@ where
             break;
         }
 
-        println!("Pre {:#?}", tokens[*ind].kind);
         let elem = func(tokens, ind)?;
-        *ind += 1;
-        println!("Post");
+
+        if post_increments {
+            *ind += 1;
+        }
 
         elements.push(elem);
 
@@ -69,11 +74,7 @@ where
             break;
         }
 
-        println!("Pre comma {:#?}", tokens[*ind].kind);
-
-        println!("Expects comma");
         tokens[*ind].expects(TokenKind::Comma)?;
-        println!("Post expects");
         *ind += 1; // ,
     }
 

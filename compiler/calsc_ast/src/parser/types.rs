@@ -160,6 +160,7 @@ pub fn parse_type_generic(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Si
                 |toks, i| toks[*i].expects_keyword(),
                 TokenKind::AngelBracketClose,
                 true,
+                true,
             )?;
         }
 

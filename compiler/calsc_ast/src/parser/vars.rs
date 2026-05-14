@@ -9,6 +9,7 @@ use crate::{
     parser::{types::parse_ast_type, values::parse_ast_value},
 };
 
+/// Parses a variable declaration
 #[inline(always)]
 pub fn parse_ast_variable_declaration(
     tokens: &Vec<Token>,

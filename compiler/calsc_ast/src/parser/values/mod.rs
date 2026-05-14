@@ -3,7 +3,10 @@
 use calsc_diagnostics::{DiagResult, PosDiagnosticSource, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
 
-use crate::{nodes::ASTNode, parser::values::lits::parse_ast_literal};
+use crate::{
+    nodes::ASTNode,
+    parser::{func::parse_function_call, values::lits::parse_ast_literal},
+};
 
 pub mod lits;
 
@@ -30,16 +33,28 @@ pub mod lits;
 /// ```
 ///
 pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
-    return match tokens[*ind].kind {
+    let first = match tokens[*ind].kind {
         TokenKind::IntLiteral(_)
         | TokenKind::FloatLiteral(_)
         | TokenKind::StringLiteral(_)
-        | TokenKind::CharLiteral(_) => parse_ast_literal(tokens, ind),
+        | TokenKind::CharLiteral(_) => parse_ast_literal(tokens, ind)?,
 
-        _ => Err(build_unexpected_error(
-            &tokens[*ind].kind,
-            &PosDiagnosticSource::new(tokens[*ind].start.clone(), tokens[*ind].end.clone()),
-        )
-        .into()),
+        TokenKind::Keyword(_) => {
+            if tokens[*ind].kind == TokenKind::ParenOpen {
+                parse_function_call(tokens, ind)?
+            } else {
+                todo!()
+            }
+        }
+
+        _ => {
+            return Err(build_unexpected_error(
+                &tokens[*ind].kind,
+                &PosDiagnosticSource::new(tokens[*ind].start.clone(), tokens[*ind].end.clone()),
+            )
+            .into());
+        }
     };
+
+    Ok(first)
 }

@@ -3,10 +3,13 @@
 //! # Guidelines
 //! Individual parsing functions should always post-increment unless specified otherwise.
 
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
 
-use crate::{nodes::ASTNode, parser::vars::parse_ast_variable_declaration};
+use crate::{
+    nodes::ASTNode,
+    parser::{values::parse_ast_value, vars::parse_ast_variable_declaration},
+};
 
 pub mod func;
 pub mod types;
@@ -42,8 +45,7 @@ pub fn parse_ast_node_body_member(
 ) -> DiagResult<Box<ASTNode>> {
     match tokens[*ind].kind {
         TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind),
-
-        _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+        _ => parse_ast_value(tokens, ind),
     }
 }
 

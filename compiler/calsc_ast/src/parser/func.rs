@@ -6,10 +6,13 @@ use calsc_utils::hash::HashedString;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
-    parser::{parse_ast_body, types::parse_ast_type, utils::parse_ast_list},
+    parser::{
+        parse_ast_body, types::parse_ast_type, utils::parse_ast_list, values::parse_ast_value,
+    },
     types::ASTType,
 };
 
+/// Parses a function declaration argument
 #[inline(always)]
 pub fn parse_function_argument(
     tokens: &Vec<Token>,
@@ -24,6 +27,7 @@ pub fn parse_function_argument(
     Ok((arg_type, HashedString::new(name)))
 }
 
+/// Parses a function declaration
 #[inline(always)]
 pub fn parse_function_declaration(
     tokens: &Vec<Token>,
@@ -45,6 +49,7 @@ pub fn parse_function_declaration(
         parse_function_argument,
         TokenKind::ParenClose,
         false,
+        true,
     )?; // Auto increments
 
     tokens[*ind].expects(TokenKind::BraceOpen)?;
@@ -60,6 +65,33 @@ pub fn parse_function_declaration(
             arguments,
             body,
         },
+        start,
+        end,
+    )))
+}
+
+pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+    let start = tokens[*ind].start.clone();
+
+    let name = HashedString::new(tokens[*ind].expects_keyword()?);
+    *ind += 1; // keyword
+
+    tokens[*ind].expects(TokenKind::ParenOpen)?;
+    *ind += 1; // (
+
+    let arguments = parse_ast_list(
+        tokens,
+        ind,
+        parse_ast_value,
+        TokenKind::ParenClose,
+        false,
+        false, // Doesn't post increment inside of the `parse_ast_list` function since `parse_ast_value` already does it
+    )?;
+
+    let end = tokens[*ind - 1].end.clone();
+
+    Ok(Box::new(ASTNode::new(
+        ASTNodeKind::FunctionCall { name, arguments },
         start,
         end,
     )))
