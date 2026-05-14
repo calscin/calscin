@@ -7,13 +7,17 @@ use crate::{
     nodes::ASTNode,
     parser::{
         func::parse_function_call,
-        values::{conditions::parse_ast_inverse_condition, lits::parse_ast_literal},
+        values::{
+            conditions::parse_ast_inverse_condition, lits::parse_ast_literal,
+            structs::parse_ast_structured_init,
+        },
         vars::parse_ast_variable_reference,
     },
 };
 
 pub mod conditions;
 pub mod lits;
+pub mod structs;
 
 /// Parses the lexer tokens as an AST value node.
 ///
@@ -45,6 +49,7 @@ pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
         | TokenKind::CharLiteral(_) => parse_ast_literal(tokens, ind)?,
 
         TokenKind::Bang => parse_ast_inverse_condition(tokens, ind)?,
+        TokenKind::BraceOpen => parse_ast_structured_init(tokens, ind)?,
 
         TokenKind::Keyword(_) => {
             if tokens[*ind + 1].kind == TokenKind::ParenOpen {

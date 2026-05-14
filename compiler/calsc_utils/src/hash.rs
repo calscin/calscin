@@ -1,4 +1,4 @@
-use std::ops::Deref;
+use std::{hash::Hash, ops::Deref};
 
 #[macro_export]
 macro_rules! fnvhash {
@@ -97,6 +97,14 @@ impl Deref for HashedString {
         &self.val
     }
 }
+
+impl Hash for HashedString {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        state.write_u64(self.hash);
+    }
+}
+
+impl Eq for HashedString {}
 
 impl PartialEq for HashedString {
     fn eq(&self, other: &Self) -> bool {

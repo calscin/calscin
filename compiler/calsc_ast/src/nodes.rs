@@ -1,5 +1,7 @@
 //! Defines the tree of the AST. The AST is represented into a tree like structure where every "main" structure has children AST nodes themselves
 
+use std::collections::HashMap;
+
 use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
@@ -32,6 +34,10 @@ pub enum ASTNodeKind {
         var_type: ASTType,
         name: HashedString,
         value: Option<Box<ASTNode>>,
+    },
+
+    StructuredInit {
+        values: HashMap<HashedString, Box<ASTNode>>,
     },
 
     VariableReference(HashedString),
