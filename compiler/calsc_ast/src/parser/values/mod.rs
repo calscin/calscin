@@ -46,7 +46,9 @@ pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
         TokenKind::IntLiteral(_)
         | TokenKind::FloatLiteral(_)
         | TokenKind::StringLiteral(_)
-        | TokenKind::CharLiteral(_) => parse_ast_literal(tokens, ind)?,
+        | TokenKind::CharLiteral(_)
+        | TokenKind::True
+        | TokenKind::False => parse_ast_literal(tokens, ind)?,
 
         TokenKind::Bang => parse_ast_inverse_condition(tokens, ind)?,
         TokenKind::BraceOpen => parse_ast_structured_init(tokens, ind)?,

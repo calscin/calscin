@@ -2,4 +2,5 @@
 
 pub mod func;
 pub mod types;
+pub mod vals;
 pub mod vars;

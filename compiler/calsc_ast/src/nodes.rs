@@ -25,6 +25,9 @@ pub enum ASTNodeKind {
     /// A char literal
     CharLiteral(char),
 
+    /// A boolean literal
+    BooleanLiteral(bool),
+
     /// The inverse condition representation (eg: !testS)
     InverseCondition(Box<ASTNode>),
 

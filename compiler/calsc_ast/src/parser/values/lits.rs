@@ -39,6 +39,8 @@ pub fn parse_ast_literal(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box
         TokenKind::FloatLiteral(val) => ASTNodeKind::FloatLiteral(*val),
         TokenKind::StringLiteral(val) => ASTNodeKind::StringLiteral(val.clone()),
         TokenKind::CharLiteral(val) => ASTNodeKind::CharLiteral(*val),
+        TokenKind::True => ASTNodeKind::BooleanLiteral(true),
+        TokenKind::False => ASTNodeKind::BooleanLiteral(false),
 
         _ => panic!("Invalid node"),
     };
