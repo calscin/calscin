@@ -26,7 +26,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 /// let mut ind: usize = 1; // Skip over the start of the list
 ///	let myList: Vec<i128> = parse_ast_list(&tokens, &mut ind, |toks, ind| {
 /// 	toks[*ind].expects_int_lit()
-/// }, TokenKind::AngelBracketClose, true).unwrap();
+/// }, TokenKind::AngelBracketClose, true, true).unwrap();
 ///
 ///
 /// ```

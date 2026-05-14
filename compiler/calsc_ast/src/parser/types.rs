@@ -20,14 +20,14 @@ use crate::{
 ///
 /// # Example
 /// ```
-/// use calsc_ast::parser::types::parse_type;
+/// use calsc_ast::parser::types::parse_ast_type;
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_lexer::toks::{Token, TokenKind};
 ///
 /// let tokens: Vec<Token> = lexer_tokenize("s32**", "test.cal".to_string()).unwrap();
 /// let mut ind = 0;
 ///
-/// let ty = parse_type(&tokens, &mut ind).unwrap();
+/// let ty = parse_ast_type(&tokens, &mut ind).unwrap();
 /// ```
 ///
 pub fn parse_ast_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {

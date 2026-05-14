@@ -26,7 +26,7 @@ pub mod vars;
 ///
 /// # Example
 /// ```
-/// use calsc_ast::parser::parse_node_body_member;
+/// use calsc_ast::parser::parse_ast_node_body_member;
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_lexer::toks::{Token, TokenKind};
 /// use calsc_diagnostics::result::CalscinResult;
