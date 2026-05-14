@@ -1,4 +1,10 @@
-use calsc_ast::{nodes::ASTNodeKind, parser::func::parse_function_declaration};
+use calsc_ast::{
+    nodes::ASTNodeKind,
+    parser::{
+        func::{parse_function_call, parse_function_declaration},
+        parse_ast_node_body_member,
+    },
+};
 use calsc_diagnostics::result::CalscinResult;
 use calsc_lexer::lexer_tokenize;
 use calsc_utils::hash::HashedString;
@@ -27,4 +33,45 @@ pub fn function_decl_parsing_test() {
     let mut ind = 0;
 
     let _ = parse_function_declaration(&tokens, &mut ind).unwrap_cleanly();
+}
+
+#[test]
+pub fn function_call_parsing_test() {
+    let tokens = lexer_tokenize("test()", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let call = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+
+    assert_eq!(
+        call.kind,
+        ASTNodeKind::FunctionCall {
+            name: HashedString::new("test".to_string()),
+            arguments: vec![]
+        }
+    )
+}
+
+#[test]
+pub fn parse_call_parsing_args_test() {
+    let tokens =
+        lexer_tokenize("test(testtwo(), 123, 4565)", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let call = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+
+    if let ASTNodeKind::FunctionCall { name, arguments } = call.kind {
+        assert_eq!(name, HashedString::new("test".to_string()));
+
+        assert_eq!(
+            arguments[0].kind,
+            ASTNodeKind::FunctionCall {
+                name: HashedString::new("testtwo".to_string()),
+                arguments: vec![]
+            }
+        );
+        assert_eq!(arguments[1].kind, ASTNodeKind::IntLiteral(123));
+        assert_eq!(arguments[2].kind, ASTNodeKind::IntLiteral(4565));
+    } else {
+        assert!(false)
+    }
 }
