@@ -5,7 +5,10 @@ use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
     nodes::ASTNode,
-    parser::{func::parse_function_call, values::lits::parse_ast_literal},
+    parser::{
+        func::parse_function_call, values::lits::parse_ast_literal,
+        vars::parse_ast_variable_reference,
+    },
 };
 
 pub mod lits;
@@ -43,7 +46,7 @@ pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
             if tokens[*ind].kind == TokenKind::ParenOpen {
                 parse_function_call(tokens, ind)?
             } else {
-                todo!()
+                parse_ast_variable_reference(tokens, ind)?
             }
         }
 
