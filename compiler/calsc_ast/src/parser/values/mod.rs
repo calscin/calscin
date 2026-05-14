@@ -6,11 +6,13 @@ use calsc_lexer::toks::{Token, TokenKind};
 use crate::{
     nodes::ASTNode,
     parser::{
-        func::parse_function_call, values::lits::parse_ast_literal,
+        func::parse_function_call,
+        values::{conditions::parse_ast_inverse_condition, lits::parse_ast_literal},
         vars::parse_ast_variable_reference,
     },
 };
 
+pub mod conditions;
 pub mod lits;
 
 /// Parses the lexer tokens as an AST value node.
@@ -41,6 +43,8 @@ pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
         | TokenKind::FloatLiteral(_)
         | TokenKind::StringLiteral(_)
         | TokenKind::CharLiteral(_) => parse_ast_literal(tokens, ind)?,
+
+        TokenKind::Bang => parse_ast_inverse_condition(tokens, ind)?,
 
         TokenKind::Keyword(_) => {
             if tokens[*ind + 1].kind == TokenKind::ParenOpen {
