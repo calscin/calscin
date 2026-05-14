@@ -43,7 +43,7 @@ pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
         | TokenKind::CharLiteral(_) => parse_ast_literal(tokens, ind)?,
 
         TokenKind::Keyword(_) => {
-            if tokens[*ind].kind == TokenKind::ParenOpen {
+            if tokens[*ind + 1].kind == TokenKind::ParenOpen {
                 parse_function_call(tokens, ind)?
             } else {
                 parse_ast_variable_reference(tokens, ind)?
