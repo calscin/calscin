@@ -24,7 +24,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 /// let tokens: Vec<Token> = lexer_tokenize("<123, 4536, 789>", "test.cal".to_string()).unwrap();
 ///
 /// let mut ind: usize = 1; // Skip over the start of the list
-///	let myList: Vec<i128> = parse_ast_list(&tokens, &mut ind, |toks, ind| {
+///	let myList: Vec<i128> = parse_ast_list(&tokens, &mut ind, &mut |toks, ind| {
 /// 	toks[*ind].expects_int_lit()
 /// }, TokenKind::AngelBracketClose, true, true).unwrap();
 ///
@@ -34,13 +34,13 @@ use calsc_lexer::toks::{Token, TokenKind};
 pub fn parse_ast_list<F, R>(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    func: F,
+    func: &mut F,
     closing_point: TokenKind,
     requires_at_least_one: bool,
     post_increments: bool,
 ) -> DiagResult<Vec<R>>
 where
-    F: Fn(&Vec<Token>, &mut usize) -> DiagResult<R>,
+    F: FnMut(&Vec<Token>, &mut usize) -> DiagResult<R>,
 {
     let mut elements: Vec<R> = vec![];
 

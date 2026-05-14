@@ -9,7 +9,7 @@ use calsc_utils::hash::HashedString;
 /// -	`Array(35)`
 /// -	-> `Pointer()`
 /// - 	-->`Generic(s32)`
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ASTType {
     /// Represents a pointer node. The parameter represents the inner type.
     ///

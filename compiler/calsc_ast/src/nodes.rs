@@ -39,6 +39,12 @@ pub enum ASTNodeKind {
         body: Vec<Box<ASTNode>>,
     },
 
+    ExternFunctionDeclaration {
+        name: HashedString,
+        arguments: Vec<(ASTType, HashedString)>,
+        triple_dot_position: Option<usize>,
+    },
+
     FunctionCall {
         name: HashedString,
         arguments: Vec<Box<ASTNode>>,
