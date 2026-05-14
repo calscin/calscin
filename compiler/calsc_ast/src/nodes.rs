@@ -32,6 +32,12 @@ pub enum ASTNodeKind {
     },
 
     VariableReference(HashedString),
+
+    FunctionDeclaration {
+        name: HashedString,
+        arguments: Vec<(ASTType, HashedString)>,
+        body: Vec<Box<ASTNode>>,
+    },
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.

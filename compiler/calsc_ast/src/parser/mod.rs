@@ -8,6 +8,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{nodes::ASTNode, parser::vars::parse_ast_variable_declaration};
 
+pub mod func;
 pub mod types;
 pub mod utils;
 pub mod values;
@@ -45,8 +46,6 @@ pub fn parse_node_body_member(tokens: &Vec<Token>, ind: &mut usize) -> DiagResul
 
 pub fn parse_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<Box<ASTNode>>> {
     let mut members: Vec<Box<ASTNode>> = vec![];
-
-    *ind += 1; // {
 
     while tokens[*ind].kind != TokenKind::BraceClose {
         let member = parse_node_body_member(tokens, ind)?;
