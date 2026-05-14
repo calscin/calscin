@@ -31,12 +31,15 @@ pub mod vars;
 /// let tokens: Vec<Token> = lexer_tokenize("var s32 test = 5", "test.cal".to_string()).unwrap();
 /// let mut ind: usize = 0;
 ///
-/// let node = parse_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+/// let node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 ///
 ///
 /// ```
 ///
-pub fn parse_node_body_member(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_node_body_member(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<Box<ASTNode>> {
     match tokens[*ind].kind {
         TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind),
 
@@ -44,11 +47,11 @@ pub fn parse_node_body_member(tokens: &Vec<Token>, ind: &mut usize) -> DiagResul
     }
 }
 
-pub fn parse_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<Box<ASTNode>>> {
+pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<Box<ASTNode>>> {
     let mut members: Vec<Box<ASTNode>> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
-        let member = parse_node_body_member(tokens, ind)?;
+        let member = parse_ast_node_body_member(tokens, ind)?;
 
         members.push(member);
     }

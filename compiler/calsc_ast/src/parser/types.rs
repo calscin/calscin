@@ -30,7 +30,7 @@ use crate::{
 /// let ty = parse_type(&tokens, &mut ind).unwrap();
 /// ```
 ///
-pub fn parse_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
+pub fn parse_ast_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
     let mut simples = vec![];
     let mut already_parsed_generic = false;
 
@@ -56,7 +56,7 @@ pub fn parse_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
 /// **This function will never output any errors or panics**
 ///
 #[inline(always)]
-pub fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTType {
+pub(crate) fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTType {
     // We do not need to check the index since it cannot go deper than 0. Furthermore, it is guaranteed that a generic will be at the first
     let res = match &simples[ind] {
         SimpleASTType::Generic(name, size_specifier, type_params) => {
@@ -88,7 +88,7 @@ pub fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTType {
 ///
 ///
 #[inline(always)]
-pub fn parse_type_step(
+pub(crate) fn parse_type_step(
     tokens: &Vec<Token>,
     ind: &mut usize,
     already_parsed_generic: &mut bool,

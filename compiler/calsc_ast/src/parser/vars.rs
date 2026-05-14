@@ -6,7 +6,7 @@ use calsc_utils::hash::HashedString;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
-    parser::{types::parse_type, values::parse_ast_value},
+    parser::{types::parse_ast_type, values::parse_ast_value},
 };
 
 #[inline(always)]
@@ -24,7 +24,7 @@ pub fn parse_ast_variable_declaration(
 
     *ind += 1; // mut / var
 
-    let ty = parse_type(tokens, ind)?; // Auto increments
+    let ty = parse_ast_type(tokens, ind)?; // Auto increments
     let val;
 
     let name = HashedString::new(tokens[*ind].expects_keyword()?);

@@ -6,7 +6,7 @@ use calsc_utils::hash::HashedString;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
-    parser::{parse_body, types::parse_type, utils::parse_ast_list},
+    parser::{parse_ast_body, types::parse_ast_type, utils::parse_ast_list},
     types::ASTType,
 };
 
@@ -15,7 +15,7 @@ pub fn parse_function_argument(
     tokens: &Vec<Token>,
     ind: &mut usize,
 ) -> DiagResult<(ASTType, HashedString)> {
-    let arg_type = parse_type(tokens, ind)?; // Auto increments
+    let arg_type = parse_ast_type(tokens, ind)?; // Auto increments
 
     let name = tokens[*ind].expects_keyword()?;
 
@@ -50,7 +50,7 @@ pub fn parse_function_declaration(
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
-    let body = parse_body(tokens, ind)?; // Auto increments
+    let body = parse_ast_body(tokens, ind)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 
