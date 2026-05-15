@@ -11,7 +11,7 @@ use crate::{
             conditions::parse_ast_inverse_condition, lits::parse_ast_literal,
             math::parse_ast_math_expression, structs::parse_ast_structured_init,
         },
-        vars::parse_ast_variable_reference,
+        vars::{parse_ast_assign, parse_ast_variable_reference},
     },
 };
 
@@ -23,6 +23,9 @@ pub mod structs;
 /// Parses the lexer tokens as an AST value node.
 ///
 /// **This function may only return value-based AST nodes**.
+///
+/// Aditionally, this function will also try to parse complex expressions such as math expressions if the `parse_post` parameter is true
+/// If `invoked_from_body` is true, the nodes returned **may** not be values
 ///
 /// # Errors
 /// Returns `Err` if one of the sub parsing functions failed or
@@ -45,6 +48,7 @@ pub fn parse_ast_value(
     tokens: &Vec<Token>,
     ind: &mut usize,
     allow_post: bool,
+    invoked_from_body: bool, // Used to determine if parse assigns
 ) -> DiagResult<Box<ASTNode>> {
     let first = match tokens[*ind].kind {
         TokenKind::IntLiteral(_)
@@ -75,7 +79,7 @@ pub fn parse_ast_value(
     };
 
     if allow_post {
-        parse_ast_post(tokens, ind, first)
+        parse_ast_post(tokens, ind, first, invoked_from_body)
     } else {
         Ok(first)
     }
@@ -85,6 +89,7 @@ pub fn parse_ast_post(
     tokens: &Vec<Token>,
     ind: &mut usize,
     first_node: Box<ASTNode>,
+    invoked_from_body: bool,
 ) -> DiagResult<Box<ASTNode>> {
     match tokens[*ind].kind {
         TokenKind::Plus
@@ -95,6 +100,14 @@ pub fn parse_ast_post(
         | TokenKind::Bang
         | TokenKind::Tilde
         | TokenKind::Question => return parse_ast_math_expression(tokens, ind, first_node),
+
+        TokenKind::Equal => {
+            if invoked_from_body {
+                parse_ast_assign(tokens, ind, first_node)
+            } else {
+                Ok(first_node)
+            }
+        }
 
         _ => Ok(first_node),
     }

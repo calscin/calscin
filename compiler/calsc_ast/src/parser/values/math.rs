@@ -72,7 +72,7 @@ pub fn parse_ast_math_expression(
 
     let operator = parse_ast_math_operator(tokens, ind)?; // Auto increments
 
-    let second = parse_ast_value(tokens, ind, true)?; // Auto increments
+    let second = parse_ast_value(tokens, ind, true, false)?; // Auto increments
 
     let end = second.end.clone();
 

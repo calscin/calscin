@@ -51,6 +51,12 @@ pub enum ASTNodeKind {
 
     VariableReference(HashedString),
 
+    /// `test = value`
+    Assignment {
+        variable: Box<ASTNode>,
+        value: Box<ASTNode>,
+    },
+
     FunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,

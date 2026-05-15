@@ -34,7 +34,7 @@ pub fn parse_ast_variable_declaration(
     if tokens[*ind].kind == TokenKind::Equal {
         *ind += 1; // =
 
-        val = Some(parse_ast_value(tokens, ind, true)?); // Auto increments
+        val = Some(parse_ast_value(tokens, ind, true, false)?); // Auto increments
     } else {
         val = None;
     }
@@ -67,6 +67,30 @@ pub fn parse_ast_variable_reference(
 
     Ok(Box::new(ASTNode::new(
         ASTNodeKind::VariableReference(name),
+        start,
+        end,
+    )))
+}
+
+#[inline]
+pub fn parse_ast_assign(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    first: Box<ASTNode>,
+) -> DiagResult<Box<ASTNode>> {
+    let start = first.start.clone();
+
+    *ind += 1; // =
+
+    let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+
+    let end = value.end.clone();
+
+    Ok(Box::new(ASTNode::new(
+        ASTNodeKind::Assignment {
+            variable: first,
+            value,
+        },
         start,
         end,
     )))
