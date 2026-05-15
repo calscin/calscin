@@ -207,6 +207,11 @@ pub fn parse_number_token(
         }
 
         if c == '.' {
+            let next = content.chars().nth(*ind + 1);
+            if next.is_some() && next.unwrap() == '.' {
+                break; // Range
+            }
+
             if met_dot {
                 let end = *ind;
                 let end_pos = FilePosition::step_col(&start_pos, end - start);
