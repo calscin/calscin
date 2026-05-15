@@ -8,8 +8,10 @@ use crate::{
     parser::{
         func::parse_function_call,
         values::{
-            conditions::parse_ast_inverse_condition, lits::parse_ast_literal,
-            math::parse_ast_math_expression, structs::parse_ast_structured_init,
+            conditions::{parse_ast_compare_expression, parse_ast_inverse_condition},
+            lits::parse_ast_literal,
+            math::parse_ast_math_expression,
+            structs::parse_ast_structured_init,
         },
         vars::{parse_ast_assign, parse_ast_variable_reference},
     },
@@ -97,16 +99,31 @@ pub fn parse_ast_post(
         | TokenKind::Star
         | TokenKind::Slash
         | TokenKind::BackSlash
-        | TokenKind::Bang
         | TokenKind::Tilde
         | TokenKind::Question => return parse_ast_math_expression(tokens, ind, first_node),
 
-        TokenKind::Equal => {
-            if invoked_from_body {
-                parse_ast_assign(tokens, ind, first_node)
+        TokenKind::Bang => {
+            if tokens[*ind].kind == TokenKind::Equal {
+                return parse_ast_compare_expression(tokens, ind, first_node);
             } else {
-                Ok(first_node)
+                return parse_ast_math_expression(tokens, ind, first_node);
             }
+        }
+
+        TokenKind::Equal => {
+            if tokens[*ind + 1].kind == TokenKind::Equal {
+                return parse_ast_compare_expression(tokens, ind, first_node);
+            } else {
+                if invoked_from_body {
+                    return parse_ast_assign(tokens, ind, first_node);
+                } else {
+                    return Ok(first_node);
+                }
+            }
+        }
+
+        TokenKind::AngelBracketOpen | TokenKind::AngelBracketClose => {
+            parse_ast_compare_expression(tokens, ind, first_node)
         }
 
         _ => Ok(first_node),

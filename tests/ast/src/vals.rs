@@ -2,6 +2,7 @@ use calsc_ast::{nodes::ASTNodeKind, parser::values::parse_ast_value};
 use calsc_diagnostics::result::CalscinResult;
 use calsc_lexer::lexer_tokenize;
 use calsc_utils::{
+    cmp::{CompareOperator, ComparePredicate},
     hash::HashedString,
     math::{MathOperation, MathOperator},
 };
@@ -65,5 +66,32 @@ pub fn parse_math_operation_long_test() {
         assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
 
         assert_eq!(operator, MathOperator::new(MathOperation::And, true, true))
+    }
+}
+
+#[test]
+pub fn parse_compare_operation_test() {
+    let tokens = lexer_tokenize("test <= 58", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let comp = parse_ast_value(&tokens, &mut ind, true, false).unwrap_cleanly();
+
+    if let ASTNodeKind::CompareExpression {
+        left_expr,
+        right_expr,
+        operator,
+    } = comp.kind
+    {
+        assert_eq!(
+            left_expr.kind,
+            ASTNodeKind::VariableReference(HashedString::new("test".to_string()))
+        );
+
+        assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
+
+        assert_eq!(
+            operator,
+            CompareOperator::new(ComparePredicate::LowerThan, true)
+        )
     }
 }
