@@ -7,7 +7,7 @@ pub fn parse_structured_init_test() {
     let tokens = lexer_tokenize("{test: 587, abc: true}", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let _ = parse_ast_value(&tokens, &mut ind, true).unwrap_cleanly();
+    let _ = parse_ast_value(&tokens, &mut ind, true, false).unwrap_cleanly();
 }
 
 #[test]
@@ -15,5 +15,5 @@ pub fn parse_malformed_structured_init_test() {
     let tokens = lexer_tokenize("{test: 588 abc: true}", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let _ = parse_ast_value(&tokens, &mut ind, true).unwrap_err();
+    let _ = parse_ast_value(&tokens, &mut ind, true, false).unwrap_err();
 }

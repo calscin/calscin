@@ -6,7 +6,9 @@ use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_utils::{hash::HashedString, math::MathOperator, pos::FilePosition};
+use calsc_utils::{
+    cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
+};
 
 use crate::types::ASTType;
 
@@ -35,6 +37,12 @@ pub enum ASTNodeKind {
         left_expr: Box<ASTNode>,
         right_expr: Box<ASTNode>,
         operator: MathOperator,
+    },
+
+    CompareExpression {
+        left_expr: Box<ASTNode>,
+        right_expr: Box<ASTNode>,
+        operator: CompareOperator,
     },
 
     /// A variable declaration

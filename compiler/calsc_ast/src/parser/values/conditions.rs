@@ -1,5 +1,6 @@
-use calsc_diagnostics::DiagResult;
-use calsc_lexer::toks::Token;
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::cmp::{CompareOperator, ComparePredicate};
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -21,6 +22,78 @@ pub fn parse_ast_inverse_condition(
 
     Ok(Box::new(ASTNode::new(
         ASTNodeKind::InverseCondition(val),
+        start,
+        end,
+    )))
+}
+
+#[inline(always)]
+pub fn parse_ast_comparing_operator(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<CompareOperator> {
+    let operator_kind = match tokens[*ind].kind {
+        TokenKind::Equal => {
+            *ind += 1; // first =
+            tokens[*ind].expects(TokenKind::Equal)?;
+
+            ComparePredicate::Equal
+        }
+
+        TokenKind::Bang => {
+            *ind += 1; // !
+            tokens[*ind].expects(TokenKind::Equal)?;
+
+            ComparePredicate::NotEqual
+        }
+
+        TokenKind::AngelBracketOpen => ComparePredicate::LowerThan,
+        TokenKind::AngelBracketClose => ComparePredicate::GreaterThan,
+
+        _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+    };
+
+    *ind += 1; // post kind increment
+
+    let mut also_equals = false;
+
+    if operator_kind != ComparePredicate::Equal && operator_kind != ComparePredicate::NotEqual {
+        if tokens[*ind].kind == TokenKind::Equal {
+            *ind += 1; // =
+            also_equals = true;
+        }
+    }
+
+    let res = match operator_kind {
+        ComparePredicate::Equal => CompareOperator::new_equal(),
+        ComparePredicate::NotEqual => CompareOperator::new_not_equal(),
+        _ => CompareOperator::new(operator_kind, also_equals),
+    };
+
+    Ok(res)
+}
+
+/// Parses a comparing expression
+#[inline(always)]
+pub fn parse_ast_compare_expression(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    first: Box<ASTNode>,
+) -> DiagResult<Box<ASTNode>> {
+    let start = first.start.clone();
+
+    let operator = parse_ast_comparing_operator(tokens, ind)?; // Auto increments
+
+    let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+
+    let end = value.end.clone();
+
+    Ok(Box::new(ASTNode::new(
+        ASTNodeKind::CompareExpression {
+            left_expr: first,
+            right_expr: value,
+            operator,
+        },
         start,
         end,
     )))

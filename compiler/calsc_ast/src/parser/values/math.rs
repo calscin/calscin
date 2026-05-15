@@ -7,6 +7,7 @@ use crate::{
     parser::values::parse_ast_value,
 };
 
+#[inline(always)]
 pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<MathOperator> {
     let mut fast = false;
     let mut assigns = false;
