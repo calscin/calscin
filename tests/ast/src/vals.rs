@@ -43,6 +43,8 @@ pub fn parse_math_operation_test() {
         assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
 
         assert_eq!(operator, MathOperator::new(MathOperation::Add, false, true))
+    } else {
+        panic!()
     }
 }
 
@@ -66,6 +68,8 @@ pub fn parse_math_operation_long_test() {
         assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
 
         assert_eq!(operator, MathOperator::new(MathOperation::And, true, true))
+    } else {
+        panic!()
     }
 }
 
@@ -93,6 +97,8 @@ pub fn parse_compare_operation_test() {
             operator,
             CompareOperator::new(ComparePredicate::LowerThan, true)
         )
+    } else {
+        panic!()
     }
 }
 
@@ -112,5 +118,7 @@ pub fn parse_range_test() {
         assert_eq!(start.kind, ASTNodeKind::IntLiteral(1));
         assert_eq!(end.kind, ASTNodeKind::IntLiteral(5));
         assert_eq!(increment.unwrap().kind, ASTNodeKind::IntLiteral(5));
+    } else {
+        panic!()
     }
 }

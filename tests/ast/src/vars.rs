@@ -51,5 +51,7 @@ pub fn test_parse_variable_assign() {
         );
 
         assert_eq!(value.kind, ASTNodeKind::IntLiteral(588));
+    } else {
+        panic!()
     }
 }

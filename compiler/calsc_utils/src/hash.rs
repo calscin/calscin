@@ -111,3 +111,15 @@ impl PartialEq for HashedString {
         self.hash == other.hash
     }
 }
+
+impl From<&str> for HashedString {
+    fn from(value: &str) -> Self {
+        HashedString::new(value.to_string())
+    }
+}
+
+impl From<String> for HashedString {
+    fn from(value: String) -> Self {
+        HashedString::new(value)
+    }
+}
