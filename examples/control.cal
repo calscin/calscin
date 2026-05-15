@@ -11,7 +11,9 @@ func multiply_number(s32 a, s32 b) -> s32 {
 func check_number(s32 test) -> bool {
 	if(test <= 53) {
 		return true;
+	} else if(test == 5) {
+		return true;
+	} else {
+		return false;
 	}
-
-	return false;
 }

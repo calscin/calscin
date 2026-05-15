@@ -33,6 +33,13 @@ pub enum ASTNodeKind {
     /// The inverse condition representation (eg: !testS)
     InverseCondition(Box<ASTNode>),
 
+    /// [start.end] -> incr
+    Range {
+        start: Box<ASTNode>,
+        end: Box<ASTNode>,
+        increment: Option<Box<ASTNode>>,
+    },
+
     MathExpression {
         left_expr: Box<ASTNode>,
         right_expr: Box<ASTNode>,
