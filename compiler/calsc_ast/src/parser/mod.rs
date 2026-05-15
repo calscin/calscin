@@ -45,7 +45,7 @@ pub fn parse_ast_node_body_member(
 ) -> DiagResult<Box<ASTNode>> {
     match tokens[*ind].kind {
         TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind),
-        _ => parse_ast_value(tokens, ind),
+        _ => parse_ast_value(tokens, ind, true),
     }
 }
 

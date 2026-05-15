@@ -14,7 +14,7 @@ pub fn parse_ast_inverse_condition(
 
     *ind += 1; // !
 
-    let val = parse_ast_value(tokens, ind)?; // Does not parse post. The parse_ast_value statement of parse_inverse_condition has priority
+    let val = parse_ast_value(tokens, ind, false)?; // Does not parse post. The parse_ast_value statement of parse_inverse_condition has priority
     // Auto increments
 
     let end = tokens[*ind - 1].end.clone(); // Counters the auto increment to get the end

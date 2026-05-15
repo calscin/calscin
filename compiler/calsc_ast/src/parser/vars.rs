@@ -34,7 +34,7 @@ pub fn parse_ast_variable_declaration(
     if tokens[*ind].kind == TokenKind::Equal {
         *ind += 1; // =
 
-        val = Some(parse_ast_value(tokens, ind)?); // Auto increments
+        val = Some(parse_ast_value(tokens, ind, true)?); // Auto increments
     } else {
         val = None;
     }

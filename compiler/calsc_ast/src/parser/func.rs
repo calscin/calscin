@@ -70,6 +70,13 @@ pub fn parse_function_declaration(
     )))
 }
 
+pub fn parse_function_argument_value(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<Box<ASTNode>> {
+    parse_ast_value(tokens, ind, true)
+}
+
 pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
     let start = tokens[*ind].start.clone();
 
@@ -82,7 +89,7 @@ pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<B
     let arguments = parse_ast_list(
         tokens,
         ind,
-        &mut parse_ast_value,
+        &mut parse_function_argument_value,
         TokenKind::ParenClose,
         false,
         false, // Doesn't post increment inside of the `parse_ast_list` function since `parse_ast_value` already does it

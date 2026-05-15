@@ -19,7 +19,7 @@ pub(crate) fn parse_structured_init_field(
     tokens[*ind].expects(TokenKind::Colon)?;
     *ind += 1; // :
 
-    let value = parse_ast_value(tokens, ind)?;
+    let value = parse_ast_value(tokens, ind, true)?;
 
     Ok((HashedString::new(name), value))
 }

@@ -9,7 +9,7 @@ use crate::{
         func::parse_function_call,
         values::{
             conditions::parse_ast_inverse_condition, lits::parse_ast_literal,
-            structs::parse_ast_structured_init,
+            math::parse_ast_math_expression, structs::parse_ast_structured_init,
         },
         vars::parse_ast_variable_reference,
     },
@@ -17,6 +17,7 @@ use crate::{
 
 pub mod conditions;
 pub mod lits;
+pub mod math;
 pub mod structs;
 
 /// Parses the lexer tokens as an AST value node.
@@ -36,11 +37,15 @@ pub mod structs;
 /// let mut ind: usize = 0;
 /// let tokens = lexer_tokenize("16", "test".to_string()).unwrap();
 ///
-/// let parsed = parse_ast_value(&tokens, &mut ind).unwrap();
+/// let parsed = parse_ast_value(&tokens, &mut ind, true).unwrap();
 ///
 /// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
 /// ```
-pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_value(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    allow_post: bool,
+) -> DiagResult<Box<ASTNode>> {
     let first = match tokens[*ind].kind {
         TokenKind::IntLiteral(_)
         | TokenKind::FloatLiteral(_)
@@ -69,5 +74,28 @@ pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
         }
     };
 
-    Ok(first)
+    if allow_post {
+        parse_ast_post(tokens, ind, first)
+    } else {
+        Ok(first)
+    }
+}
+
+pub fn parse_ast_post(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    first_node: Box<ASTNode>,
+) -> DiagResult<Box<ASTNode>> {
+    match tokens[*ind].kind {
+        TokenKind::Plus
+        | TokenKind::Minus
+        | TokenKind::Star
+        | TokenKind::Slash
+        | TokenKind::BackSlash
+        | TokenKind::Bang
+        | TokenKind::Tilde
+        | TokenKind::Question => return parse_ast_math_expression(tokens, ind, first_node),
+
+        _ => Ok(first_node),
+    }
 }

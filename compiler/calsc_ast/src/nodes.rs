@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_utils::{hash::HashedString, pos::FilePosition};
+use calsc_utils::{hash::HashedString, math::MathOperator, pos::FilePosition};
 
 use crate::types::ASTType;
 
@@ -30,6 +30,12 @@ pub enum ASTNodeKind {
 
     /// The inverse condition representation (eg: !testS)
     InverseCondition(Box<ASTNode>),
+
+    MathExpression {
+        left_expr: Box<ASTNode>,
+        right_expr: Box<ASTNode>,
+        operator: MathOperator,
+    },
 
     /// A variable declaration
     VariableDeclaration {
