@@ -111,3 +111,12 @@ pub fn parse_extern_function_decl_test() {
         }
     )
 }
+
+#[test]
+pub fn parse_malformed_extern_function_decl_test() {
+    let tokens =
+        lexer_tokenize("externfunc test(..., s32 test)", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let call = parse_extern_function_declaration(&tokens, &mut ind).unwrap_err();
+}
