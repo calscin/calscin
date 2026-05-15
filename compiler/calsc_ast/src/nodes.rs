@@ -95,6 +95,10 @@ pub enum ASTNodeKind {
         iterated: Box<ASTNode>,
         body: Vec<Box<ASTNode>>,
     },
+
+    Loop {
+        body: Vec<Box<ASTNode>>,
+    },
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.

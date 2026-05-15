@@ -39,6 +39,9 @@ pub enum TokenKind {
     /// `if`
     If,
 
+    /// `loop`
+    Loop,
+
     /// `else`
     Else,
 
@@ -480,6 +483,7 @@ impl Display for TokenKind {
             Self::If => "if",
             Self::Else => "else",
             Self::For => "for",
+            Self::Loop => "loop",
             Self::ExternFunc => "externfunc",
             Self::Use => "use",
             Self::Std => "std",
