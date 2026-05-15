@@ -40,7 +40,6 @@ pub mod structs;
 ///
 /// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
 /// ```
-///
 pub fn parse_ast_value(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
     let first = match tokens[*ind].kind {
         TokenKind::IntLiteral(_)
