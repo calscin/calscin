@@ -40,7 +40,7 @@ pub mod structs;
 /// let mut ind: usize = 0;
 /// let tokens = lexer_tokenize("16", "test".to_string()).unwrap();
 ///
-/// let parsed = parse_ast_value(&tokens, &mut ind, true).unwrap();
+/// let parsed = parse_ast_value(&tokens, &mut ind, true, false).unwrap();
 ///
 /// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
 /// ```

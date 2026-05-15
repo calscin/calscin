@@ -1,3 +1,4 @@
+use calsc_ast::parser::parse_ast_node_body_member;
 #[allow(unused)]
 use calsc_ast::{
     nodes::ASTNodeKind,
@@ -25,7 +26,7 @@ pub fn test_parse_variable_delc_def() {
 
 #[test]
 pub fn test_parse_variable_ref() {
-    let tokens = lexer_tokenize("test_abcef", "test.cal".to_string()).unwrap();
+    let tokens = lexer_tokenize("test_abcef", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
     let reference = parse_ast_variable_reference(&tokens, &mut ind).unwrap_cleanly();
@@ -34,4 +35,21 @@ pub fn test_parse_variable_ref() {
         reference.kind,
         ASTNodeKind::VariableReference(HashedString::new("test_abcef".to_string()))
     )
+}
+
+#[test]
+pub fn test_parse_variable_assign() {
+    let tokens = lexer_tokenize("test = 588", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let assign = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+
+    if let ASTNodeKind::Assignment { variable, value } = assign.kind {
+        assert_eq!(
+            variable.kind,
+            ASTNodeKind::VariableReference(HashedString::new("test".to_string()))
+        );
+
+        assert_eq!(value.kind, ASTNodeKind::IntLiteral(588));
+    }
 }
