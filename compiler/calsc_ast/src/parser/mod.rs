@@ -8,7 +8,10 @@ use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
     nodes::ASTNode,
-    parser::{values::parse_ast_value, vars::parse_ast_variable_declaration},
+    parser::{
+        control::for_loop::parse_ast_for_loop, values::parse_ast_value,
+        vars::parse_ast_variable_declaration,
+    },
 };
 
 pub mod control;
@@ -36,8 +39,6 @@ pub mod vars;
 /// let mut ind: usize = 0;
 ///
 /// let node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
-///
-///
 /// ```
 ///
 pub fn parse_ast_node_body_member(
@@ -46,6 +47,7 @@ pub fn parse_ast_node_body_member(
 ) -> DiagResult<Box<ASTNode>> {
     match tokens[*ind].kind {
         TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind),
+        TokenKind::For => parse_ast_for_loop(tokens, ind),
         _ => parse_ast_value(tokens, ind, true, true),
     }
 }

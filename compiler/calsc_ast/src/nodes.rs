@@ -88,6 +88,13 @@ pub enum ASTNodeKind {
         name: HashedString,
         arguments: Vec<Box<ASTNode>>,
     },
+
+    ForLoop {
+        iterator_type: ASTType,
+        iterator_name: HashedString,
+        iterated: Box<ASTNode>,
+        body: Vec<Box<ASTNode>>,
+    },
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.

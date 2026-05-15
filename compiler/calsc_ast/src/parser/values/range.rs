@@ -18,7 +18,10 @@ pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
     let start_node = parse_ast_value(tokens, ind, true, false)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::Dot)?;
-    *ind += 1; // .
+    *ind += 1; // first .
+
+    tokens[*ind].expects(TokenKind::Dot)?;
+    *ind += 1;
 
     let end_node = parse_ast_value(tokens, ind, true, false)?; // Auto increments
 

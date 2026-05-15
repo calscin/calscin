@@ -95,3 +95,22 @@ pub fn parse_compare_operation_test() {
         )
     }
 }
+
+#[test]
+pub fn parse_range_test() {
+    let tokens = lexer_tokenize("[1..5]->5", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let val = parse_ast_value(&tokens, &mut ind, true, false).unwrap_cleanly();
+
+    if let ASTNodeKind::Range {
+        start,
+        end,
+        increment,
+    } = val.kind
+    {
+        assert_eq!(start.kind, ASTNodeKind::IntLiteral(1));
+        assert_eq!(end.kind, ASTNodeKind::IntLiteral(5));
+        assert_eq!(increment.unwrap().kind, ASTNodeKind::IntLiteral(5));
+    }
+}
