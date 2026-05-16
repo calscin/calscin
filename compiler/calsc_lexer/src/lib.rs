@@ -22,7 +22,7 @@ pub const FALSE_HASH: u64 = fnvhash!("false");
 pub const IF_HASH: u64 = fnvhash!("if");
 pub const ELSE_HASH: u64 = fnvhash!("else");
 pub const EXTERNFUNC_HASH: u64 = fnvhash!("externfunc");
-pub const USE_HASH: u64 = fnvhash!("use");
+pub const IMPORT_HASH: u64 = fnvhash!("import");
 pub const STD_HASH: u64 = fnvhash!("std");
 pub const VAR_HASH: u64 = fnvhash!("var");
 pub const MUT_HASH: u64 = fnvhash!("mut");
@@ -169,7 +169,7 @@ pub fn parse_keyword(
         IF_HASH => TokenKind::If,
         ELSE_HASH => TokenKind::Else,
         EXTERNFUNC_HASH => TokenKind::ExternFunc,
-        USE_HASH => TokenKind::Use,
+        IMPORT_HASH => TokenKind::Import,
         STD_HASH => TokenKind::Std,
         VAR_HASH => TokenKind::Var,
         MUT_HASH => TokenKind::Mut,

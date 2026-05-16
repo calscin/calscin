@@ -48,8 +48,8 @@ pub enum TokenKind {
     /// `externfunc`
     ExternFunc,
 
-    /// `use`
-    Use,
+    /// `import`
+    Import,
 
     /// `std`
     Std,
@@ -489,7 +489,7 @@ impl Display for TokenKind {
             Self::While => "while",
             Self::Loop => "loop",
             Self::ExternFunc => "externfunc",
-            Self::Use => "use",
+            Self::Import => "import",
             Self::Std => "std",
             Self::Var => "var",
             Self::Mut => "mut",

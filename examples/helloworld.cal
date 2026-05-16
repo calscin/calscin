@@ -1,4 +1,4 @@
-use std::[print]
+import std::[print]
 
 func main() -> s32 {
 	mut s32 test2 = 69;
