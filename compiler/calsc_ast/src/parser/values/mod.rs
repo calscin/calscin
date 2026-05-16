@@ -64,6 +64,17 @@ pub fn parse_ast_value(
         | TokenKind::True
         | TokenKind::False => parse_ast_literal(tokens, ind)?,
 
+        TokenKind::ParenOpen => {
+            *ind += 1; // (
+            let value = parse_ast_value(tokens, ind, true, false)?; // Doesn't allow variable assignment inside of parens
+            // Auto increments
+
+            tokens[*ind].expects(TokenKind::ParenClose)?;
+            *ind += 1; // )
+
+            value
+        }
+
         TokenKind::And => parse_ast_pointer_reference(tokens, ind)?,
         TokenKind::Star => parse_ast_pointer_dereference(tokens, ind)?,
 
