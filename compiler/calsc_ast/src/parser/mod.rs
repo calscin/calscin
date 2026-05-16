@@ -10,7 +10,8 @@ use crate::{
     nodes::ASTNode,
     parser::{
         control::{
-            for_loop::parse_ast_for_loop, loops::parse_ast_loop, while_loop::parse_ast_while_loop,
+            for_loop::parse_ast_for_loop, ifelse::parse_ast_if_statement, loops::parse_ast_loop,
+            while_loop::parse_ast_while_loop,
         },
         values::parse_ast_value,
         vars::parse_ast_variable_declaration,
@@ -18,6 +19,7 @@ use crate::{
 };
 
 pub mod control;
+pub mod forms;
 pub mod func;
 pub mod types;
 pub mod utils;
@@ -53,6 +55,7 @@ pub fn parse_ast_node_body_member(
         TokenKind::For => parse_ast_for_loop(tokens, ind),
         TokenKind::Loop => parse_ast_loop(tokens, ind),
         TokenKind::While => parse_ast_while_loop(tokens, ind),
+        TokenKind::If => parse_ast_if_statement(tokens, ind),
         _ => parse_ast_value(tokens, ind, true, true),
     }
 }

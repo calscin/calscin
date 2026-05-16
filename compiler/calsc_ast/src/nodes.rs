@@ -10,7 +10,7 @@ use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
-use crate::types::ASTType;
+use crate::{ifs::IfStatementBranch, types::ASTType};
 
 /// The kind of AST tree node. Holds information about the node itself.
 #[derive(Debug, PartialEq)]
@@ -103,6 +103,10 @@ pub enum ASTNodeKind {
     WhileLoop {
         condition: Box<ASTNode>,
         body: Vec<Box<ASTNode>>,
+    },
+
+    IfStatement {
+        branches: Vec<IfStatementBranch>,
     },
 }
 
