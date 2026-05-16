@@ -11,6 +11,7 @@ use crate::{
             conditions::{parse_ast_compare_expression, parse_ast_inverse_condition},
             lits::parse_ast_literal,
             math::parse_ast_math_expression,
+            ptrs::{parse_ast_pointer_dereference, parse_ast_pointer_reference},
             range::parse_ast_range,
             structs::parse_ast_structured_init,
         },
@@ -21,6 +22,7 @@ use crate::{
 pub mod conditions;
 pub mod lits;
 pub mod math;
+pub mod ptrs;
 pub mod range;
 pub mod structs;
 
@@ -61,6 +63,9 @@ pub fn parse_ast_value(
         | TokenKind::CharLiteral(_)
         | TokenKind::True
         | TokenKind::False => parse_ast_literal(tokens, ind)?,
+
+        TokenKind::And => parse_ast_pointer_reference(tokens, ind)?,
+        TokenKind::Star => parse_ast_pointer_dereference(tokens, ind)?,
 
         TokenKind::Bang => parse_ast_inverse_condition(tokens, ind)?,
         TokenKind::BraceOpen => parse_ast_structured_init(tokens, ind)?,

@@ -33,6 +33,9 @@ pub enum ASTNodeKind {
     /// The inverse condition representation (eg: !testS)
     InverseCondition(Box<ASTNode>),
 
+    PointerReference(Box<ASTNode>),
+    PointerDereference(Box<ASTNode>),
+
     /// [start.end] -> incr
     Range {
         start: Box<ASTNode>,
