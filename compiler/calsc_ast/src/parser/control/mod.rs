@@ -2,3 +2,4 @@
 
 pub mod for_loop;
 pub mod loops;
+pub mod while_loop;

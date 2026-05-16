@@ -9,7 +9,10 @@ use calsc_lexer::toks::{Token, TokenKind};
 use crate::{
     nodes::ASTNode,
     parser::{
-        control::for_loop::parse_ast_for_loop, values::parse_ast_value,
+        control::{
+            for_loop::parse_ast_for_loop, loops::parse_ast_loop, while_loop::parse_ast_while_loop,
+        },
+        values::parse_ast_value,
         vars::parse_ast_variable_declaration,
     },
 };
@@ -48,6 +51,8 @@ pub fn parse_ast_node_body_member(
     match tokens[*ind].kind {
         TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind),
         TokenKind::For => parse_ast_for_loop(tokens, ind),
+        TokenKind::Loop => parse_ast_loop(tokens, ind),
+        TokenKind::While => parse_ast_while_loop(tokens, ind),
         _ => parse_ast_value(tokens, ind, true, true),
     }
 }

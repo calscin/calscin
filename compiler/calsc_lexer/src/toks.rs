@@ -72,6 +72,9 @@ pub enum TokenKind {
     /// `for`
     For,
 
+    /// `while`
+    While,
+
     /// ;
     SemiColon,
 
@@ -483,6 +486,7 @@ impl Display for TokenKind {
             Self::If => "if",
             Self::Else => "else",
             Self::For => "for",
+            Self::While => "while",
             Self::Loop => "loop",
             Self::ExternFunc => "externfunc",
             Self::Use => "use",

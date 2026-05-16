@@ -31,6 +31,7 @@ pub const DECL_HASH: u64 = fnvhash!("decl");
 pub const RETURN_HASH: u64 = fnvhash!("return");
 pub const FOR_HASH: u64 = fnvhash!("for");
 pub const LOOP_HASH: u64 = fnvhash!("loop");
+pub const WHILE_HASH: u64 = fnvhash!("while");
 
 /// Converts raw texts into lexer tokens.
 /// # Examples
@@ -177,6 +178,7 @@ pub fn parse_keyword(
         RETURN_HASH => TokenKind::Return,
         FOR_HASH => TokenKind::For,
         LOOP_HASH => TokenKind::Loop,
+        WHILE_HASH => TokenKind::While,
         _ => TokenKind::Keyword(slice),
     };
 
