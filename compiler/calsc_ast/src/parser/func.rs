@@ -7,7 +7,8 @@ use calsc_utils::{Either, hash::HashedString};
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        parse_ast_body, types::parse_ast_type, utils::parse_ast_list, values::parse_ast_value,
+        forms::parse_ast_body_form, parse_ast_body, types::parse_ast_type, utils::parse_ast_list,
+        values::parse_ast_value,
     },
     types::ASTType,
 };
@@ -52,10 +53,7 @@ pub fn parse_function_declaration(
         true,
     )?; // Auto increments
 
-    tokens[*ind].expects(TokenKind::BraceOpen)?;
-    *ind += 1; // {
-
-    let body = parse_ast_body(tokens, ind)?; // Auto increments
+    let body = parse_ast_body_form(tokens, ind)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 

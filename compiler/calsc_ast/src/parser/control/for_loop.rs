@@ -4,7 +4,7 @@ use calsc_utils::hash::HashedString;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
-    parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
+    parser::{forms::parse_ast_body_form, types::parse_ast_type, values::parse_ast_value},
 };
 
 #[inline(always)]
@@ -26,10 +26,7 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Bo
 
     let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
 
-    tokens[*ind].expects(TokenKind::BraceOpen)?;
-    *ind += 1; // {
-
-    let body = parse_ast_body(tokens, ind)?; // Auto increments
+    let body = parse_ast_body_form(tokens, ind)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone(); // Removes the auto increment to grab the end
 
