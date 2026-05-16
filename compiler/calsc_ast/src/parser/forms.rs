@@ -2,10 +2,12 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::hash::HashedString;
 
 use crate::{
     nodes::ASTNode,
-    parser::{parse_ast_body, values::parse_ast_value},
+    parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
+    types::ASTType,
 };
 
 /// Parses where a condition should be put
@@ -31,4 +33,17 @@ pub fn parse_ast_body_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<V
     let body = parse_ast_body(tokens, ind)?; // Auto increments
 
     Ok(body)
+}
+
+/// Parses a field-like (a type then a variable name).
+pub fn parse_ast_field_form(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<(ASTType, HashedString)> {
+    let ty = parse_ast_type(tokens, ind)?; // Auto increments
+
+    let name = tokens[*ind].expects_keyword()?;
+    *ind += 1; // keyword (variable name)
+
+    Ok((ty, name.into()))
 }
