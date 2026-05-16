@@ -1,6 +1,6 @@
 use crate::nodes::ASTNode;
 
-#[derive(PartialEq, Debug)]
+#[derive(PartialEq, Debug, Clone)]
 pub enum IfStatementBranch {
     If {
         condition: Box<ASTNode>,

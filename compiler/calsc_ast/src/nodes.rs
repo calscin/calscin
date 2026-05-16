@@ -13,7 +13,7 @@ use calsc_utils::{
 use crate::{ifs::IfStatementBranch, types::ASTType};
 
 /// The kind of AST tree node. Holds information about the node itself.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ASTNodeKind {
     /// An integer literal
     IntLiteral(i128),
@@ -111,7 +111,7 @@ pub enum ASTNodeKind {
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ASTNode {
     pub kind: ASTNodeKind,
     pub start: FilePosition,

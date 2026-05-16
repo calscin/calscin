@@ -42,7 +42,7 @@ fn parse_else_member_statement(
     if tokens[*ind + 1].kind == TokenKind::If {
         return parse_if_else_member_statement(tokens, ind);
     } else {
-        *ind += 2; // else
+        *ind += 1; // else
 
         *has_met_else = true;
 

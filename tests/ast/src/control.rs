@@ -1,4 +1,6 @@
-use calsc_ast::{nodes::ASTNodeKind, parser::parse_ast_node_body_member, types::ASTType};
+use calsc_ast::{
+    ifs::IfStatementBranch, nodes::ASTNodeKind, parser::parse_ast_node_body_member, types::ASTType,
+};
 use calsc_diagnostics::result::CalscinResult;
 use calsc_lexer::lexer_tokenize;
 use calsc_utils::hash::HashedString;
@@ -82,6 +84,71 @@ fn parse_while_loop_test() {
                 value: None
             }
         )
+    } else {
+        panic!()
+    }
+}
+
+#[test]
+fn parse_if_statement_simple_test() {
+    let tokens =
+        lexer_tokenize("if(true) { var s32 test }", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let if_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+
+    if let ASTNodeKind::IfStatement { branches } = if_node.kind {
+        if let IfStatementBranch::If { condition, body } = branches[0].clone() {
+            assert_eq!(condition.kind, ASTNodeKind::BooleanLiteral(true));
+            assert_eq!(
+                body[0].kind,
+                ASTNodeKind::VariableDeclaration {
+                    mutable: false,
+                    var_type: ASTType::Generic("s32".into(), None, vec![]),
+                    name: "test".into(),
+                    value: None
+                }
+            )
+        } else {
+            panic!()
+        }
+    } else {
+        panic!()
+    }
+}
+
+#[test]
+fn parse_if_statement_test() {
+    let tokens = lexer_tokenize(
+        "if(true) {} else if(false) {} else {}",
+        "test.cal".to_string(),
+    )
+    .unwrap_cleanly();
+
+    let mut ind = 0;
+
+    let if_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+
+    if let ASTNodeKind::IfStatement { branches } = if_node.kind {
+        if let IfStatementBranch::If { condition, body } = branches[0].clone() {
+            assert_eq!(condition.kind, ASTNodeKind::BooleanLiteral(true));
+            assert_eq!(body, vec![])
+        } else {
+            panic!()
+        }
+
+        if let IfStatementBranch::IfElse { condition, body } = branches[1].clone() {
+            assert_eq!(condition.kind, ASTNodeKind::BooleanLiteral(false));
+            assert_eq!(body, vec![]);
+        } else {
+            panic!()
+        }
+
+        if let IfStatementBranch::Else { body } = branches[2].clone() {
+            assert_eq!(body, vec![]);
+        } else {
+            panic!()
+        }
     } else {
         panic!()
     }
