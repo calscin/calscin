@@ -13,7 +13,7 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Bo
 
     *ind += 1; // for
 
-    let iterator_type = parse_ast_type(tokens, ind)?; // Auto increments
+    let iterator_type = parse_ast_type(tokens, ind, true)?; // Auto increments
 
     let iterator_name = tokens[*ind].expects_keyword()?;
     *ind += 1; // keyword

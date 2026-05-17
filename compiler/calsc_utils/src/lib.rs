@@ -1,5 +1,6 @@
 //! Utilities to use inside of the Calscin compiler.
 
+pub mod alloc;
 pub mod cmp;
 pub mod fs;
 pub mod hash;
