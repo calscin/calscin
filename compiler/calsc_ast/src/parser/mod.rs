@@ -18,6 +18,7 @@ use crate::{
         values::parse_ast_value,
         vars::parse_ast_variable_declaration,
     },
+    refs::ASTArenaReference,
 };
 
 pub mod control;
@@ -53,7 +54,7 @@ pub mod vars;
 pub fn parse_ast_node_body_member(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ASTArenaReference> {
     match tokens[*ind].kind {
         TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind),
         TokenKind::For => parse_ast_for_loop(tokens, ind),
@@ -64,8 +65,8 @@ pub fn parse_ast_node_body_member(
     }
 }
 
-pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<Box<ASTNode>>> {
-    let mut members: Vec<Box<ASTNode>> = vec![];
+pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<ASTArenaReference>> {
+    let mut members: Vec<ASTArenaReference> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
         let member = parse_ast_node_body_member(tokens, ind)?; // Auto increments
@@ -84,7 +85,7 @@ pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<Bo
 }
 
 /// Parses a top level node
-pub fn parse_ast_top_level(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_top_level(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
     match tokens[*ind].kind {
         TokenKind::Function => parse_function_declaration(tokens, ind),
         TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind),

@@ -34,13 +34,13 @@ pub fn parse_math_operation_test() {
         left_expr,
         right_expr,
         operator,
-    } = math.kind
+    } = math.kind.clone()
     {
         assert_eq!(
-            left_expr.kind,
+            left_expr.kind.clone(),
             ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
-        assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
+        assert_eq!(right_expr.kind.clone(), ASTNodeKind::IntLiteral(58));
 
         assert_eq!(operator, MathOperator::new(MathOperation::Add, false, true))
     } else {
@@ -59,13 +59,13 @@ pub fn parse_math_operation_long_test() {
         left_expr,
         right_expr,
         operator,
-    } = math.kind
+    } = math.kind.clone()
     {
         assert_eq!(
-            left_expr.kind,
+            left_expr.kind.clone(),
             ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
-        assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
+        assert_eq!(right_expr.kind.clone(), ASTNodeKind::IntLiteral(58));
 
         assert_eq!(operator, MathOperator::new(MathOperation::And, true, true))
     } else {
@@ -84,14 +84,14 @@ pub fn parse_compare_operation_test() {
         left_expr,
         right_expr,
         operator,
-    } = comp.kind
+    } = comp.kind.clone()
     {
         assert_eq!(
-            left_expr.kind,
+            left_expr.kind.clone(),
             ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
 
-        assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
+        assert_eq!(right_expr.kind.clone(), ASTNodeKind::IntLiteral(58));
 
         assert_eq!(
             operator,
@@ -113,11 +113,11 @@ pub fn parse_range_test() {
         start,
         end,
         increment,
-    } = val.kind
+    } = val.kind.clone()
     {
-        assert_eq!(start.kind, ASTNodeKind::IntLiteral(1));
-        assert_eq!(end.kind, ASTNodeKind::IntLiteral(5));
-        assert_eq!(increment.unwrap().kind, ASTNodeKind::IntLiteral(5));
+        assert_eq!(start.kind.clone(), ASTNodeKind::IntLiteral(1));
+        assert_eq!(end.kind.clone(), ASTNodeKind::IntLiteral(5));
+        assert_eq!(increment.unwrap().kind.clone(), ASTNodeKind::IntLiteral(5));
     } else {
         panic!()
     }

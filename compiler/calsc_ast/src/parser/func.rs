@@ -7,12 +7,10 @@ use calsc_utils::{Either, hash::HashedString};
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        forms::{parse_ast_body_form, parse_ast_field_form},
-        parse_ast_body,
-        types::parse_ast_type,
-        utils::parse_ast_list,
+        forms::parse_ast_body_form, types::parse_ast_type, utils::parse_ast_list,
         values::parse_ast_value,
     },
+    refs::ASTArenaReference,
     types::ASTType,
 };
 
@@ -36,7 +34,7 @@ pub fn parse_function_argument(
 pub fn parse_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // func
@@ -60,7 +58,7 @@ pub fn parse_function_declaration(
 
     let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::FunctionDeclaration {
             name: HashedString::new(func_name),
             arguments,
@@ -68,10 +66,12 @@ pub fn parse_function_declaration(
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }
 
-pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     let name = HashedString::new(tokens[*ind].expects_keyword()?);
@@ -91,11 +91,9 @@ pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<B
 
     let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
-        ASTNodeKind::FunctionCall { name, arguments },
-        start,
-        end,
-    )))
+    let node = ASTNode::new(ASTNodeKind::FunctionCall { name, arguments }, start, end);
+
+    Ok(node.push())
 }
 
 /// Parses an extern function arguments.
@@ -130,7 +128,7 @@ pub fn parse_extern_function_argument(
 pub fn parse_extern_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // externfunc
@@ -171,7 +169,7 @@ pub fn parse_extern_function_declaration(
         arg_ind += 1;
     }
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::ExternFunctionDeclaration {
             name,
             arguments: args,
@@ -179,5 +177,7 @@ pub fn parse_extern_function_declaration(
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

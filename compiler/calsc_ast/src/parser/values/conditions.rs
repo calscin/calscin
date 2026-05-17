@@ -1,16 +1,20 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::cmp::{CompareOperator, ComparePredicate};
+use calsc_utils::{
+    cmp::{CompareOperator, ComparePredicate},
+    pos::FilePosition,
+};
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::values::parse_ast_value,
+    refs::ASTArenaReference,
 };
 
 pub fn parse_ast_inverse_condition(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // !
@@ -20,11 +24,9 @@ pub fn parse_ast_inverse_condition(
 
     let end = tokens[*ind - 1].end.clone(); // Counters the auto increment to get the end
 
-    Ok(Box::new(ASTNode::new(
-        ASTNodeKind::InverseCondition(val),
-        start,
-        end,
-    )))
+    let node = ASTNode::new(ASTNodeKind::InverseCondition(val), start, end);
+
+    Ok(node.push())
 }
 
 #[inline(always)]
@@ -78,17 +80,16 @@ pub fn parse_ast_comparing_operator(
 pub fn parse_ast_compare_expression(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first: Box<ASTNode>,
-) -> DiagResult<Box<ASTNode>> {
-    let start = first.start.clone();
-
+    first: ASTArenaReference,
+    start: FilePosition,
+) -> DiagResult<ASTArenaReference> {
     let operator = parse_ast_comparing_operator(tokens, ind)?; // Auto increments
 
     let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
 
-    let end = value.end.clone();
+    let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::CompareExpression {
             left_expr: first,
             right_expr: value,
@@ -96,5 +97,7 @@ pub fn parse_ast_compare_expression(
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

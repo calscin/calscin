@@ -11,8 +11,10 @@ use calsc_utils::{
 };
 
 use crate::{
+    AST_CONTEXT,
     ifs::IfStatementBranch,
     imports::{ImportKind, ImportModule},
+    refs::ASTArenaReference,
     types::ASTType,
 };
 
@@ -35,27 +37,27 @@ pub enum ASTNodeKind {
     BooleanLiteral(bool),
 
     /// The inverse condition representation (eg: !testS)
-    InverseCondition(Box<ASTNode>),
+    InverseCondition(ASTArenaReference),
 
-    PointerReference(Box<ASTNode>),
-    PointerDereference(Box<ASTNode>),
+    PointerReference(ASTArenaReference),
+    PointerDereference(ASTArenaReference),
 
     /// [start.end] -> incr
     Range {
-        start: Box<ASTNode>,
-        end: Box<ASTNode>,
-        increment: Option<Box<ASTNode>>,
+        start: ASTArenaReference,
+        end: ASTArenaReference,
+        increment: Option<ASTArenaReference>,
     },
 
     MathExpression {
-        left_expr: Box<ASTNode>,
-        right_expr: Box<ASTNode>,
+        left_expr: ASTArenaReference,
+        right_expr: ASTArenaReference,
         operator: MathOperator,
     },
 
     CompareExpression {
-        left_expr: Box<ASTNode>,
-        right_expr: Box<ASTNode>,
+        left_expr: ASTArenaReference,
+        right_expr: ASTArenaReference,
         operator: CompareOperator,
     },
 
@@ -64,11 +66,11 @@ pub enum ASTNodeKind {
         mutable: bool,
         var_type: ASTType,
         name: HashedString,
-        value: Option<Box<ASTNode>>,
+        value: Option<ASTArenaReference>,
     },
 
     StructuredInit {
-        values: HashMap<HashedString, Box<ASTNode>>,
+        values: HashMap<HashedString, ASTArenaReference>,
     },
 
     /// Refers to an element
@@ -76,14 +78,14 @@ pub enum ASTNodeKind {
 
     /// `test = value`
     Assignment {
-        variable: Box<ASTNode>,
-        value: Box<ASTNode>,
+        variable: ASTArenaReference,
+        value: ASTArenaReference,
     },
 
     FunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
-        body: Vec<Box<ASTNode>>,
+        body: Vec<ASTArenaReference>,
     },
 
     ExternFunctionDeclaration {
@@ -94,23 +96,23 @@ pub enum ASTNodeKind {
 
     FunctionCall {
         name: HashedString,
-        arguments: Vec<Box<ASTNode>>,
+        arguments: Vec<ASTArenaReference>,
     },
 
     ForLoop {
         iterator_type: ASTType,
         iterator_name: HashedString,
-        iterated: Box<ASTNode>,
-        body: Vec<Box<ASTNode>>,
+        iterated: ASTArenaReference,
+        body: Vec<ASTArenaReference>,
     },
 
     Loop {
-        body: Vec<Box<ASTNode>>,
+        body: Vec<ASTArenaReference>,
     },
 
     WhileLoop {
-        condition: Box<ASTNode>,
-        body: Vec<Box<ASTNode>>,
+        condition: ASTArenaReference,
+        body: Vec<ASTArenaReference>,
     },
 
     IfStatement {
@@ -136,8 +138,10 @@ pub enum ASTNodeKind {
 
     StructDeclBlock {
         target: ASTType,
-        functions: Vec<Box<ASTNode>>,
+        functions: Vec<ASTArenaReference>,
     },
+
+    None,
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.
@@ -152,6 +156,11 @@ impl ASTNode {
     /// Creates a new AST node with the given kind, the given start and the given end.
     pub fn new(kind: ASTNodeKind, start: FilePosition, end: FilePosition) -> Self {
         Self { kind, start, end }
+    }
+
+    /// Pushes the node into the arena allocator and consumes it
+    pub fn push(self) -> ASTArenaReference {
+        AST_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
     }
 }
 

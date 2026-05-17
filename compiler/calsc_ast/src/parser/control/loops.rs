@@ -1,5 +1,6 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
+use crate::refs::ASTArenaReference;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -7,7 +8,7 @@ use crate::{
 };
 
 #[inline(always)]
-pub fn parse_ast_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // loop
@@ -19,9 +20,7 @@ pub fn parse_ast_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<AS
 
     let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
-        ASTNodeKind::Loop { body },
-        start,
-        end,
-    )))
+    let node = ASTNode::new(ASTNodeKind::Loop { body }, start, end);
+
+    Ok(node.push())
 }

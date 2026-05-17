@@ -32,7 +32,7 @@ pub fn test_parse_variable_ref() {
     let reference = parse_ast_element_reference(&tokens, &mut ind).unwrap_cleanly();
 
     assert_eq!(
-        reference.kind,
+        reference.kind.clone(),
         ASTNodeKind::ElementReference(HashedString::new("test_abcef".to_string()))
     )
 }
@@ -44,13 +44,13 @@ pub fn test_parse_variable_assign() {
 
     let assign = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 
-    if let ASTNodeKind::Assignment { variable, value } = assign.kind {
+    if let ASTNodeKind::Assignment { variable, value } = assign.kind.clone() {
         assert_eq!(
-            variable.kind,
+            variable.kind.clone(),
             ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
 
-        assert_eq!(value.kind, ASTNodeKind::IntLiteral(588));
+        assert_eq!(value.kind.clone(), ASTNodeKind::IntLiteral(588));
     } else {
         panic!()
     }

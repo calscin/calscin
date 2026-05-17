@@ -27,7 +27,7 @@ use crate::{
 /// let tokens: Vec<Token> = lexer_tokenize("s32**", "test.cal".to_string()).unwrap();
 /// let mut ind = 0;
 ///
-/// let ty = parse_ast_type(&tokens, &mut ind).unwrap();
+/// let ty = parse_ast_type(&tokens, &mut ind, true).unwrap();
 /// ```
 ///
 pub fn parse_ast_type(

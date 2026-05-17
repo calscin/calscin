@@ -5,15 +5,16 @@ use calsc_utils::hash::HashedString;
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::{forms::parse_ast_body_form, types::parse_ast_type, values::parse_ast_value},
+    refs::ASTArenaReference,
 };
 
 #[inline(always)]
-pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // for
 
-    let iterator_type = parse_ast_type(tokens, ind)?; // Auto increments
+    let iterator_type = parse_ast_type(tokens, ind, true)?; // Auto increments
 
     let iterator_name = tokens[*ind].expects_keyword()?;
     *ind += 1; // keyword
@@ -30,7 +31,7 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Bo
 
     let end = tokens[*ind - 1].end.clone(); // Removes the auto increment to grab the end
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::ForLoop {
             iterator_type,
             iterator_name: HashedString::new(iterator_name),
@@ -39,5 +40,7 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Bo
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

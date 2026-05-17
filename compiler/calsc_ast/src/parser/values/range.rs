@@ -2,6 +2,7 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
+use crate::refs::ASTArenaReference;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -9,7 +10,7 @@ use crate::{
 };
 
 #[inline(always)]
-pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     tokens[*ind].expects(TokenKind::BracketOpen)?;
@@ -41,7 +42,7 @@ pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
 
     let end = tokens[*ind - 1].end.clone(); // Cancels the auto increment to get the end
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::Range {
             start: start_node,
             end: end_node,
@@ -49,5 +50,7 @@ pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<A
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

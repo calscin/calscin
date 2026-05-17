@@ -8,13 +8,14 @@ use crate::{
         forms::parse_ast_field_form, func::parse_function_declaration, types::parse_ast_type,
         utils::parse_ast_list,
     },
+    refs::ASTArenaReference,
 };
 
 #[inline(always)]
 pub fn parse_ast_struct_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // struct
@@ -51,7 +52,7 @@ pub fn parse_ast_struct_declaration(
 
     let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::StructDeclaration {
             name,
             type_params,
@@ -59,14 +60,16 @@ pub fn parse_ast_struct_declaration(
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }
 
 #[inline(always)]
 pub fn parse_ast_struct_decl_block(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // decl
@@ -76,7 +79,7 @@ pub fn parse_ast_struct_decl_block(
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
-    let mut functions: Vec<Box<ASTNode>> = vec![];
+    let mut functions: Vec<ASTArenaReference> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
         tokens[*ind].expects(TokenKind::Function)?;
@@ -89,9 +92,11 @@ pub fn parse_ast_struct_decl_block(
 
     let end = tokens[*ind - 1].end.clone(); // Counters the auto increment
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::StructDeclBlock { target, functions },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

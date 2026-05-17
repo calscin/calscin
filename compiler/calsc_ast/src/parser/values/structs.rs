@@ -7,12 +7,13 @@ use calsc_utils::hash::HashedString;
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::{utils::parse_ast_list, values::parse_ast_value},
+    refs::ASTArenaReference,
 };
 
 pub(crate) fn parse_structured_init_field(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<(HashedString, Box<ASTNode>)> {
+) -> DiagResult<(HashedString, ASTArenaReference)> {
     let name = tokens[*ind].expects_keyword()?;
     *ind += 1; // keyword
 
@@ -24,7 +25,10 @@ pub(crate) fn parse_structured_init_field(
     Ok((HashedString::new(name), value))
 }
 
-pub fn parse_ast_structured_init(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_structured_init(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // {
@@ -46,11 +50,13 @@ pub fn parse_ast_structured_init(tokens: &Vec<Token>, ind: &mut usize) -> DiagRe
         actual_fields.insert(field.0, field.1);
     }
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::StructuredInit {
             values: actual_fields,
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }
