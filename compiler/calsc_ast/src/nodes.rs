@@ -10,7 +10,11 @@ use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
-use crate::{ifs::IfStatementBranch, types::ASTType};
+use crate::{
+    ifs::IfStatementBranch,
+    imports::{ImportKind, ImportModule},
+    types::ASTType,
+};
 
 /// The kind of AST tree node. Holds information about the node itself.
 #[derive(Debug, PartialEq, Clone)]
@@ -111,6 +115,17 @@ pub enum ASTNodeKind {
 
     IfStatement {
         branches: Vec<IfStatementBranch>,
+    },
+
+    ImportStatement {
+        /// The source / import module
+        source: ImportModule,
+
+        /// The path
+        path: Vec<HashedString>,
+
+        /// The kind of import
+        kind: ImportKind,
     },
 }
 
