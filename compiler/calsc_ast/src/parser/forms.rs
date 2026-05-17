@@ -40,7 +40,7 @@ pub fn parse_ast_field_form(
     tokens: &Vec<Token>,
     ind: &mut usize,
 ) -> DiagResult<(ASTType, HashedString)> {
-    let ty = parse_ast_type(tokens, ind)?; // Auto increments
+    let ty = parse_ast_type(tokens, ind, true)?; // Auto increments
 
     let name = tokens[*ind].expects_keyword()?;
     *ind += 1; // keyword (variable name)

@@ -133,6 +133,11 @@ pub enum ASTNodeKind {
         type_params: Vec<HashedString>,
         fields: Vec<(ASTType, HashedString)>,
     },
+
+    StructDeclBlock {
+        target: ASTType,
+        functions: Vec<Box<ASTNode>>,
+    },
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.

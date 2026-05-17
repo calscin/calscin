@@ -7,7 +7,10 @@ use calsc_utils::{Either, hash::HashedString};
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        forms::parse_ast_body_form, parse_ast_body, types::parse_ast_type, utils::parse_ast_list,
+        forms::{parse_ast_body_form, parse_ast_field_form},
+        parse_ast_body,
+        types::parse_ast_type,
+        utils::parse_ast_list,
         values::parse_ast_value,
     },
     types::ASTType,
@@ -19,7 +22,7 @@ pub fn parse_function_argument(
     tokens: &Vec<Token>,
     ind: &mut usize,
 ) -> DiagResult<(ASTType, HashedString)> {
-    let arg_type = parse_ast_type(tokens, ind)?; // Auto increments
+    let arg_type = parse_ast_type(tokens, ind, true)?; // Auto increments
 
     let name = tokens[*ind].expects_keyword()?;
 

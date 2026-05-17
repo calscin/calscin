@@ -1,6 +1,6 @@
 //! Parsing related to types
 
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
@@ -30,12 +30,21 @@ use crate::{
 /// let ty = parse_ast_type(&tokens, &mut ind).unwrap();
 /// ```
 ///
-pub fn parse_ast_type(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTType> {
+pub fn parse_ast_type(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    allow_generic_parameters: bool,
+) -> DiagResult<ASTType> {
     let mut simples = vec![];
     let mut already_parsed_generic = false;
 
     loop {
-        let parsed_type = parse_type_step(tokens, ind, &mut already_parsed_generic)?;
+        let parsed_type = parse_type_step(
+            tokens,
+            ind,
+            &mut already_parsed_generic,
+            allow_generic_parameters,
+        )?;
 
         if let Some(parsed_type) = parsed_type {
             simples.push(parsed_type);
@@ -92,6 +101,7 @@ pub(crate) fn parse_type_step(
     tokens: &Vec<Token>,
     ind: &mut usize,
     already_parsed_generic: &mut bool,
+    allow_generic_parameters: bool,
 ) -> DiagResult<Option<SimpleASTType>> {
     let kind = match &tokens[*ind].kind {
         TokenKind::Star => {
@@ -117,7 +127,11 @@ pub(crate) fn parse_type_step(
             }
 
             *already_parsed_generic = true;
-            return Ok(Some(parse_type_generic(tokens, ind)?));
+            return Ok(Some(parse_type_generic(
+                tokens,
+                ind,
+                allow_generic_parameters,
+            )?));
         }
 
         _ => return Ok(None),
@@ -134,7 +148,11 @@ pub(crate) fn parse_type_step(
 /// This function will error out if the parsing goes wrong.
 ///
 #[inline(always)]
-pub fn parse_type_generic(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<SimpleASTType> {
+pub fn parse_type_generic(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    allow_generic_parameters: bool,
+) -> DiagResult<SimpleASTType> {
     if let TokenKind::Keyword(name) = tokens[*ind].kind.clone() {
         *ind += 1; // keyword
 
@@ -143,6 +161,10 @@ pub fn parse_type_generic(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Si
 
         // Parsing of the size specifier
         if tokens[*ind].kind == TokenKind::Dot {
+            if !allow_generic_parameters {
+                return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into());
+            }
+
             *ind += 1; // .
 
             size_spec = Some(tokens[*ind].expects_int_lit()? as usize);
@@ -152,6 +174,10 @@ pub fn parse_type_generic(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Si
         }
 
         if tokens[*ind].kind == TokenKind::AngelBracketOpen {
+            if !allow_generic_parameters {
+                return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into());
+            }
+
             *ind += 1; // <
 
             type_parameters = parse_ast_list(
