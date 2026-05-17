@@ -32,6 +32,11 @@ impl<K> ArenaAllocator<K> {
     }
 
     /// Gets the reference of the stored object of the given reference index as a reference
+    pub fn get_static(&self, refer: ArenaAllocatorReference) -> &'static K {
+        unsafe { std::mem::transmute::<&K, &'static K>(&self.arena[refer]) }
+    }
+
+    /// Gets the reference of the stored object of the given reference index as a reference
     pub fn get(&self, refer: ArenaAllocatorReference) -> &K {
         &self.arena[refer]
     }

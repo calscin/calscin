@@ -140,6 +140,8 @@ pub enum ASTNodeKind {
         target: ASTType,
         functions: Vec<ArenaAllocatorReference>,
     },
+
+    None,
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.

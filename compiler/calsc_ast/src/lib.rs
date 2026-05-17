@@ -9,6 +9,7 @@ use crate::nodes::ASTNode;
 pub mod ifs;
 pub mod imports;
 pub mod nodes;
+pub mod refs;
 pub mod types;
 
 #[cfg(feature = "parser")]

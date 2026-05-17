@@ -109,3 +109,13 @@ impl Display for FilePosition {
         )
     }
 }
+
+impl Default for FilePosition {
+    fn default() -> Self {
+        FilePosition {
+            file_path: PathBuf::new(),
+            line: 0,
+            column: 0,
+        }
+    }
+}
