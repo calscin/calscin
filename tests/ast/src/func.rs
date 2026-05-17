@@ -30,8 +30,11 @@ pub fn function_decl_parsing_base_test() {
 
 #[test]
 pub fn function_decl_parsing_test() {
-    let tokens = lexer_tokenize("func test() {\n var s32 test = 0 }", "test.cal".to_string())
-        .unwrap_cleanly();
+    let tokens = lexer_tokenize(
+        "func test() {\n var s32 test = 0; }",
+        "test.cal".to_string(),
+    )
+    .unwrap_cleanly();
     let mut ind = 0;
 
     let _ = parse_function_declaration(&tokens, &mut ind).unwrap_cleanly();

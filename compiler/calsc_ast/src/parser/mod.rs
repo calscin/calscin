@@ -65,7 +65,12 @@ pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<Bo
     let mut members: Vec<Box<ASTNode>> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
-        let member = parse_ast_node_body_member(tokens, ind)?;
+        let member = parse_ast_node_body_member(tokens, ind)?; // Auto increments
+
+        if !member.kind.is_body() {
+            tokens[*ind].expects(TokenKind::SemiColon)?;
+            *ind += 1; // ;
+        }
 
         members.push(member);
     }

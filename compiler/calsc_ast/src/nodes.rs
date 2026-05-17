@@ -144,6 +144,19 @@ impl ASTNode {
     }
 }
 
+impl ASTNodeKind {
+    /// Does the node represent a body
+    pub fn is_body(&self) -> bool {
+        match self {
+            Self::IfStatement { .. }
+            | Self::ForLoop { .. }
+            | Self::WhileLoop { .. }
+            | Self::Loop { .. } => true,
+            _ => false,
+        }
+    }
+}
+
 impl DiagnosticSource for ASTNode {
     fn get_start_pos(&self) -> FilePosition {
         self.start.clone()

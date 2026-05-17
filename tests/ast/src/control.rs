@@ -44,7 +44,7 @@ fn parse_for_loop_test() {
 
 #[test]
 fn parse_loop_test() {
-    let tokens = lexer_tokenize("loop { var s32 test }", "test.cal".to_string()).unwrap_cleanly();
+    let tokens = lexer_tokenize("loop { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
     let loop_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
@@ -67,7 +67,7 @@ fn parse_loop_test() {
 #[test]
 fn parse_while_loop_test() {
     let tokens =
-        lexer_tokenize("while(true) { var s32 test }", "test.cal".to_string()).unwrap_cleanly();
+        lexer_tokenize("while(true) { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
 
     let mut ind = 0;
 
@@ -92,7 +92,7 @@ fn parse_while_loop_test() {
 #[test]
 fn parse_if_statement_simple_test() {
     let tokens =
-        lexer_tokenize("if(true) { var s32 test }", "test.cal".to_string()).unwrap_cleanly();
+        lexer_tokenize("if(true) { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
     let if_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
