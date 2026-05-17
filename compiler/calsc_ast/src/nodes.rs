@@ -67,7 +67,8 @@ pub enum ASTNodeKind {
         values: HashMap<HashedString, Box<ASTNode>>,
     },
 
-    VariableReference(HashedString),
+    /// Refers to an element
+    ElementReference(HashedString),
 
     /// `test = value`
     Assignment {

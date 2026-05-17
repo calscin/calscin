@@ -66,7 +66,7 @@ pub fn parse_ast_variable_reference(
     *ind += 1; // keyword
 
     Ok(Box::new(ASTNode::new(
-        ASTNodeKind::VariableReference(name),
+        ASTNodeKind::ElementReference(name),
         start,
         end,
     )))
