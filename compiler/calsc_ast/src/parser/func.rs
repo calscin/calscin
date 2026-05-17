@@ -123,6 +123,7 @@ pub fn parse_extern_function_argument(
     }
 }
 
+#[inline(always)]
 pub fn parse_extern_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,

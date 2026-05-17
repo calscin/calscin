@@ -3,7 +3,7 @@
 //! # Guidelines
 //! Individual parsing functions should always post-increment unless specified otherwise.
 
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
@@ -13,6 +13,7 @@ use crate::{
             for_loop::parse_ast_for_loop, ifelse::parse_ast_if_statement, loops::parse_ast_loop,
             while_loop::parse_ast_while_loop,
         },
+        func::{parse_extern_function_declaration, parse_function_declaration},
         values::parse_ast_value,
         vars::parse_ast_variable_declaration,
     },
@@ -78,4 +79,14 @@ pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<Bo
     *ind += 1; // }
 
     Ok(members)
+}
+
+/// Parses a top level node
+pub fn parse_ast_top_level(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+    match tokens[*ind].kind {
+        TokenKind::Function => parse_function_declaration(tokens, ind),
+        TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind),
+
+        _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+    }
 }
