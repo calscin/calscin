@@ -1,11 +1,11 @@
 //! Parsing of if statements & else statements
 
+use crate::refs::ASTArenaReference;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use crate::refs::ASTArenaReference;
 
 use crate::{
-    ifs::{self, IfStatementBranch},
+    ifs::IfStatementBranch,
     nodes::{ASTNode, ASTNodeKind},
     parser::forms::{parse_ast_body_form, parse_ast_condition_form},
 };
