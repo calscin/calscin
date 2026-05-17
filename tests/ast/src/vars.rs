@@ -2,7 +2,7 @@ use calsc_ast::parser::parse_ast_node_body_member;
 #[allow(unused)]
 use calsc_ast::{
     nodes::ASTNodeKind,
-    parser::vars::{parse_ast_variable_declaration, parse_ast_variable_reference},
+    parser::vars::{parse_ast_element_reference, parse_ast_variable_declaration},
 };
 use calsc_diagnostics::result::CalscinResult;
 use calsc_lexer::lexer_tokenize;
@@ -29,11 +29,11 @@ pub fn test_parse_variable_ref() {
     let tokens = lexer_tokenize("test_abcef", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let reference = parse_ast_variable_reference(&tokens, &mut ind).unwrap_cleanly();
+    let reference = parse_ast_element_reference(&tokens, &mut ind).unwrap_cleanly();
 
     assert_eq!(
         reference.kind,
-        ASTNodeKind::VariableReference(HashedString::new("test_abcef".to_string()))
+        ASTNodeKind::ElementReference(HashedString::new("test_abcef".to_string()))
     )
 }
 
@@ -47,7 +47,7 @@ pub fn test_parse_variable_assign() {
     if let ASTNodeKind::Assignment { variable, value } = assign.kind {
         assert_eq!(
             variable.kind,
-            ASTNodeKind::VariableReference(HashedString::new("test".to_string()))
+            ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
 
         assert_eq!(value.kind, ASTNodeKind::IntLiteral(588));

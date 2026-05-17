@@ -38,7 +38,7 @@ pub fn parse_math_operation_test() {
     {
         assert_eq!(
             left_expr.kind,
-            ASTNodeKind::VariableReference(HashedString::new("test".to_string()))
+            ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
         assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
 
@@ -63,7 +63,7 @@ pub fn parse_math_operation_long_test() {
     {
         assert_eq!(
             left_expr.kind,
-            ASTNodeKind::VariableReference(HashedString::new("test".to_string()))
+            ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
         assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
 
@@ -88,7 +88,7 @@ pub fn parse_compare_operation_test() {
     {
         assert_eq!(
             left_expr.kind,
-            ASTNodeKind::VariableReference(HashedString::new("test".to_string()))
+            ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
         );
 
         assert_eq!(right_expr.kind, ASTNodeKind::IntLiteral(58));
