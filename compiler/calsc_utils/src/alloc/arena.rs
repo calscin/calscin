@@ -11,7 +11,7 @@ pub type ArenaAllocatorReference = usize;
 
 impl<K> ArenaAllocator<K> {
     /// Creates a new instance of an [`ArenaAllocator`]
-    pub fn new() -> Self {
+    pub const fn new() -> Self {
         Self { arena: vec![] }
     }
 
