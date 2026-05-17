@@ -14,6 +14,7 @@ use crate::{
             while_loop::parse_ast_while_loop,
         },
         func::{parse_extern_function_declaration, parse_function_declaration},
+        structs::parse_ast_struct_declaration,
         values::parse_ast_value,
         vars::parse_ast_variable_declaration,
     },
@@ -23,6 +24,7 @@ pub mod control;
 pub mod forms;
 pub mod func;
 pub mod import;
+pub mod structs;
 pub mod types;
 pub mod utils;
 pub mod values;
@@ -86,6 +88,7 @@ pub fn parse_ast_top_level(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<B
     match tokens[*ind].kind {
         TokenKind::Function => parse_function_declaration(tokens, ind),
         TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind),
+        TokenKind::Struct => parse_ast_struct_declaration(tokens, ind),
 
         _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     }

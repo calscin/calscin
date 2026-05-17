@@ -127,6 +127,12 @@ pub enum ASTNodeKind {
         /// The kind of import
         kind: ImportKind,
     },
+
+    StructDeclaration {
+        name: HashedString,
+        type_params: Vec<HashedString>,
+        fields: Vec<(ASTType, HashedString)>,
+    },
 }
 
 /// Represents a real AST node. Holds information about the kind of AST node and it's start and end positions.

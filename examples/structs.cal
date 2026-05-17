@@ -1,5 +1,5 @@
 struct my_struct {
-	s32 field_a
+	s32 field_a,
 	bool field_b
 }
 
