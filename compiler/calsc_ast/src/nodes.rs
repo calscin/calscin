@@ -7,7 +7,8 @@ use calsc_diagnostics::{
     span::{Span, SpanKind},
 };
 use calsc_utils::{
-    cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
+    alloc::arena::ArenaAllocatorReference, cmp::CompareOperator, hash::HashedString,
+    math::MathOperator, pos::FilePosition,
 };
 
 use crate::{
@@ -35,27 +36,27 @@ pub enum ASTNodeKind {
     BooleanLiteral(bool),
 
     /// The inverse condition representation (eg: !testS)
-    InverseCondition(Box<ASTNode>),
+    InverseCondition(ArenaAllocatorReference),
 
-    PointerReference(Box<ASTNode>),
-    PointerDereference(Box<ASTNode>),
+    PointerReference(ArenaAllocatorReference),
+    PointerDereference(ArenaAllocatorReference),
 
     /// [start.end] -> incr
     Range {
-        start: Box<ASTNode>,
-        end: Box<ASTNode>,
-        increment: Option<Box<ASTNode>>,
+        start: ArenaAllocatorReference,
+        end: ArenaAllocatorReference,
+        increment: Option<ArenaAllocatorReference>,
     },
 
     MathExpression {
-        left_expr: Box<ASTNode>,
-        right_expr: Box<ASTNode>,
+        left_expr: ArenaAllocatorReference,
+        right_expr: ArenaAllocatorReference,
         operator: MathOperator,
     },
 
     CompareExpression {
-        left_expr: Box<ASTNode>,
-        right_expr: Box<ASTNode>,
+        left_expr: ArenaAllocatorReference,
+        right_expr: ArenaAllocatorReference,
         operator: CompareOperator,
     },
 
@@ -64,11 +65,11 @@ pub enum ASTNodeKind {
         mutable: bool,
         var_type: ASTType,
         name: HashedString,
-        value: Option<Box<ASTNode>>,
+        value: Option<ArenaAllocatorReference>,
     },
 
     StructuredInit {
-        values: HashMap<HashedString, Box<ASTNode>>,
+        values: HashMap<HashedString, ArenaAllocatorReference>,
     },
 
     /// Refers to an element
@@ -76,14 +77,14 @@ pub enum ASTNodeKind {
 
     /// `test = value`
     Assignment {
-        variable: Box<ASTNode>,
-        value: Box<ASTNode>,
+        variable: ArenaAllocatorReference,
+        value: ArenaAllocatorReference,
     },
 
     FunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
-        body: Vec<Box<ASTNode>>,
+        body: Vec<ArenaAllocatorReference>,
     },
 
     ExternFunctionDeclaration {
@@ -94,23 +95,23 @@ pub enum ASTNodeKind {
 
     FunctionCall {
         name: HashedString,
-        arguments: Vec<Box<ASTNode>>,
+        arguments: Vec<ArenaAllocatorReference>,
     },
 
     ForLoop {
         iterator_type: ASTType,
         iterator_name: HashedString,
-        iterated: Box<ASTNode>,
-        body: Vec<Box<ASTNode>>,
+        iterated: ArenaAllocatorReference,
+        body: Vec<ArenaAllocatorReference>,
     },
 
     Loop {
-        body: Vec<Box<ASTNode>>,
+        body: Vec<ArenaAllocatorReference>,
     },
 
     WhileLoop {
-        condition: Box<ASTNode>,
-        body: Vec<Box<ASTNode>>,
+        condition: ArenaAllocatorReference,
+        body: Vec<ArenaAllocatorReference>,
     },
 
     IfStatement {
@@ -136,7 +137,7 @@ pub enum ASTNodeKind {
 
     StructDeclBlock {
         target: ASTType,
-        functions: Vec<Box<ASTNode>>,
+        functions: Vec<ArenaAllocatorReference>,
     },
 }
 
