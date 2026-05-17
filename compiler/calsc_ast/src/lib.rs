@@ -4,7 +4,7 @@ use std::cell::{Cell, RefCell};
 
 use calsc_utils::alloc::arena::ArenaAllocator;
 
-use crate::nodes::ASTNode;
+use crate::{nodes::ASTNode, refs::ASTArenaReference};
 
 pub mod ifs;
 pub mod imports;
@@ -21,7 +21,7 @@ thread_local! {
 
 /// The context of the AST, is used to share things around inside of the AST process
 pub struct ASTContext {
-    pub nodes: ArenaAllocator<ASTNode>,
+    pub nodes: ArenaAllocator<ASTNode, ASTArenaReference>,
 }
 
 impl ASTContext {

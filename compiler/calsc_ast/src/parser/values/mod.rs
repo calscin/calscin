@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use calsc_diagnostics::{DiagResult, PosDiagnosticSource, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{alloc::arena::ArenaAllocatorReference, pos::FilePosition};
+use calsc_utils::pos::FilePosition;
 
 use crate::{
     AST_CONTEXT,
@@ -20,6 +20,7 @@ use crate::{
         },
         vars::{parse_ast_assign, parse_ast_element_reference},
     },
+    refs::ASTArenaReference,
 };
 
 pub mod conditions;
@@ -58,7 +59,7 @@ pub fn parse_ast_value(
     ind: &mut usize,
     allow_post: bool,
     invoked_from_body: bool, // Used to determine if parse assigns
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let first = match tokens[*ind].kind {
         TokenKind::IntLiteral(_)
         | TokenKind::FloatLiteral(_)
@@ -104,7 +105,7 @@ pub fn parse_ast_value(
     };
 
     let mut start = FilePosition::new(PathBuf::new(), 0, 0);
-    AST_CONTEXT.with_borrow(|f| start = f.nodes.get(first).start.clone());
+    AST_CONTEXT.with_borrow(|f| start = f.nodes.get(first.clone()).start.clone());
 
     if allow_post {
         parse_ast_post(tokens, ind, first, start, invoked_from_body)
@@ -116,10 +117,10 @@ pub fn parse_ast_value(
 pub fn parse_ast_post(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first_node: ArenaAllocatorReference,
+    first_node: ASTArenaReference,
     start: FilePosition,
     invoked_from_body: bool,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     match tokens[*ind].kind {
         TokenKind::Plus
         | TokenKind::Minus

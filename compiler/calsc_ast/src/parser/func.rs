@@ -2,7 +2,7 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{Either, alloc::arena::ArenaAllocatorReference, hash::HashedString};
+use calsc_utils::{Either, hash::HashedString};
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -10,6 +10,7 @@ use crate::{
         forms::parse_ast_body_form, types::parse_ast_type, utils::parse_ast_list,
         values::parse_ast_value,
     },
+    refs::ASTArenaReference,
     types::ASTType,
 };
 
@@ -33,7 +34,7 @@ pub fn parse_function_argument(
 pub fn parse_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // func
@@ -70,10 +71,7 @@ pub fn parse_function_declaration(
     Ok(node.push())
 }
 
-pub fn parse_function_call(
-    tokens: &Vec<Token>,
-    ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     let name = HashedString::new(tokens[*ind].expects_keyword()?);
@@ -130,7 +128,7 @@ pub fn parse_extern_function_argument(
 pub fn parse_extern_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // externfunc

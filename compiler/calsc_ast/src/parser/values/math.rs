@@ -1,7 +1,6 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::{
-    alloc::arena::ArenaAllocatorReference,
     math::{MathOperation, MathOperator},
     pos::FilePosition,
 };
@@ -9,6 +8,7 @@ use calsc_utils::{
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::values::parse_ast_value,
+    refs::ASTArenaReference,
 };
 
 #[inline(always)]
@@ -71,9 +71,9 @@ pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
 pub fn parse_ast_math_expression(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first_node: ArenaAllocatorReference,
+    first_node: ASTArenaReference,
     start: FilePosition,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let operator = parse_ast_math_operator(tokens, ind)?; // Auto increments
 
     let second = parse_ast_value(tokens, ind, true, false)?; // Auto increments

@@ -7,14 +7,14 @@ use calsc_diagnostics::{
     span::{Span, SpanKind},
 };
 use calsc_utils::{
-    alloc::arena::ArenaAllocatorReference, cmp::CompareOperator, hash::HashedString,
-    math::MathOperator, pos::FilePosition,
+    cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
 use crate::{
     AST_CONTEXT,
     ifs::IfStatementBranch,
     imports::{ImportKind, ImportModule},
+    refs::ASTArenaReference,
     types::ASTType,
 };
 
@@ -37,27 +37,27 @@ pub enum ASTNodeKind {
     BooleanLiteral(bool),
 
     /// The inverse condition representation (eg: !testS)
-    InverseCondition(ArenaAllocatorReference),
+    InverseCondition(ASTArenaReference),
 
-    PointerReference(ArenaAllocatorReference),
-    PointerDereference(ArenaAllocatorReference),
+    PointerReference(ASTArenaReference),
+    PointerDereference(ASTArenaReference),
 
     /// [start.end] -> incr
     Range {
-        start: ArenaAllocatorReference,
-        end: ArenaAllocatorReference,
-        increment: Option<ArenaAllocatorReference>,
+        start: ASTArenaReference,
+        end: ASTArenaReference,
+        increment: Option<ASTArenaReference>,
     },
 
     MathExpression {
-        left_expr: ArenaAllocatorReference,
-        right_expr: ArenaAllocatorReference,
+        left_expr: ASTArenaReference,
+        right_expr: ASTArenaReference,
         operator: MathOperator,
     },
 
     CompareExpression {
-        left_expr: ArenaAllocatorReference,
-        right_expr: ArenaAllocatorReference,
+        left_expr: ASTArenaReference,
+        right_expr: ASTArenaReference,
         operator: CompareOperator,
     },
 
@@ -66,11 +66,11 @@ pub enum ASTNodeKind {
         mutable: bool,
         var_type: ASTType,
         name: HashedString,
-        value: Option<ArenaAllocatorReference>,
+        value: Option<ASTArenaReference>,
     },
 
     StructuredInit {
-        values: HashMap<HashedString, ArenaAllocatorReference>,
+        values: HashMap<HashedString, ASTArenaReference>,
     },
 
     /// Refers to an element
@@ -78,14 +78,14 @@ pub enum ASTNodeKind {
 
     /// `test = value`
     Assignment {
-        variable: ArenaAllocatorReference,
-        value: ArenaAllocatorReference,
+        variable: ASTArenaReference,
+        value: ASTArenaReference,
     },
 
     FunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
-        body: Vec<ArenaAllocatorReference>,
+        body: Vec<ASTArenaReference>,
     },
 
     ExternFunctionDeclaration {
@@ -96,23 +96,23 @@ pub enum ASTNodeKind {
 
     FunctionCall {
         name: HashedString,
-        arguments: Vec<ArenaAllocatorReference>,
+        arguments: Vec<ASTArenaReference>,
     },
 
     ForLoop {
         iterator_type: ASTType,
         iterator_name: HashedString,
-        iterated: ArenaAllocatorReference,
-        body: Vec<ArenaAllocatorReference>,
+        iterated: ASTArenaReference,
+        body: Vec<ASTArenaReference>,
     },
 
     Loop {
-        body: Vec<ArenaAllocatorReference>,
+        body: Vec<ASTArenaReference>,
     },
 
     WhileLoop {
-        condition: ArenaAllocatorReference,
-        body: Vec<ArenaAllocatorReference>,
+        condition: ASTArenaReference,
+        body: Vec<ASTArenaReference>,
     },
 
     IfStatement {
@@ -138,7 +138,7 @@ pub enum ASTNodeKind {
 
     StructDeclBlock {
         target: ASTType,
-        functions: Vec<ArenaAllocatorReference>,
+        functions: Vec<ASTArenaReference>,
     },
 
     None,
@@ -159,7 +159,7 @@ impl ASTNode {
     }
 
     /// Pushes the node into the arena allocator and consumes it
-    pub fn push(self) -> ArenaAllocatorReference {
+    pub fn push(self) -> ASTArenaReference {
         AST_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
     }
 }

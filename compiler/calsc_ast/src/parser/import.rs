@@ -6,12 +6,13 @@ use crate::{
     imports::{ImportKind, ImportModule},
     nodes::{ASTNode, ASTNodeKind},
     parser::utils::parse_ast_list,
+    refs::ASTArenaReference,
 };
 
 pub fn parse_ast_import_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // import
@@ -56,7 +57,7 @@ pub fn parse_ast_import_statement(
 
     let end = tokens[*ind - 1].end.clone(); // Cancels the auto increment
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::ImportStatement {
             source: module,
             path,
@@ -64,5 +65,7 @@ pub fn parse_ast_import_statement(
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

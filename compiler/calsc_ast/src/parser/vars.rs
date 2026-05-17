@@ -2,11 +2,12 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{alloc::arena::ArenaAllocatorReference, hash::HashedString, pos::FilePosition};
+use calsc_utils::{hash::HashedString, pos::FilePosition};
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
-    parser::{forms::parse_ast_field_form, types::parse_ast_type, values::parse_ast_value},
+    parser::{forms::parse_ast_field_form, values::parse_ast_value},
+    refs::ASTArenaReference,
 };
 
 /// Parses a variable declaration
@@ -14,7 +15,7 @@ use crate::{
 pub fn parse_ast_variable_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     let mutable = match tokens[*ind].kind {
@@ -59,7 +60,7 @@ pub fn parse_ast_variable_declaration(
 pub fn parse_ast_element_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 
@@ -76,9 +77,9 @@ pub fn parse_ast_element_reference(
 pub fn parse_ast_assign(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first: ArenaAllocatorReference,
+    first: ASTArenaReference,
     start: FilePosition,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     *ind += 1; // =
 
     let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments

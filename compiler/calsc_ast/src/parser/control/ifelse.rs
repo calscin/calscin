@@ -2,7 +2,7 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::alloc::arena::ArenaAllocatorReference;
+use crate::refs::ASTArenaReference;
 
 use crate::{
     ifs::{self, IfStatementBranch},
@@ -57,7 +57,7 @@ fn parse_else_member_statement(
 pub fn parse_ast_if_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     let mut statements: Vec<IfStatementBranch> = vec![];

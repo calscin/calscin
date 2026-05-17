@@ -21,7 +21,7 @@ fn parse_import_statement_whole_test() {
 
     let import = parse_ast_import_statement(&tokens, &mut ind).unwrap_cleanly();
 
-    if let ASTNodeKind::ImportStatement { source, path, kind } = import.kind {
+    if let ASTNodeKind::ImportStatement { source, path, kind } = import.kind.clone() {
         assert_eq!(source, ImportModule::Std);
         assert_eq!(path, vec!["meow".into()]);
         assert_eq!(kind, ImportKind::Whole);
@@ -38,7 +38,7 @@ fn parse_import_statement_elements_test() {
 
     let import = parse_ast_import_statement(&tokens, &mut ind).unwrap_cleanly();
 
-    if let ASTNodeKind::ImportStatement { source, path, kind } = import.kind {
+    if let ASTNodeKind::ImportStatement { source, path, kind } = import.kind.clone() {
         assert_eq!(source, ImportModule::Package("meow".into()));
         assert_eq!(path, vec!["test".into()]);
         assert_eq!(kind, ImportKind::Items(vec!["print".into()]));

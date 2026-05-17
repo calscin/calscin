@@ -2,7 +2,7 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::alloc::arena::ArenaAllocatorReference;
+use crate::refs::ASTArenaReference;
 
 use crate::nodes::{ASTNode, ASTNodeKind};
 
@@ -31,10 +31,7 @@ use crate::nodes::{ASTNode, ASTNodeKind};
 /// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
 /// ```
 ///
-pub fn parse_ast_literal(
-    tokens: &Vec<Token>,
-    ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+pub fn parse_ast_literal(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 

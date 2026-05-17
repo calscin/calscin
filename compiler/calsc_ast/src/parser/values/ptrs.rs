@@ -1,6 +1,6 @@
+use crate::refs::ASTArenaReference;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::Token;
-use calsc_utils::alloc::arena::ArenaAllocatorReference;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -11,7 +11,7 @@ use crate::{
 pub fn parse_ast_pointer_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // &
@@ -30,7 +30,7 @@ pub fn parse_ast_pointer_reference(
 pub fn parse_ast_pointer_dereference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // *

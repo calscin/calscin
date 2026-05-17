@@ -1,7 +1,6 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::{
-    alloc::arena::ArenaAllocatorReference,
     cmp::{CompareOperator, ComparePredicate},
     pos::FilePosition,
 };
@@ -9,12 +8,13 @@ use calsc_utils::{
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::values::parse_ast_value,
+    refs::ASTArenaReference,
 };
 
 pub fn parse_ast_inverse_condition(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // !
@@ -80,9 +80,9 @@ pub fn parse_ast_comparing_operator(
 pub fn parse_ast_compare_expression(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first: ArenaAllocatorReference,
+    first: ASTArenaReference,
     start: FilePosition,
-) -> DiagResult<ArenaAllocatorReference> {
+) -> DiagResult<ASTArenaReference> {
     let operator = parse_ast_comparing_operator(tokens, ind)?; // Auto increments
 
     let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments

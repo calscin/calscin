@@ -19,7 +19,7 @@ pub fn function_decl_parsing_base_test() {
     let func = parse_function_declaration(&tokens, &mut ind).unwrap_cleanly();
 
     assert_eq!(
-        func.kind,
+        func.kind.clone(),
         ASTNodeKind::FunctionDeclaration {
             name: HashedString::new("test".to_string()),
             arguments: vec![],
@@ -48,7 +48,7 @@ pub fn function_call_parsing_test() {
     let call = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 
     assert_eq!(
-        call.kind,
+        call.kind.clone(),
         ASTNodeKind::FunctionCall {
             name: HashedString::new("test".to_string()),
             arguments: vec![]
@@ -64,18 +64,18 @@ pub fn parse_call_parsing_args_test() {
 
     let call = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 
-    if let ASTNodeKind::FunctionCall { name, arguments } = call.kind {
+    if let ASTNodeKind::FunctionCall { name, arguments } = call.kind.clone() {
         assert_eq!(name, HashedString::new("test".to_string()));
 
         assert_eq!(
-            arguments[0].kind,
+            arguments[0].kind.clone(),
             ASTNodeKind::FunctionCall {
                 name: HashedString::new("testtwo".to_string()),
                 arguments: vec![]
             }
         );
-        assert_eq!(arguments[1].kind, ASTNodeKind::IntLiteral(123));
-        assert_eq!(arguments[2].kind, ASTNodeKind::IntLiteral(4565));
+        assert_eq!(arguments[1].kind.clone(), ASTNodeKind::IntLiteral(123));
+        assert_eq!(arguments[2].kind.clone(), ASTNodeKind::IntLiteral(4565));
     } else {
         assert!(false)
     }
@@ -89,7 +89,7 @@ pub fn parse_extern_function_decl_base_test() {
     let call = parse_extern_function_declaration(&tokens, &mut ind).unwrap_cleanly();
 
     assert_eq!(
-        call.kind,
+        call.kind.clone(),
         ASTNodeKind::ExternFunctionDeclaration {
             name: HashedString::new("test".to_string()),
             arguments: vec![],
@@ -106,7 +106,7 @@ pub fn parse_extern_function_decl_test() {
     let call = parse_extern_function_declaration(&tokens, &mut ind).unwrap_cleanly();
 
     assert_eq!(
-        call.kind,
+        call.kind.clone(),
         ASTNodeKind::ExternFunctionDeclaration {
             name: HashedString::new("test".to_string()),
             arguments: vec![],
