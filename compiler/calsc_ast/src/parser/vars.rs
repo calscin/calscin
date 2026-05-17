@@ -54,7 +54,7 @@ pub fn parse_ast_variable_declaration(
 }
 
 #[inline]
-pub fn parse_ast_variable_reference(
+pub fn parse_ast_element_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
 ) -> DiagResult<Box<ASTNode>> {

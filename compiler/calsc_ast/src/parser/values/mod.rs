@@ -15,7 +15,7 @@ use crate::{
             range::parse_ast_range,
             structs::parse_ast_structured_init,
         },
-        vars::{parse_ast_assign, parse_ast_variable_reference},
+        vars::{parse_ast_assign, parse_ast_element_reference},
     },
 };
 
@@ -87,7 +87,7 @@ pub fn parse_ast_value(
             if tokens[*ind + 1].kind == TokenKind::ParenOpen {
                 parse_function_call(tokens, ind)?
             } else {
-                parse_ast_variable_reference(tokens, ind)?
+                parse_ast_element_reference(tokens, ind)?
             }
         }
 
