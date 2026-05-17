@@ -2,7 +2,7 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaAllocatorReference, hash::HashedString, pos::FilePosition};
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -14,7 +14,7 @@ use crate::{
 pub fn parse_ast_variable_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ArenaAllocatorReference> {
     let start = tokens[*ind].start.clone();
 
     let mutable = match tokens[*ind].kind {
@@ -41,7 +41,7 @@ pub fn parse_ast_variable_declaration(
 
     let end = tokens[*ind - 1].end.clone(); // Removes one to remove the auto increment
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::VariableDeclaration {
             mutable,
             var_type: ty,
@@ -50,14 +50,16 @@ pub fn parse_ast_variable_declaration(
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }
 
 #[inline]
 pub fn parse_ast_element_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ArenaAllocatorReference> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 
@@ -65,33 +67,32 @@ pub fn parse_ast_element_reference(
 
     *ind += 1; // keyword
 
-    Ok(Box::new(ASTNode::new(
-        ASTNodeKind::ElementReference(name),
-        start,
-        end,
-    )))
+    let node = ASTNode::new(ASTNodeKind::ElementReference(name), start, end);
+
+    Ok(node.push())
 }
 
 #[inline]
 pub fn parse_ast_assign(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first: Box<ASTNode>,
-) -> DiagResult<Box<ASTNode>> {
-    let start = first.start.clone();
-
+    first: ArenaAllocatorReference,
+    start: FilePosition,
+) -> DiagResult<ArenaAllocatorReference> {
     *ind += 1; // =
 
     let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
 
-    let end = value.end.clone();
+    let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::Assignment {
             variable: first,
             value,
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

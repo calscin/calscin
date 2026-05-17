@@ -1,18 +1,18 @@
-use crate::nodes::ASTNode;
+use calsc_utils::alloc::arena::ArenaAllocatorReference;
 
 #[derive(PartialEq, Debug, Clone)]
 pub enum IfStatementBranch {
     If {
-        condition: Box<ASTNode>,
-        body: Vec<Box<ASTNode>>,
+        condition: ArenaAllocatorReference,
+        body: Vec<ArenaAllocatorReference>,
     },
 
     IfElse {
-        condition: Box<ASTNode>,
-        body: Vec<Box<ASTNode>>,
+        condition: ArenaAllocatorReference,
+        body: Vec<ArenaAllocatorReference>,
     },
 
     Else {
-        body: Vec<Box<ASTNode>>,
+        body: Vec<ArenaAllocatorReference>,
     },
 }

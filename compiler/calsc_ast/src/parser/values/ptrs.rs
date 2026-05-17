@@ -1,5 +1,6 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::Token;
+use calsc_utils::alloc::arena::ArenaAllocatorReference;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -10,7 +11,7 @@ use crate::{
 pub fn parse_ast_pointer_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ArenaAllocatorReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // &
@@ -18,20 +19,18 @@ pub fn parse_ast_pointer_reference(
     let value = parse_ast_value(tokens, ind, false, false)?; // Doesn't allow post 
     // Auto increments
 
-    let end = value.end.clone();
+    let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
-        ASTNodeKind::PointerReference(value),
-        start,
-        end,
-    )))
+    let node = ASTNode::new(ASTNodeKind::PointerReference(value), start, end);
+
+    Ok(node.push())
 }
 
 #[inline(always)]
 pub fn parse_ast_pointer_dereference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ArenaAllocatorReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // *
@@ -39,11 +38,9 @@ pub fn parse_ast_pointer_dereference(
     let value = parse_ast_value(tokens, ind, false, false)?; // Doesn't allow post
     // Auto increments
 
-    let end = value.end.clone();
+    let end = tokens[*ind - 1].end.clone();
 
-    Ok(Box::new(ASTNode::new(
-        ASTNodeKind::PointerDereference(value),
-        start,
-        end,
-    )))
+    let node = ASTNode::new(ASTNodeKind::PointerDereference(value), start, end);
+
+    Ok(node.push())
 }

@@ -1,6 +1,6 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaAllocatorReference, hash::HashedString};
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -66,7 +66,7 @@ pub fn parse_ast_struct_declaration(
 pub fn parse_ast_struct_decl_block(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Box<ASTNode>> {
+) -> DiagResult<ArenaAllocatorReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // decl
@@ -76,7 +76,7 @@ pub fn parse_ast_struct_decl_block(
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
-    let mut functions: Vec<Box<ASTNode>> = vec![];
+    let mut functions: Vec<ArenaAllocatorReference> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
         tokens[*ind].expects(TokenKind::Function)?;
@@ -89,9 +89,11 @@ pub fn parse_ast_struct_decl_block(
 
     let end = tokens[*ind - 1].end.clone(); // Counters the auto increment
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::StructDeclBlock { target, functions },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

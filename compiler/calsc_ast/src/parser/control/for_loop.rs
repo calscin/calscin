@@ -1,6 +1,6 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaAllocatorReference, hash::HashedString};
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -8,7 +8,10 @@ use crate::{
 };
 
 #[inline(always)]
-pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Box<ASTNode>> {
+pub fn parse_ast_for_loop(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<ArenaAllocatorReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // for
@@ -30,7 +33,7 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Bo
 
     let end = tokens[*ind - 1].end.clone(); // Removes the auto increment to grab the end
 
-    Ok(Box::new(ASTNode::new(
+    let node = ASTNode::new(
         ASTNodeKind::ForLoop {
             iterator_type,
             iterator_name: HashedString::new(iterator_name),
@@ -39,5 +42,7 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Bo
         },
         start,
         end,
-    )))
+    );
+
+    Ok(node.push())
 }

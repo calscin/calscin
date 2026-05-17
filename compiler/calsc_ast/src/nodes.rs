@@ -12,6 +12,7 @@ use calsc_utils::{
 };
 
 use crate::{
+    AST_CONTEXT,
     ifs::IfStatementBranch,
     imports::{ImportKind, ImportModule},
     types::ASTType,
@@ -153,6 +154,11 @@ impl ASTNode {
     /// Creates a new AST node with the given kind, the given start and the given end.
     pub fn new(kind: ASTNodeKind, start: FilePosition, end: FilePosition) -> Self {
         Self { kind, start, end }
+    }
+
+    /// Pushes the node into the arena allocator and consumes it
+    pub fn push(self) -> ArenaAllocatorReference {
+        AST_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
     }
 }
 
