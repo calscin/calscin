@@ -10,3 +10,14 @@ pub enum BaseTypeKind {
     /// A boolean type
     Boolean,
 }
+
+impl BaseTypeKind {
+    /// Get the amount of required size parameters to create a base type.
+    /// Is used by [`BaseType::new`][`crate::base::BaseType::new`]
+    pub fn get_required_size_parameters(&self) -> usize {
+        match self {
+            Self::Integer { .. } | Self::Floating { .. } => 1,
+            _ => 0,
+        }
+    }
+}

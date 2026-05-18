@@ -40,6 +40,9 @@ dependencies = [
 [[package]]
 name = "calsc_typing"
 version = "0.1.0"
+dependencies = [
+ "calsc_diagnostics",
+]
 
 [[package]]
 name = "calsc_utils"

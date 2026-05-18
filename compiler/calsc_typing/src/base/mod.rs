@@ -13,10 +13,23 @@ pub struct BaseType {
 }
 
 impl BaseType {
+    /// Creates a new [`BaseType`] instance with the given kind and the given type specifiers.
+    ///
+    /// # Panics
+    /// This function will panic if the amount ofsize specifiers aren't equal to the amount required.
+    ///
     pub fn new(kind: BaseTypeKind, size_specifiers: Vec<usize>) -> Self {
-        Self {
-            kind,
-            size_specifiers,
+        if size_specifiers.len() == kind.get_required_size_parameters() {
+            Self {
+                kind,
+                size_specifiers,
+            }
+        } else {
+            panic!(
+                "Expected {} size parameters but got {} size parameters",
+                kind.get_required_size_parameters(),
+                size_specifiers.len()
+            )
         }
     }
 }
