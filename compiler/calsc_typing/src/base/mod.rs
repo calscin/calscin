@@ -2,6 +2,7 @@
 
 use std::collections::HashMap;
 
+use calsc_diagnostics::diags::errors::build_already_in_scope;
 use calsc_utils::hash::HashedString;
 
 use crate::{
@@ -62,7 +63,7 @@ impl DeclBlockAffectedType for BaseType {
         source: &K,
     ) -> calsc_diagnostics::DiagPossible {
         if self.functions.contains_key(&name) {
-            todo!()
+            return Err(build_already_in_scope(&*name, source).into());
         }
 
         self.functions.insert(name, func);
