@@ -65,6 +65,7 @@ pub fn parse_ast_node_body_member(
     }
 }
 
+/// Parses an AST body
 pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<ASTArenaReference>> {
     let mut members: Vec<ASTArenaReference> = vec![];
 
