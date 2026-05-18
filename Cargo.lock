@@ -60,6 +60,9 @@ dependencies = [
 [[package]]
 name = "typing"
 version = "0.1.0"
+dependencies = [
+ "calsc_typing",
+]
 
 [[package]]
 name = "windows-link"
