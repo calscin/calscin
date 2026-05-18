@@ -1,6 +1,14 @@
 //! Definitions for base types. They are also named generics inside of the typing system.
 
-use crate::{base::kind::BaseTypeKind, tree::Type};
+use std::collections::HashMap;
+
+use calsc_utils::hash::HashedString;
+
+use crate::{
+    base::kind::BaseTypeKind,
+    func::{DeclBlockAffectedType, TypedFunction},
+    tree::Type,
+};
 
 pub mod kind;
 
@@ -13,6 +21,9 @@ pub struct BaseType {
 
     /// The type parameters of the type
     pub type_parameters: Vec<Type>,
+
+    /// The functions of the given type
+    pub functions: HashMap<HashedString, TypedFunction>,
 }
 
 impl BaseType {
@@ -30,6 +41,7 @@ impl BaseType {
             Self {
                 kind,
                 size_specifiers,
+                functions: HashMap::new(),
                 type_parameters,
             }
         } else {
@@ -39,5 +51,33 @@ impl BaseType {
                 size_specifiers.len()
             )
         }
+    }
+}
+
+impl DeclBlockAffectedType for BaseType {
+    fn add_function<K: calsc_diagnostics::DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        func: TypedFunction,
+        source: &K,
+    ) -> calsc_diagnostics::DiagPossible {
+        if self.functions.contains_key(&name) {
+            todo!()
+        }
+
+        self.functions.insert(name, func);
+        Ok(())
+    }
+
+    fn has_function(&self, name: HashedString, signature: crate::func::TypeSignature) -> bool {
+        self.functions.contains_key(&name)
+            && self.functions[&name].arguments == signature.0
+            && self.functions[&name].return_type == signature.1
+    }
+}
+
+impl PartialEq for BaseType {
+    fn eq(&self, other: &Self) -> bool {
+        self.kind == other.kind
     }
 }

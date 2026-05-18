@@ -17,5 +17,5 @@ fn test_base_type_required_size_params() {
 
 #[test]
 fn test_base_type_creation() {
-    let _ = BaseType::new(BaseTypeKind::Integer { signed: false }, vec![32]); // Create a 32 bit unsigned integer type
+    let _ = BaseType::new(BaseTypeKind::Integer { signed: false }, vec![32], vec![]); // Create a 32 bit unsigned integer type
 }

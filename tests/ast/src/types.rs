@@ -51,20 +51,23 @@ pub fn test_simple_type_parsing_size_spec() {
 
 #[test]
 pub fn test_complex_type_parsing() {
-    let tokens = lexer_tokenize("s.32<test, abcdef>[32]*", "test.col".to_string()).unwrap_cleanly();
+    let tokens = lexer_tokenize("s.32<test, abcdef>[32]&", "test.col".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
     assert_eq!(
         ty,
-        ASTType::Pointer(Box::new(ASTType::Array(
-            32,
-            Box::new(ASTType::Generic(
-                HashedString::new("s".to_string()),
-                Some(32),
-                vec!["test".to_string(), "abcdef".to_string()]
+        ASTType::Reference(
+            false,
+            Box::new(ASTType::Array(
+                32,
+                Box::new(ASTType::Generic(
+                    HashedString::new("s".to_string()),
+                    Some(32),
+                    vec!["test".to_string(), "abcdef".to_string()]
+                ))
             ))
-        )))
+        )
     )
 }
