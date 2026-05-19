@@ -9,6 +9,7 @@ use crate::{FieldHavingType, MutableFieldHavingType, tree::Type};
 
 /// Represents a `struct` type container.
 /// Holds information such as the name of the type and fields
+#[derive(Clone)]
 pub struct BaseStructContainer {
     pub name: HashedString,
 
@@ -22,6 +23,12 @@ impl BaseStructContainer {
             name,
             fields: HashMap::new(),
         }
+    }
+}
+
+impl PartialEq for BaseStructContainer {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name
     }
 }
 

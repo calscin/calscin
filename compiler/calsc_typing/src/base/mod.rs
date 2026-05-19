@@ -82,11 +82,11 @@ impl DeclBlockAffectedType for BaseType {
 
 impl FieldHavingType for BaseType {
     fn has_field(&self, name: HashedString) -> bool {
-        false
+        self.kind.has_field(name)
     }
 
     fn get_field_type(&self, name: HashedString) -> Type {
-        todo!("Add struct support here")
+        self.kind.get_field_type(name)
     }
 }
 
