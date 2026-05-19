@@ -16,6 +16,7 @@ pub mod kind;
 pub mod structs;
 
 #[derive(Clone)]
+/// Represents an actual base type. This is the type that should be registered as a type
 pub struct BaseType {
     /// The kind of the base type
     pub kind: BaseTypeKind,
@@ -24,6 +25,7 @@ pub struct BaseType {
     pub functions: HashMap<HashedString, TypedFunction>,
 }
 
+/// Represents an instance of a [`BaseType`]. Stores the base type, size speicifers and type parameters.
 pub struct BaseTypeInstance {
     /// The actual used type
     pub ty: BaseType,
@@ -33,6 +35,15 @@ pub struct BaseTypeInstance {
 
     /// The type parameters of the type
     pub type_parameters: Vec<Type>,
+}
+
+impl BaseType {
+    pub fn new(kind: BaseTypeKind) -> Self {
+        Self {
+            kind,
+            functions: HashMap::new(),
+        }
+    }
 }
 
 impl BaseTypeInstance {
@@ -61,9 +72,9 @@ impl BaseTypeInstance {
 impl DeclBlockAffectedType for BaseTypeInstance {
     fn add_function<K: calsc_diagnostics::DiagnosticSource>(
         &mut self,
-        name: HashedString,
-        func: TypedFunction,
-        source: &K,
+        _name: HashedString,
+        _func: TypedFunction,
+        _source: &K,
     ) -> calsc_diagnostics::DiagPossible {
         panic!("Cannot add functions trough instances! Instances are immutable versions of types")
     }

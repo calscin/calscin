@@ -1,4 +1,4 @@
-use calsc_typing::base::{BaseType, kind::BaseTypeKind};
+use calsc_typing::base::{BaseType, BaseTypeInstance, kind::BaseTypeKind};
 
 #[test]
 fn test_base_type_required_size_params() {
@@ -17,5 +17,6 @@ fn test_base_type_required_size_params() {
 
 #[test]
 fn test_base_type_creation() {
-    let _ = BaseType::new(BaseTypeKind::Integer { signed: false }, vec![32], vec![]); // Create a 32 bit unsigned integer type
+    let base = BaseType::new(BaseTypeKind::Integer { signed: false }); // Create a 32 bit unsigned integer type
+    let _ = BaseTypeInstance::new(base, vec![12], vec![]);
 }
