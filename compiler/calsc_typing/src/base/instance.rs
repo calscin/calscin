@@ -1,7 +1,7 @@
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType, MutableFieldHavingType,
+    FieldHavingType,
     base::BaseType,
     func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
     params::resolve_type_parameter_type,
@@ -25,21 +25,29 @@ impl BaseTypeInstance {
     /// Creates a new [`BaseTypeInstance`] instance with the given kind and the given type and size specifiers.
     ///
     /// # Panics
-    /// This function will panic if the amount ofsize specifiers aren't equal to the amount required.
+    /// This function will panic if the amount of size specifiers or type parameters aren't equal to the amount required.
     ///
     pub fn new(kind: BaseType, size_specifiers: Vec<usize>, type_parameters: Vec<Type>) -> Self {
-        if size_specifiers.len() == kind.kind.get_required_size_parameters() {
-            Self {
-                ty: kind,
-                size_specifiers,
-                type_parameters,
-            }
-        } else {
+        if size_specifiers.len() != kind.kind.get_required_size_parameters() {
             panic!(
                 "Expected {} size parameters but got {} size parameters",
                 kind.kind.get_required_size_parameters(),
                 size_specifiers.len()
-            )
+            );
+        }
+
+        if type_parameters.len() != kind.type_params.len() {
+            panic!(
+                "Expected {} type parameters but got {} type parameters",
+                kind.type_params.len(),
+                type_parameters.len()
+            );
+        }
+
+        Self {
+            ty: kind,
+            size_specifiers,
+            type_parameters,
         }
     }
 }
