@@ -1,5 +1,6 @@
 use calsc_typing::base::{BaseType, BaseTypeInstance, kind::BaseTypeKind};
 
+pub mod fields;
 pub mod funcs;
 
 #[test]

@@ -4,7 +4,7 @@ use calsc_utils::hash::HashedString;
 
 use crate::{FieldHavingType, base::structs::BaseStructContainer, tree::Type};
 
-#[derive(PartialEq, Clone)] // Remove this and replace it with a custom implementation whenever structs are added
+#[derive(PartialEq, Clone, Debug)] // Remove this and replace it with a custom implementation whenever structs are added
 pub enum BaseTypeKind {
     /// An integer type that is possibly signed
     Integer {

@@ -6,7 +6,7 @@ use calsc_typing::{
 };
 
 #[test]
-pub fn function_append_retrival_test() {
+fn function_append_retrival_test() {
     let source = PosDiagnosticSource::new(Default::default(), Default::default());
 
     let mut base = BaseType::new(BaseTypeKind::Boolean);
@@ -34,7 +34,7 @@ pub fn function_append_retrival_test() {
 }
 
 #[test]
-pub fn no_function_retrival_test() {
+fn no_function_retrival_test() {
     let base = BaseType::new(BaseTypeKind::Boolean);
 
     assert!(!base.has_function("test".into(), (vec![], None)));

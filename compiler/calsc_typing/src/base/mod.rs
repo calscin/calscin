@@ -15,7 +15,7 @@ use crate::{
 pub mod kind;
 pub mod structs;
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 /// Represents an actual base type. This is the type that should be registered as a type
 pub struct BaseType {
     /// The kind of the base type
@@ -26,7 +26,7 @@ pub struct BaseType {
 }
 
 /// Represents an instance of a [`BaseType`]. Stores the base type, size speicifers and type parameters.
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct BaseTypeInstance {
     /// The actual used type
     pub ty: BaseType,
