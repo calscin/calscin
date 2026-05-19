@@ -2,16 +2,18 @@
 
 use std::collections::HashMap;
 
-use calsc_diagnostics::diags::errors::build_already_in_scope;
+use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_already_in_scope};
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType,
+    FieldHavingType, MutableFieldHavingType,
     base::kind::BaseTypeKind,
-    func::{DeclBlockAffectedType, TypedFunction},
+    func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
+    params::TypeParameterHaving,
     tree::Type,
 };
 
+pub mod instance;
 pub mod kind;
 pub mod structs;
 
@@ -21,21 +23,11 @@ pub struct BaseType {
     /// The kind of the base type
     pub kind: BaseTypeKind,
 
+    /// The type parameters of the type
+    pub type_params: HashMap<HashedString, usize>,
+
     /// The functions of the given type
     pub functions: HashMap<HashedString, TypedFunction>,
-}
-
-/// Represents an instance of a [`BaseType`]. Stores the base type, size speicifers and type parameters.
-#[derive(PartialEq, Clone, Debug)]
-pub struct BaseTypeInstance {
-    /// The actual used type
-    pub ty: BaseType,
-
-    /// The size specifiers of the type
-    pub size_specifiers: Vec<usize>,
-
-    /// The type parameters of the type
-    pub type_parameters: Vec<Type>,
 }
 
 impl BaseType {
@@ -44,51 +36,33 @@ impl BaseType {
     pub fn new(kind: BaseTypeKind) -> Self {
         Self {
             kind,
+            type_params: HashMap::new(),
             functions: HashMap::new(),
         }
     }
-}
 
-impl BaseTypeInstance {
-    /// Creates a new [`BaseTypeInstance`] instance with the given kind and the given type and size specifiers.
+    /// Appends a type parameter to the [`BaseType`] and return it's type parameter index.
     ///
-    /// # Panics
-    /// This function will panic if the amount ofsize specifiers aren't equal to the amount required.
-    ///
-    pub fn new(kind: BaseType, size_specifiers: Vec<usize>, type_parameters: Vec<Type>) -> Self {
-        if size_specifiers.len() == kind.kind.get_required_size_parameters() {
-            Self {
-                ty: kind,
-                size_specifiers,
-                type_parameters,
-            }
-        } else {
-            panic!(
-                "Expected {} size parameters but got {} size parameters",
-                kind.kind.get_required_size_parameters(),
-                size_specifiers.len()
-            )
-        }
-    }
-}
-
-impl DeclBlockAffectedType for BaseTypeInstance {
-    fn add_function<K: calsc_diagnostics::DiagnosticSource>(
+    /// # Errors
+    /// This function will error if a type parameter with the given name already exists.
+    pub fn append_type_parameter<K: DiagnosticSource>(
         &mut self,
-        _name: HashedString,
-        _func: TypedFunction,
-        _source: &K,
-    ) -> calsc_diagnostics::DiagPossible {
-        panic!("Cannot add functions trough instances! Instances are immutable versions of types")
-    }
+        name: HashedString,
+        source: &K,
+    ) -> DiagResult<usize> {
+        if self.type_params.contains_key(&name) {
+            return Err(build_already_in_scope(&*name, source).into());
+        }
 
-    fn has_function(&self, name: HashedString, signature: crate::func::TypeSignature) -> bool {
-        self.ty.has_function(name, signature)
+        let ind = self.type_params.len();
+
+        self.type_params.insert(name, ind);
+        Ok(ind)
     }
 }
 
 impl DeclBlockAffectedType for BaseType {
-    fn add_function<K: calsc_diagnostics::DiagnosticSource>(
+    fn add_function<K: DiagnosticSource>(
         &mut self,
         name: HashedString,
         func: TypedFunction,
@@ -102,10 +76,15 @@ impl DeclBlockAffectedType for BaseType {
         Ok(())
     }
 
-    fn has_function(&self, name: HashedString, signature: crate::func::TypeSignature) -> bool {
+    fn has_function(&self, name: HashedString) -> bool {
         self.functions.contains_key(&name)
-            && self.functions[&name].arguments == signature.0
-            && self.functions[&name].return_type == signature.1
+    }
+
+    fn get_func_signature(&self, name: HashedString) -> TypeSignature {
+        (
+            self.functions[&name].arguments.clone(),
+            self.functions[&name].return_type.clone(),
+        )
     }
 }
 
@@ -119,13 +98,27 @@ impl FieldHavingType for BaseType {
     }
 }
 
-impl FieldHavingType for BaseTypeInstance {
-    fn has_field(&self, name: HashedString) -> bool {
-        self.ty.has_field(name)
+impl MutableFieldHavingType for BaseType {
+    fn add_field<K: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        ty: Type,
+        source: &K,
+    ) -> calsc_diagnostics::DiagPossible {
+        self.kind.add_field(name, ty, source)
+    }
+}
+
+impl TypeParameterHaving for BaseType {
+    fn has_type_parameter(&self, name: HashedString) -> bool {
+        self.type_params.contains_key(&name)
     }
 
-    fn get_field_type(&self, name: HashedString) -> Type {
-        self.ty.get_field_type(name)
+    fn get_type_parameter_type(&self, name: HashedString) -> Type {
+        Type::TypeParameter {
+            name: name.clone(),
+            param_ind: self.type_params[&name],
+        }
     }
 }
 

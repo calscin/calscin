@@ -47,5 +47,7 @@ pub trait DeclBlockAffectedType {
     ///
     /// We do not need a get function since the stored functions should only be the [`TypedFunction`]
     ///
-    fn has_function(&self, name: HashedString, signature: TypeSignature) -> bool;
+    fn has_function(&self, name: HashedString) -> bool;
+
+    fn get_func_signature(&self, name: HashedString) -> TypeSignature;
 }

@@ -2,7 +2,9 @@
 
 use calsc_utils::hash::HashedString;
 
-use crate::{FieldHavingType, base::structs::BaseStructContainer, tree::Type};
+use crate::{
+    FieldHavingType, MutableFieldHavingType, base::structs::BaseStructContainer, tree::Type,
+};
 
 #[derive(PartialEq, Clone, Debug)] // Remove this and replace it with a custom implementation whenever structs are added
 pub enum BaseTypeKind {
@@ -45,6 +47,21 @@ impl FieldHavingType for BaseTypeKind {
         match self {
             Self::Struct(container) => container.get_field_type(name),
             _ => panic!("Field {} not found on type", *name),
+        }
+    }
+}
+
+impl MutableFieldHavingType for BaseTypeKind {
+    fn add_field<K: calsc_diagnostics::DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        ty: Type,
+        source: &K,
+    ) -> calsc_diagnostics::DiagPossible {
+        match self {
+            Self::Struct(container) => container.add_field(name, ty, source),
+
+            _ => panic!("Fields cannot be added onto this type"),
         }
     }
 }
