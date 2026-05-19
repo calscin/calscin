@@ -59,7 +59,23 @@ impl DeclBlockAffectedType for BaseTypeInstance {
     }
 
     fn get_func_signature(&self, name: HashedString) -> TypeSignature {
-        self.ty.get_func_signature(name)
+        let signature = self.ty.get_func_signature(name);
+
+        let mut arguments = vec![];
+
+        for argument in &signature.0 {
+            arguments.push(resolve_type_parameter_type(argument.clone(), self)); // Resolves type parameters
+        }
+
+        let return_type;
+
+        if signature.1.is_none() {
+            return_type = None;
+        } else {
+            return_type = Some(resolve_type_parameter_type(signature.1.unwrap(), self));
+        }
+
+        (arguments, return_type)
     }
 }
 
