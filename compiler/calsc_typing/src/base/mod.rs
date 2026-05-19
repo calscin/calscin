@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use calsc_diagnostics::diags::errors::build_already_in_scope;
+use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_already_in_scope};
 use calsc_utils::hash::HashedString;
 
 use crate::{
@@ -39,10 +39,29 @@ impl BaseType {
             functions: HashMap::new(),
         }
     }
+
+    /// Appends a type parameter to the [`BaseType`] and return it's type parameter index.
+    ///
+    /// # Errors
+    /// This function will error if a type parameter with the given name already exists.
+    pub fn append_type_parameter<K: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        source: &K,
+    ) -> DiagResult<usize> {
+        if self.type_params.contains_key(&name) {
+            return Err(build_already_in_scope(&*name, source).into());
+        }
+
+        let ind = self.type_params.len();
+
+        self.type_params.insert(name, ind);
+        Ok(ind)
+    }
 }
 
 impl DeclBlockAffectedType for BaseType {
-    fn add_function<K: calsc_diagnostics::DiagnosticSource>(
+    fn add_function<K: DiagnosticSource>(
         &mut self,
         name: HashedString,
         func: TypedFunction,
