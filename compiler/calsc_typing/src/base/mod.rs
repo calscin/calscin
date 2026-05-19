@@ -6,6 +6,7 @@ use calsc_diagnostics::diags::errors::build_already_in_scope;
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    FieldHavingType,
     base::kind::BaseTypeKind,
     func::{DeclBlockAffectedType, TypedFunction},
     tree::Type,
@@ -74,6 +75,16 @@ impl DeclBlockAffectedType for BaseType {
         self.functions.contains_key(&name)
             && self.functions[&name].arguments == signature.0
             && self.functions[&name].return_type == signature.1
+    }
+}
+
+impl FieldHavingType for BaseType {
+    fn has_field(&self, name: HashedString) -> bool {
+        false
+    }
+
+    fn get_field_type(&self, name: HashedString) -> Type {
+        todo!("Add struct support here")
     }
 }
 
