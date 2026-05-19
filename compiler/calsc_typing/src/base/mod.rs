@@ -21,6 +21,9 @@ pub struct BaseType {
     /// The kind of the base type
     pub kind: BaseTypeKind,
 
+    /// The type parameters of the type
+    pub type_params: HashMap<HashedString, usize>,
+
     /// The functions of the given type
     pub functions: HashMap<HashedString, TypedFunction>,
 }
@@ -44,6 +47,7 @@ impl BaseType {
     pub fn new(kind: BaseTypeKind) -> Self {
         Self {
             kind,
+            type_params: HashMap::new(),
             functions: HashMap::new(),
         }
     }
