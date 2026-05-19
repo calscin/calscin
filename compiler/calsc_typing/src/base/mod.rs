@@ -6,9 +6,10 @@ use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_alrea
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType, TypeParameterHaving,
+    FieldHavingType,
     base::kind::BaseTypeKind,
     func::{DeclBlockAffectedType, TypedFunction},
+    params::TypeParameterHaving,
     tree::Type,
 };
 
