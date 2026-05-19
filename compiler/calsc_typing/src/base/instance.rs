@@ -72,7 +72,7 @@ impl DeclBlockAffectedType for BaseTypeInstance {
         if signature.1.is_none() {
             return_type = None;
         } else {
-            return_type = Some(resolve_type_parameter_type(signature.1.unwrap(), self));
+            return_type = Some(resolve_type_parameter_type(signature.1.unwrap(), self)); // Resolves type parameters
         }
 
         (arguments, return_type)
