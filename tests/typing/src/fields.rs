@@ -1,7 +1,9 @@
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 use calsc_typing::{
     FieldHavingType, MutableFieldHavingType,
-    base::{BaseType, BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer},
+    base::{
+        BaseType, instance::BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer,
+    },
     tree::Type,
 };
 

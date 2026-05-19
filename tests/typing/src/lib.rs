@@ -1,4 +1,4 @@
-use calsc_typing::base::{BaseType, BaseTypeInstance, kind::BaseTypeKind};
+use calsc_typing::base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind};
 
 pub mod fields;
 pub mod funcs;
