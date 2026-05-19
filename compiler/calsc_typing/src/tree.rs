@@ -3,7 +3,7 @@
 use crate::base::BaseType;
 
 /// The actual type used for typing in Calscin. Allows for nested references and arrays with base types
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum Type {
     /// Represents a basic type
     Base(BaseType),

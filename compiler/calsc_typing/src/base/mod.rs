@@ -13,7 +13,9 @@ use crate::{
 };
 
 pub mod kind;
+pub mod structs;
 
+#[derive(Clone)]
 pub struct BaseType {
     /// The kind of the base type
     pub kind: BaseTypeKind,

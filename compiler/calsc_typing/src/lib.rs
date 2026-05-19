@@ -1,4 +1,4 @@
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_utils::hash::HashedString;
 
 use crate::tree::Type;
@@ -30,5 +30,10 @@ pub trait MutableFieldHavingType {
     ///
     /// # Errors
     /// This function will return an error if the fiels is already present in the time
-    fn add_field(&mut self, name: HashedString, ty: Type) -> DiagPossible;
+    fn add_field<K: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        ty: Type,
+        source: &K,
+    ) -> DiagPossible;
 }
