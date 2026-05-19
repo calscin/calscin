@@ -24,18 +24,19 @@ fn function_append_retrival_test() {
     )
     .unwrap_cleanly();
 
-    assert!(base.has_function(
-        "test_function".into(),
+    assert!(base.has_function("test_function".into()));
+    assert_eq!(
+        base.get_func_signature("test_function".into()),
         (
             vec![Type::Base(instance.clone())],
             Some(Type::Base(instance.clone()))
         )
-    ));
+    );
 }
 
 #[test]
 fn no_function_retrival_test() {
     let base = BaseType::new(BaseTypeKind::Boolean);
 
-    assert!(!base.has_function("test".into(), (vec![], None)));
+    assert!(!base.has_function("test".into()));
 }

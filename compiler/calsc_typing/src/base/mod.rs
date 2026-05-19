@@ -8,7 +8,7 @@ use calsc_utils::hash::HashedString;
 use crate::{
     FieldHavingType,
     base::kind::BaseTypeKind,
-    func::{DeclBlockAffectedType, TypedFunction},
+    func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
     params::TypeParameterHaving,
     tree::Type,
 };
@@ -76,10 +76,15 @@ impl DeclBlockAffectedType for BaseType {
         Ok(())
     }
 
-    fn has_function(&self, name: HashedString, signature: crate::func::TypeSignature) -> bool {
+    fn has_function(&self, name: HashedString) -> bool {
         self.functions.contains_key(&name)
-            && self.functions[&name].arguments == signature.0
-            && self.functions[&name].return_type == signature.1
+    }
+
+    fn get_func_signature(&self, name: HashedString) -> TypeSignature {
+        (
+            self.functions[&name].arguments.clone(),
+            self.functions[&name].return_type.clone(),
+        )
     }
 }
 

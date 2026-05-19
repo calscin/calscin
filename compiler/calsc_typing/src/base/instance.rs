@@ -54,8 +54,12 @@ impl DeclBlockAffectedType for BaseTypeInstance {
         panic!("Cannot add functions trough instances! Instances are immutable versions of types")
     }
 
-    fn has_function(&self, name: HashedString, signature: TypeSignature) -> bool {
-        self.ty.has_function(name, signature)
+    fn has_function(&self, name: HashedString) -> bool {
+        self.ty.has_function(name)
+    }
+
+    fn get_func_signature(&self, name: HashedString) -> TypeSignature {
+        self.ty.get_func_signature(name)
     }
 }
 
