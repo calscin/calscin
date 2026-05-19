@@ -1,6 +1,6 @@
 //! Declaration for functions
 
-use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
+use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_utils::hash::HashedString;
 
 use crate::tree::Type;
