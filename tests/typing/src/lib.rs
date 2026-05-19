@@ -1,5 +1,7 @@
 use calsc_typing::base::{BaseType, BaseTypeInstance, kind::BaseTypeKind};
 
+pub mod funcs;
+
 #[test]
 fn test_base_type_required_size_params() {
     assert_eq!(

@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 calsc_typing = { path = "../../compiler/calsc_typing" }
+calsc_diagnostics = { path = "../../compiler/calsc_diagnostics" }

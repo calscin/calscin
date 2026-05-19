@@ -62,6 +62,7 @@ dependencies = [
 name = "typing"
 version = "0.1.0"
 dependencies = [
+ "calsc_diagnostics",
  "calsc_typing",
 ]
 

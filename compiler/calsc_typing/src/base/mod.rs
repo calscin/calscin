@@ -26,6 +26,7 @@ pub struct BaseType {
 }
 
 /// Represents an instance of a [`BaseType`]. Stores the base type, size speicifers and type parameters.
+#[derive(PartialEq, Clone)]
 pub struct BaseTypeInstance {
     /// The actual used type
     pub ty: BaseType,
@@ -38,6 +39,8 @@ pub struct BaseTypeInstance {
 }
 
 impl BaseType {
+    /// Creates a new [`BaseType`] instance with the given kind.
+    ///
     pub fn new(kind: BaseTypeKind) -> Self {
         Self {
             kind,
@@ -47,7 +50,7 @@ impl BaseType {
 }
 
 impl BaseTypeInstance {
-    /// Creates a new [`BaseType`] instance with the given kind and the given type and size specifiers.
+    /// Creates a new [`BaseTypeInstance`] instance with the given kind and the given type and size specifiers.
     ///
     /// # Panics
     /// This function will panic if the amount ofsize specifiers aren't equal to the amount required.
