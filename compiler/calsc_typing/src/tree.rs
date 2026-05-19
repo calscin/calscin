@@ -1,6 +1,6 @@
 //! Declarations for the type tree
 
-use crate::base::{BaseType, BaseTypeInstance};
+use crate::base::instance::BaseTypeInstance;
 
 /// The actual type used for typing in Calscin. Allows for nested references and arrays with base types
 #[derive(PartialEq, Clone, Debug)]
