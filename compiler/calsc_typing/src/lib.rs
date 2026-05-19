@@ -9,6 +9,7 @@ pub mod params;
 pub mod tree;
 
 /// Represents a type that has fields.
+/// It is recommended to use this trait directly on a [`BaseTypeInstance`][`crate::base::instance::BaseTypeInstance`] to allow for type parameter lowering
 pub trait FieldHavingType {
     /// Checks if the type has a field with the given name
     fn has_field(&self, name: HashedString) -> bool;

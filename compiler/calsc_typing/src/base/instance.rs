@@ -4,6 +4,7 @@ use crate::{
     FieldHavingType,
     base::BaseType,
     func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
+    params::resolve_type_parameter_type,
     tree::Type,
 };
 
@@ -64,6 +65,6 @@ impl FieldHavingType for BaseTypeInstance {
     }
 
     fn get_field_type(&self, name: HashedString) -> Type {
-        self.ty.get_field_type(name)
+        resolve_type_parameter_type(self.ty.get_field_type(name), self) // Resolves type parameters
     }
 }
