@@ -2,6 +2,7 @@ use calsc_typing::base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKin
 
 pub mod fields;
 pub mod funcs;
+pub mod type_parameters;
 
 #[test]
 fn test_base_type_required_size_params() {

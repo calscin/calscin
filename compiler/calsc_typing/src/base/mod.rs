@@ -6,7 +6,7 @@ use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_alrea
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType,
+    FieldHavingType, MutableFieldHavingType,
     base::kind::BaseTypeKind,
     func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
     params::TypeParameterHaving,
@@ -95,6 +95,17 @@ impl FieldHavingType for BaseType {
 
     fn get_field_type(&self, name: HashedString) -> Type {
         self.kind.get_field_type(name)
+    }
+}
+
+impl MutableFieldHavingType for BaseType {
+    fn add_field<K: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        ty: Type,
+        source: &K,
+    ) -> calsc_diagnostics::DiagPossible {
+        self.kind.add_field(name, ty, source)
     }
 }
 
