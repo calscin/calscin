@@ -130,6 +130,12 @@ pub enum ASTNodeKind {
         kind: ImportKind,
     },
 
+    /// `test.abc`
+    StructLRUsage {
+        left_expr: ASTArenaReference,
+        right_expr: ASTArenaReference,
+    },
+
     StructDeclaration {
         name: HashedString,
         type_params: Vec<HashedString>,

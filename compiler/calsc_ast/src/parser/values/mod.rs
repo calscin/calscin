@@ -10,6 +10,7 @@ use crate::{
     AST_CONTEXT,
     parser::{
         func::parse_function_call,
+        lru::parse_ast_struct_lru,
         values::{
             conditions::{parse_ast_compare_expression, parse_ast_inverse_condition},
             lits::parse_ast_literal,
@@ -129,6 +130,8 @@ pub fn parse_ast_post(
         | TokenKind::BackSlash
         | TokenKind::Tilde
         | TokenKind::Question => return parse_ast_math_expression(tokens, ind, first_node, start),
+
+        TokenKind::Dot => return parse_ast_struct_lru(tokens, ind, first_node, start),
 
         TokenKind::Bang => {
             if tokens[*ind].kind == TokenKind::Equal {
