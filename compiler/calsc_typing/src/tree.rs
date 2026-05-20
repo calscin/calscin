@@ -1,13 +1,11 @@
 //! Declarations for the type tree
 
-use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_utils::hash::HashedString;
 
 use crate::{
     FieldHavingType,
     base::instance::BaseTypeInstance,
-    func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
-    params::TypeParameterHaving,
+    func::{DeclBlockAffectedType, TypeSignature},
 };
 
 /// The actual type used for typing in Calscin. Allows for nested references and arrays with base types

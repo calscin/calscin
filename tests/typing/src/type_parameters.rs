@@ -1,4 +1,7 @@
+#[cfg(test)]
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
+
+#[cfg(test)]
 use calsc_typing::{
     FieldHavingType, MutableFieldHavingType,
     base::{

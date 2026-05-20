@@ -1,3 +1,4 @@
+#[cfg(test)]
 use calsc_typing::base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind};
 
 pub mod fields;

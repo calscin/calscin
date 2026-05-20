@@ -3,7 +3,7 @@ use calsc_utils::hash::HashedString;
 use crate::{
     FieldHavingType,
     base::BaseType,
-    func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
+    func::{DeclBlockAffectedType, TypeSignature},
     params::resolve_type_parameter_type,
     tree::Type,
 };

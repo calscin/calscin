@@ -1,4 +1,7 @@
+#[cfg(test)]
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
+
+#[cfg(test)]
 use calsc_typing::{
     base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
     func::{DeclBlockAffectedType, MutableDeclBlockAffectedType, TypedFunction},
