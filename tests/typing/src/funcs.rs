@@ -1,7 +1,7 @@
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 use calsc_typing::{
     base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
-    func::{DeclBlockAffectedType, TypedFunction},
+    func::{DeclBlockAffectedType, MutableDeclBlockAffectedType, TypedFunction},
     tree::Type,
 };
 

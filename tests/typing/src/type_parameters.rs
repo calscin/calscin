@@ -4,7 +4,7 @@ use calsc_typing::{
     base::{
         BaseType, instance::BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer,
     },
-    func::{DeclBlockAffectedType, TypedFunction},
+    func::{DeclBlockAffectedType, MutableDeclBlockAffectedType, TypedFunction},
     params::TypeParameterHaving,
     tree::Type,
 };
