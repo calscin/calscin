@@ -14,7 +14,7 @@ pub(crate) fn parse_ast_struct_lru_member(
 ) -> DiagResult<ASTArenaReference> {
     tokens[*ind].expects_keyword()?;
 
-    if tokens[*ind].kind == TokenKind::ParenOpen {
+    if tokens[*ind + 1].kind == TokenKind::ParenOpen {
         return parse_function_call(tokens, ind); // Auto increments
     } else {
         return parse_ast_element_reference(tokens, ind); // Auto increments
