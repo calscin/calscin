@@ -32,6 +32,9 @@ dependencies = [
 [[package]]
 name = "calsc_hir"
 version = "0.1.0"
+dependencies = [
+ "calsc_utils",
+]
 
 [[package]]
 name = "calsc_lexer"
