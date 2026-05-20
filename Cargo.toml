@@ -2,7 +2,10 @@
 members = [
 	"compiler/calsc_ast",
 	"compiler/calsc_diagnostics",
-	"compiler/calsc_lexer", "compiler/calsc_typing",
+	"compiler/calsc_hir",
+	"compiler/calsc_lexer",
+	"compiler/calsc_typing",
 	"compiler/calsc_utils",
-	"tests/ast", "tests/typing",
+	"tests/ast",
+	"tests/typing",
 ]
