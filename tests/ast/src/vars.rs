@@ -1,12 +1,17 @@
+#[cfg(test)]
 use calsc_ast::parser::parse_ast_node_body_member;
-#[allow(unused)]
+
+#[cfg(test)]
 use calsc_ast::{
     nodes::ASTNodeKind,
     parser::vars::{parse_ast_element_reference, parse_ast_variable_declaration},
 };
+
+#[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
 use calsc_lexer::lexer_tokenize;
-use calsc_utils::hash::HashedString;
 
 #[test]
 pub fn test_parse_variable_delc_no_def() {
@@ -33,7 +38,7 @@ pub fn test_parse_variable_ref() {
 
     assert_eq!(
         reference.kind.clone(),
-        ASTNodeKind::ElementReference(HashedString::new("test_abcef".to_string()))
+        ASTNodeKind::ElementReference("test_abcef".into())
     )
 }
 
@@ -47,7 +52,7 @@ pub fn test_parse_variable_assign() {
     if let ASTNodeKind::Assignment { variable, value } = assign.kind.clone() {
         assert_eq!(
             variable.kind.clone(),
-            ASTNodeKind::ElementReference(HashedString::new("test".to_string()))
+            ASTNodeKind::ElementReference("test".into())
         );
 
         assert_eq!(value.kind.clone(), ASTNodeKind::IntLiteral(588));

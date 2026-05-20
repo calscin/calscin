@@ -1,6 +1,13 @@
+#[cfg(test)]
 use calsc_ast::{nodes::ASTNodeKind, parser::values::parse_ast_value};
+
+#[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
 use calsc_lexer::lexer_tokenize;
+
+#[cfg(test)]
 use calsc_utils::{
     cmp::{CompareOperator, ComparePredicate},
     hash::HashedString,

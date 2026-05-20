@@ -1,10 +1,13 @@
 //! Parsing tests related to type parsing
 
-#[allow(unused)]
+#[cfg(test)]
 use calsc_ast::{parser::types::parse_ast_type, types::ASTType};
+
+#[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
 use calsc_lexer::lexer_tokenize;
-use calsc_utils::hash::HashedString;
 
 #[test]
 pub fn test_simple_type_parsing() {
@@ -13,10 +16,7 @@ pub fn test_simple_type_parsing() {
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
-    assert_eq!(
-        ty,
-        ASTType::Generic(HashedString::new("s32".to_string()), None, vec![])
-    );
+    assert_eq!(ty, ASTType::Generic("s32".into(), None, vec![]));
 }
 
 #[test]
@@ -29,7 +29,7 @@ pub fn test_simple_type_parsing_generic_type_specs() {
     assert_eq!(
         ty,
         ASTType::Generic(
-            HashedString::new("s32".to_string()),
+            "s32".into(),
             None,
             vec!["test".to_string(), "abcdef".to_string()]
         )
@@ -43,10 +43,7 @@ pub fn test_simple_type_parsing_size_spec() {
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
-    assert_eq!(
-        ty,
-        ASTType::Generic(HashedString::new("s".to_string()), Some(32), vec![])
-    )
+    assert_eq!(ty, ASTType::Generic("s".into(), Some(32), vec![]))
 }
 
 #[test]
@@ -63,7 +60,7 @@ pub fn test_complex_type_parsing() {
             Box::new(ASTType::Array(
                 32,
                 Box::new(ASTType::Generic(
-                    HashedString::new("s".to_string()),
+                    "s".into(),
                     Some(32),
                     vec!["test".to_string(), "abcdef".to_string()]
                 ))

@@ -1,15 +1,17 @@
+#[cfg(test)]
 use calsc_ast::parser::func::parse_extern_function_declaration;
-#[allow(unused)]
+
+#[cfg(test)]
 use calsc_ast::{
     nodes::ASTNodeKind,
-    parser::{
-        func::{parse_function_call, parse_function_declaration},
-        parse_ast_node_body_member,
-    },
+    parser::{func::parse_function_declaration, parse_ast_node_body_member},
 };
+
+#[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
 use calsc_lexer::lexer_tokenize;
-use calsc_utils::hash::HashedString;
 
 #[test]
 pub fn function_decl_parsing_base_test() {
@@ -21,7 +23,7 @@ pub fn function_decl_parsing_base_test() {
     assert_eq!(
         func.kind.clone(),
         ASTNodeKind::FunctionDeclaration {
-            name: HashedString::new("test".to_string()),
+            name: "test".into(),
             arguments: vec![],
             body: vec![]
         }
@@ -50,7 +52,7 @@ pub fn function_call_parsing_test() {
     assert_eq!(
         call.kind.clone(),
         ASTNodeKind::FunctionCall {
-            name: HashedString::new("test".to_string()),
+            name: "test".into(),
             arguments: vec![]
         }
     )
@@ -65,12 +67,12 @@ pub fn parse_call_parsing_args_test() {
     let call = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 
     if let ASTNodeKind::FunctionCall { name, arguments } = call.kind.clone() {
-        assert_eq!(name, HashedString::new("test".to_string()));
+        assert_eq!(name, "test".into());
 
         assert_eq!(
             arguments[0].kind.clone(),
             ASTNodeKind::FunctionCall {
-                name: HashedString::new("testtwo".to_string()),
+                name: "testtwo".into(),
                 arguments: vec![]
             }
         );
@@ -91,7 +93,7 @@ pub fn parse_extern_function_decl_base_test() {
     assert_eq!(
         call.kind.clone(),
         ASTNodeKind::ExternFunctionDeclaration {
-            name: HashedString::new("test".to_string()),
+            name: "test".into(),
             arguments: vec![],
             triple_dot_position: None
         }
@@ -108,7 +110,7 @@ pub fn parse_extern_function_decl_test() {
     assert_eq!(
         call.kind.clone(),
         ASTNodeKind::ExternFunctionDeclaration {
-            name: HashedString::new("test".to_string()),
+            name: "test".into(),
             arguments: vec![],
             triple_dot_position: Some(0)
         }
@@ -121,5 +123,5 @@ pub fn parse_malformed_extern_function_decl_test() {
         lexer_tokenize("externfunc test(..., s32 test)", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let call = parse_extern_function_declaration(&tokens, &mut ind).unwrap_err();
+    let _ = parse_extern_function_declaration(&tokens, &mut ind).unwrap_err();
 }
