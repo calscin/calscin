@@ -2,9 +2,7 @@
 
 use std::fmt::Display;
 
-use calsc_utils::pos::FilePosition;
-
-use crate::{Diagnostic, DiagnosticCode, DiagnosticSource, Level, declare_diagnostic, span::Span};
+use crate::{Diagnostic, DiagnosticCode, DiagnosticSource, Level, declare_diagnostic};
 
 // Is triggered whenever the Lexer cannot parse something (eg: cannot parse literals).
 declare_diagnostic!(CANNOT_PARSE, 1);

@@ -1,6 +1,6 @@
 //! Parsing for values. Every parser for values will be contained in that module
 
-use std::{cmp::Ordering, path::PathBuf};
+use std::path::PathBuf;
 
 use calsc_diagnostics::{DiagResult, PosDiagnosticSource, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
