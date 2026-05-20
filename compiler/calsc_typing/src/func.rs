@@ -32,8 +32,6 @@ impl TypedFunction {
 pub trait DeclBlockAffectedType {
     /// Checks if the given type has a the given function with the matching signature.
     ///
-    /// **Warn: This exactly checks the signature and doesn't handle type parameters yet**
-    ///
     /// We do not need a get function since the stored functions should only be the [`TypedFunction`]
     ///
     fn has_function(&self, name: HashedString) -> bool;
