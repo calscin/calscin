@@ -53,15 +53,6 @@ impl BaseTypeInstance {
 }
 
 impl DeclBlockAffectedType for BaseTypeInstance {
-    fn add_function<K: calsc_diagnostics::DiagnosticSource>(
-        &mut self,
-        _name: HashedString,
-        _func: TypedFunction,
-        _source: &K,
-    ) -> calsc_diagnostics::DiagPossible {
-        panic!("Cannot add functions trough instances! Instances are immutable versions of types")
-    }
-
     fn has_function(&self, name: HashedString) -> bool {
         self.ty.has_function(name)
     }

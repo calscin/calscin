@@ -7,6 +7,7 @@ use crate::{
     FieldHavingType,
     base::instance::BaseTypeInstance,
     func::{DeclBlockAffectedType, TypeSignature, TypedFunction},
+    params::TypeParameterHaving,
 };
 
 /// The actual type used for typing in Calscin. Allows for nested references and arrays with base types
@@ -65,16 +66,5 @@ impl DeclBlockAffectedType for Type {
             Self::Reference { mutable: _, inner } => inner.get_func_signature(name),
             Self::Base(instance) => instance.get_func_signature(name),
         }
-    }
-
-    fn add_function<K: DiagnosticSource>(
-        &mut self,
-        _name: HashedString,
-        _func: TypedFunction,
-        _source: &K,
-    ) -> DiagPossible {
-        panic!(
-            "Cannot add function directly from a Type tree instance. Use a BaseTypeInstance to add functions onto a type"
-        )
     }
 }

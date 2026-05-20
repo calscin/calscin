@@ -30,6 +30,19 @@ impl TypedFunction {
 
 /// Defines a type that can be affected by a `decl` block / have functions
 pub trait DeclBlockAffectedType {
+    /// Checks if the given type has a the given function with the matching signature.
+    ///
+    /// **Warn: This exactly checks the signature and doesn't handle type parameters yet**
+    ///
+    /// We do not need a get function since the stored functions should only be the [`TypedFunction`]
+    ///
+    fn has_function(&self, name: HashedString) -> bool;
+
+    fn get_func_signature(&self, name: HashedString) -> TypeSignature;
+}
+
+/// Same as [`DeclBlockAffectedType`] but for mutable functions
+pub trait MutableDeclBlockAffectedType {
     /// Adds a [`TypedFunction`] inside of the type corresponding to the given name.
     ///
     /// # Errors
@@ -40,14 +53,4 @@ pub trait DeclBlockAffectedType {
         func: TypedFunction,
         source: &K,
     ) -> DiagPossible;
-
-    /// Checks if the given type has a the given function with the matching signature.
-    ///
-    /// **Warn: This exactly checks the signature and doesn't handle type parameters yet**
-    ///
-    /// We do not need a get function since the stored functions should only be the [`TypedFunction`]
-    ///
-    fn has_function(&self, name: HashedString) -> bool;
-
-    fn get_func_signature(&self, name: HashedString) -> TypeSignature;
 }
