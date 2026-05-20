@@ -1,6 +1,13 @@
+#[cfg(test)]
 use calsc_ast::{nodes::ASTNodeKind, parser::values::parse_ast_value};
+
+#[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
 use calsc_lexer::lexer_tokenize;
+
+#[cfg(test)]
 use calsc_utils::{
     cmp::{CompareOperator, ComparePredicate},
     hash::HashedString,
@@ -118,6 +125,50 @@ pub fn parse_range_test() {
         assert_eq!(start.kind.clone(), ASTNodeKind::IntLiteral(1));
         assert_eq!(end.kind.clone(), ASTNodeKind::IntLiteral(5));
         assert_eq!(increment.unwrap().kind.clone(), ASTNodeKind::IntLiteral(5));
+    } else {
+        panic!()
+    }
+}
+
+#[test]
+fn parse_lru_test() {
+    let tokens = lexer_tokenize("test.abc", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let val = parse_ast_value(&tokens, &mut ind, true, false).unwrap_cleanly();
+
+    if let ASTNodeKind::StructLRUsage {
+        left_expr,
+        right_expr,
+    } = val.kind.clone()
+    {
+        assert_eq!(left_expr.kind, ASTNodeKind::ElementReference("test".into()));
+        assert_eq!(right_expr.kind, ASTNodeKind::ElementReference("abc".into()));
+    } else {
+        panic!()
+    }
+}
+
+#[test]
+fn parse_lru_function_test() {
+    let tokens = lexer_tokenize("test.abc()", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let val = parse_ast_value(&tokens, &mut ind, true, false).unwrap_cleanly();
+
+    if let ASTNodeKind::StructLRUsage {
+        left_expr,
+        right_expr,
+    } = val.kind.clone()
+    {
+        assert_eq!(left_expr.kind, ASTNodeKind::ElementReference("test".into()));
+        assert_eq!(
+            right_expr.kind,
+            ASTNodeKind::FunctionCall {
+                name: "abc".into(),
+                arguments: vec![]
+            }
+        );
     } else {
         panic!()
     }

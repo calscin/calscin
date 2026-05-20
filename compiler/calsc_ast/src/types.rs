@@ -11,18 +11,18 @@ use calsc_utils::hash::HashedString;
 /// - 	-->`Generic(s32)`
 #[derive(Debug, PartialEq, Clone)]
 pub enum ASTType {
-    /// Represents a pointer node. The parameter represents the inner type.
+    /// Represents a reference node. The parameter represents the inner type.
     ///
     /// # Example    
-    /// `s32*` would be `Pointer(false, Generic(s32))`
-    Pointer(Box<ASTType>),
+    /// `s32&` would be `Reference(false, Generic(s32))`
+    Reference(bool, Box<ASTType>),
 
     /// Represents an array. The first parameter determines the array size and should be an integer literal. The second parameter is the inner type.
     ///
     /// # Examples
     /// `s32[56]` would be `Array(56, Generic(s32))`
     ///
-    /// `s32*[56]` would be `Array(56, Pointer(Generic(s32)))`
+    /// `s32&[56]` would be `Array(56, Reference(Generic(s32)))`
     Array(usize, Box<ASTType>),
 
     /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`. The second parameter represents the size specifier
@@ -37,7 +37,7 @@ pub enum ASTType {
 
 /// Represents a simpler stage of AST types that are basically used to generate full `ASTType` trees.
 pub enum SimpleASTType {
-    Pointer,
+    Reference(bool),
     Array(usize),
     Generic(HashedString, Option<usize>, Vec<String>),
 }

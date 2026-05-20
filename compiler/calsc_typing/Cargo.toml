@@ -1,13 +1,8 @@
 [package]
-name = "calsc_ast"
+name = "calsc_typing"
 version = "0.0.0"
 edition = "2024"
 
 [dependencies]
-calsc_lexer = { path = "../calsc_lexer" }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
 calsc_utils = { path = "../calsc_utils" }
-
-[features]
-parser = []
-default = ["parser"]

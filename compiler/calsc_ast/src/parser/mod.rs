@@ -25,6 +25,7 @@ pub mod control;
 pub mod forms;
 pub mod func;
 pub mod import;
+pub mod lru;
 pub mod structs;
 pub mod types;
 pub mod utils;
@@ -65,6 +66,7 @@ pub fn parse_ast_node_body_member(
     }
 }
 
+/// Parses an AST body
 pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<ASTArenaReference>> {
     let mut members: Vec<ASTArenaReference> = vec![];
 

@@ -6,6 +6,7 @@ use calsc_utils::alloc::arena::ArenaAllocatorReference;
 
 use crate::{AST_CONTEXT, nodes::ASTNode};
 
+#[must_use]
 #[derive(Clone, PartialEq)]
 pub struct ASTArenaReference {
     pub refer: ArenaAllocatorReference,

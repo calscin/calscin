@@ -76,7 +76,9 @@ pub(crate) fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTT
             ASTType::Array(*size, Box::new(lower_simple_type(simples, ind - 1)))
         }
 
-        SimpleASTType::Pointer => ASTType::Pointer(Box::new(lower_simple_type(simples, ind - 1))),
+        SimpleASTType::Reference(mutable) => {
+            ASTType::Reference(*mutable, Box::new(lower_simple_type(simples, ind - 1)))
+        }
     };
 
     res
@@ -104,10 +106,10 @@ pub(crate) fn parse_type_step(
     allow_generic_parameters: bool,
 ) -> DiagResult<Option<SimpleASTType>> {
     let kind = match &tokens[*ind].kind {
-        TokenKind::Star => {
-            *ind += 1; // *
+        TokenKind::And => {
+            *ind += 1; // &
 
-            SimpleASTType::Pointer
+            SimpleASTType::Reference(false)
         }
         TokenKind::BracketOpen => {
             *ind += 1; // [

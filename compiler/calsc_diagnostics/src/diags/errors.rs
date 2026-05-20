@@ -8,6 +8,7 @@ use crate::{Diagnostic, DiagnosticCode, DiagnosticSource, Level, declare_diagnos
 declare_diagnostic!(CANNOT_PARSE, 1);
 declare_diagnostic!(UNEXPECTED_TOKEN, 2);
 declare_diagnostic!(EXPECTED, 3);
+declare_diagnostic!(ALREADY_IN_SCOPE, 4);
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
@@ -44,5 +45,19 @@ pub fn build_expected_error<E: Display, G: Display, S: DiagnosticSource>(
         vec![],
         vec![],
         vec![],
+    )
+}
+
+pub fn build_already_in_scope<E: Display, S: DiagnosticSource>(
+    element: &E,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ALREADY_IN_SCOPE),
+        format!("{} already in scope", element),
+        Some(format!("re-introduction of {} done here", element)),
+        vec![],
+        vec!["this name is already taken in the current scope".to_string()],
+        vec!["try changing the name of the re-introduction".to_string()],
     )
 }

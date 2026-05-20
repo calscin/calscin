@@ -1,11 +1,16 @@
 //! Tests for the AST part of Calscin. Mostly is composed of parser tests
 
+#[cfg(test)]
 use calsc_ast::{
     imports::{ImportKind, ImportModule},
     nodes::ASTNodeKind,
     parser::import::parse_ast_import_statement,
 };
+
+#[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
 use calsc_lexer::lexer_tokenize;
 
 pub mod control;
