@@ -1,6 +1,6 @@
 //! Parsing for values. Every parser for values will be contained in that module
 
-use std::path::PathBuf;
+use std::{cmp::Ordering, path::PathBuf};
 
 use calsc_diagnostics::{DiagResult, PosDiagnosticSource, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
@@ -131,7 +131,13 @@ pub fn parse_ast_post(
         | TokenKind::Tilde
         | TokenKind::Question => return parse_ast_math_expression(tokens, ind, first_node, start),
 
-        TokenKind::Dot => return parse_ast_struct_lru(tokens, ind, first_node, start),
+        TokenKind::Dot => {
+            if tokens[*ind + 1].kind != TokenKind::Dot {
+                return parse_ast_struct_lru(tokens, ind, first_node, start);
+            } else {
+                return Ok(first_node);
+            }
+        }
 
         TokenKind::Bang => {
             if tokens[*ind].kind == TokenKind::Equal {
