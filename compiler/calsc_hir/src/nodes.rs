@@ -4,10 +4,7 @@ use std::collections::HashMap;
 
 use calsc_typing::tree::Type;
 use calsc_utils::{
-    cmp::CompareOperator,
-    hash::HashedString,
-    math::{MathOperation, MathOperator},
-    pos::FilePosition,
+    cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
 use crate::refs::HIRArenaReference;
