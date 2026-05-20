@@ -14,7 +14,7 @@ dependencies = [
 
 [[package]]
 name = "calsc_ast"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "calsc_diagnostics",
  "calsc_lexer",
@@ -23,7 +23,7 @@ dependencies = [
 
 [[package]]
 name = "calsc_diagnostics"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "calsc_utils",
  "colored",
@@ -31,7 +31,7 @@ dependencies = [
 
 [[package]]
 name = "calsc_lexer"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "calsc_diagnostics",
  "calsc_utils",
@@ -39,7 +39,7 @@ dependencies = [
 
 [[package]]
 name = "calsc_typing"
-version = "0.1.0"
+version = "0.0.0"
 dependencies = [
  "calsc_diagnostics",
  "calsc_utils",
@@ -47,7 +47,7 @@ dependencies = [
 
 [[package]]
 name = "calsc_utils"
-version = "0.1.0"
+version = "0.0.0"
 
 [[package]]
 name = "colored"
