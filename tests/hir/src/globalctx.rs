@@ -29,3 +29,13 @@ fn globalctx_entry_retrival_test() {
 
     assert_eq!(entry.as_type(&origin).unwrap_cleanly(), type_entry);
 }
+
+#[test]
+fn globalctx_entry_retrival_none_test() {
+    let origin = PosDiagnosticSource::new(FilePosition::default(), FilePosition::default());
+
+    let globalctx = GlobalContext::new();
+
+    let key = GlobalContextKey::new("test".into());
+    let _ = globalctx.get_entry(key, &origin).unwrap_err();
+}

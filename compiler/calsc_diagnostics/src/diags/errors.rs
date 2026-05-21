@@ -77,3 +77,17 @@ pub fn build_cannot_find_element<E: Display, C: Display, S: DiagnosticSource>(
         vec![],
     )
 }
+
+pub fn build_cannot_find_element_no_closest<E: Display, S: DiagnosticSource>(
+    element: &E,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, CANNOT_FIND),
+        format!("cannot find {}", element),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}

@@ -1,6 +1,6 @@
 //! Definitions for global context values
 
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_expected_error};
 use calsc_typing::{base::BaseType, tree::Type};
@@ -61,6 +61,17 @@ impl GlobalContextValue {
 }
 
 impl Display for GlobalContextValue {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let s = match self {
+            Self::Type(_) => "type",
+            Self::TypeAlias(_) => "type alias",
+        };
+
+        write!(f, "{}", s)
+    }
+}
+
+impl Debug for GlobalContextValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             Self::Type(_) => "type",

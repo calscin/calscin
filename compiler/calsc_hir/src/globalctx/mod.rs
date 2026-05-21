@@ -7,7 +7,9 @@ use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_already_in_scope, build_cannot_find_element},
+    diags::errors::{
+        build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
+    },
 };
 use calsc_utils::str::levenshtein;
 
@@ -58,14 +60,25 @@ impl GlobalContext {
     /// This function will error at the given origin if there is no entry related to the given key.
     ///
     pub fn get_entry<K: DiagnosticSource>(
-        &mut self,
+        &self,
         key: GlobalContextKey,
         origin: &K,
     ) -> DiagResult<&GlobalContextValue> {
         if !self.key_to_ind.contains_key(&key) {
             let closest = get_closest_key(self, key.clone());
 
-            return Err(build_cannot_find_element(&*key.name, &*closest.name, origin).into());
+            if closest.is_some() {
+                unsafe {
+                    return Err(build_cannot_find_element(
+                        &*key.name,
+                        &*closest.unwrap_unchecked().name,
+                        origin,
+                    )
+                    .into());
+                }
+            } else {
+                return Err(build_cannot_find_element_no_closest(&*key.name, origin).into());
+            }
         }
 
         Ok(&self.values[self.key_to_ind[&key]])
@@ -73,7 +86,7 @@ impl GlobalContext {
 }
 
 /// Gets the closest key in the [`GlobalContext`] from the given key using the Levenshtein algorithm
-fn get_closest_key(ctx: &GlobalContext, key: GlobalContextKey) -> GlobalContextKey {
+fn get_closest_key(ctx: &GlobalContext, key: GlobalContextKey) -> Option<GlobalContextKey> {
     let mut closest_score: usize = usize::MAX;
     let mut closest: Option<GlobalContextKey> = None;
 
@@ -86,5 +99,5 @@ fn get_closest_key(ctx: &GlobalContext, key: GlobalContextKey) -> GlobalContextK
         }
     }
 
-    unsafe { closest.unwrap_unchecked() }
+    closest
 }
