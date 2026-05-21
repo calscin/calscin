@@ -8,9 +8,9 @@ use std::{
 use calsc_utils::hash::HashedString;
 
 /// The key to an entry in the global ctx
-#[derive(PartialEq, Eq)]
+#[derive(PartialEq, Eq, Clone)]
 pub struct GlobalContextKey {
-    name: HashedString,
+    pub name: HashedString,
 }
 
 impl GlobalContextKey {

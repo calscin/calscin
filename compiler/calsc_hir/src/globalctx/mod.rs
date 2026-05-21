@@ -3,9 +3,13 @@
 //! - Types ([`BaseTypeInstance`][`calsc_typing::base::instance::BaseTypeInstance`])
 //! - Functions (signatures, local contexts, declaration references)
 
-use std::collections::HashMap;
+use std::{collections::HashMap, usize::MAX};
 
-use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_already_in_scope};
+use calsc_diagnostics::{
+    DiagResult, DiagnosticSource,
+    diags::errors::{build_already_in_scope, build_cannot_find_element},
+};
+use calsc_utils::{hash::HashedString, str::levenshtein};
 
 use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
 
@@ -25,6 +29,11 @@ impl GlobalContext {
         }
     }
 
+    /// Appends the given value inside of the [`GlobalContext`] with the given key
+    ///
+    /// # Errors
+    /// This function will error at the given origin if there is already an entry related to the given key.
+    ///
     pub fn append<K: DiagnosticSource>(
         &mut self,
         key: GlobalContextKey,
@@ -42,4 +51,40 @@ impl GlobalContext {
 
         Ok(ind)
     }
+
+    /// Gets the entry at the given key as a [`GlobalContextValue`] reference
+    ///
+    /// # Error
+    /// This function will error at the given origin if there is no entry related to the given key.
+    ///
+    pub fn get_entry<K: DiagnosticSource>(
+        &mut self,
+        key: GlobalContextKey,
+        origin: &K,
+    ) -> DiagResult<&GlobalContextValue> {
+        if !self.key_to_ind.contains_key(&key) {
+            let closest = get_closest_key(self, key.clone());
+
+            return Err(build_cannot_find_element(&*key.name, &*closest.name, origin).into());
+        }
+
+        Ok(&self.values[self.key_to_ind[&key]])
+    }
+}
+
+/// Gets the closest key in the [`GlobalContext`] from the given key using the Levenshtein algorithm
+fn get_closest_key(ctx: &GlobalContext, key: GlobalContextKey) -> GlobalContextKey {
+    let mut closest_score: usize = usize::MAX;
+    let mut closest: Option<GlobalContextKey> = None;
+
+    for k in ctx.key_to_ind.keys() {
+        let score = levenshtein(&*key.name, &*k.name);
+
+        if closest_score > score {
+            closest_score = score;
+            closest = Some(k.clone());
+        }
+    }
+
+    unsafe { closest.unwrap_unchecked() }
 }

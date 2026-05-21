@@ -51,11 +51,9 @@ pub fn print_blank_line(end: usize) -> String {
 /// Performs the Levenshtein distance algorithm:
 /// https://en.wikipedia.org/wiki/Levenshtein_distance
 pub fn levenshtein(a: &str, b: &str) -> usize {
-    // Work on bytes for speed
     let a = a.as_bytes();
     let b = b.as_bytes();
 
-    // Ensure b is the shorter string
     if a.len() < b.len() {
         return levenshtein_bytes(b, a);
     }

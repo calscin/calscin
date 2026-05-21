@@ -6,6 +6,7 @@ use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_expec
 use calsc_typing::{base::BaseType, tree::Type};
 
 /// An entry / value inside of the global context.
+/// This shouldn't be clonable due to the inner data modification not being able to be synced
 pub enum GlobalContextValue {
     /// Represents a type-based entry
     Type(BaseType),
