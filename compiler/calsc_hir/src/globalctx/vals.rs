@@ -3,12 +3,15 @@
 use std::fmt::Display;
 
 use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_expected_error};
-use calsc_typing::base::instance::BaseTypeInstance;
+use calsc_typing::{base::instance::BaseTypeInstance, tree::Type};
 
 /// An entry / value inside of the global context.
 pub enum GlobalContextValue {
     /// Represents a type-based entry
     Type(BaseTypeInstance),
+
+    /// Represents a type alias
+    TypeAlias(Type),
 }
 
 impl GlobalContextValue {
@@ -25,15 +28,33 @@ impl GlobalContextValue {
         match self {
             Self::Type(inst) => Ok(inst.clone()),
 
-            #[allow(unreachable_patterns)] // TODO: remove this when more entries
             _ => return Err(build_expected_error(&"type".to_string(), self, origin).into()),
         }
     }
 
-    /// Checks whenther the entry is a type or not
+    pub fn as_type_alias<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<Type> {
+        match self {
+            Self::TypeAlias(ty) => Ok(ty.clone()),
+
+            _ => return Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
+        }
+    }
+
+    /// Checks whether the entry is a type or not
     pub fn is_type(&self) -> bool {
         match self {
             Self::Type(_) => true,
+
+            _ => false,
+        }
+    }
+
+    /// Checks whether the entry is a type alias or not
+    pub fn is_type_alias(&self) -> bool {
+        match self {
+            Self::TypeAlias(_) => true,
+
+            _ => false,
         }
     }
 }
@@ -42,6 +63,7 @@ impl Display for GlobalContextValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             Self::Type(_) => "type",
+            Self::TypeAlias(_) => "type alias",
         };
 
         write!(f, "{}", s)
