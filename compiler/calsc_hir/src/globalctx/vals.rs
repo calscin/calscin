@@ -51,6 +51,8 @@ impl GlobalContextValue {
 
     /// Mutates the [`GlobalContextValue`] into a type entry and modifies the currently held [`BaseType`] according to the mutation function
     ///
+    /// Mutation should be used to modify inner objects, not replace them
+    ///
     /// # Erorrs
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type
     ///
@@ -70,6 +72,8 @@ impl GlobalContextValue {
     }
 
     /// Mutates the [`GlobalContextValue`] into a type alias entry and modifies the currently held [`Type`] according to the mutation function
+    ///
+    /// Mutation should be used to modify inner objects, not replace them
     ///
     /// # Erorrs
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type alias
