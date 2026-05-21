@@ -4,3 +4,4 @@
 //! - Functions (signatures, local contexts, declaration references)
 
 pub mod key;
+pub mod vals;
