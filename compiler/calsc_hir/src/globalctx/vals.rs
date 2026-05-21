@@ -3,12 +3,12 @@
 use std::fmt::Display;
 
 use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_expected_error};
-use calsc_typing::{base::instance::BaseTypeInstance, tree::Type};
+use calsc_typing::{base::BaseType, tree::Type};
 
 /// An entry / value inside of the global context.
 pub enum GlobalContextValue {
     /// Represents a type-based entry
-    Type(BaseTypeInstance),
+    Type(BaseType),
 
     /// Represents a type alias
     TypeAlias(Type),
@@ -16,15 +16,15 @@ pub enum GlobalContextValue {
 
 impl GlobalContextValue {
     /// Creates a new [`GlobalContextValue`] from the
-    pub fn new_type(inst: BaseTypeInstance) -> Self {
+    pub fn new_type(inst: BaseType) -> Self {
         Self::Type(inst)
     }
 
-    /// Converts the [`GlobalContextValue`] into a type entry and returns the [`BaseTypeInstance`] associated with it.
+    /// Converts the [`GlobalContextValue`] into a type entry and returns the [`BaseType`] associated with it.
     ///
     /// # Errors
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type
-    pub fn as_type<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<BaseTypeInstance> {
+    pub fn as_type<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<BaseType> {
         match self {
             Self::Type(inst) => Ok(inst.clone()),
 
