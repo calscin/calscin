@@ -27,6 +27,7 @@ impl GlobalContextValue {
     ///
     /// # Errors
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type
+    ///
     pub fn as_type<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<BaseType> {
         match self {
             Self::Type(inst) => Ok(inst.clone()),
@@ -35,6 +36,11 @@ impl GlobalContextValue {
         }
     }
 
+    /// Converts the [`GlobalContextValue`] into a type alias entry and returns the [`Type`] associated with it.
+    ///
+    /// # Errors
+    /// This function will error on the given [`DiagnosticSource`] if the entry is not a type alias
+    ///
     pub fn as_type_alias<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<Type> {
         match self {
             Self::TypeAlias(ty) => Ok(ty.clone()),
@@ -43,6 +49,11 @@ impl GlobalContextValue {
         }
     }
 
+    /// Mutates the [`GlobalContextValue`] into a type entry and modifies the currently held [`BaseType`] according to the mutation function
+    ///
+    /// # Erorrs
+    /// This function will error on the given [`DiagnosticSource`] if the entry is not a type
+    ///
     pub fn mutate_type<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
     where
         F: FnOnce(&mut BaseType),
@@ -58,6 +69,11 @@ impl GlobalContextValue {
         }
     }
 
+    /// Mutates the [`GlobalContextValue`] into a type alias entry and modifies the currently held [`Type`] according to the mutation function
+    ///
+    /// # Erorrs
+    /// This function will error on the given [`DiagnosticSource`] if the entry is not a type alias
+    ///
     pub fn mutate_type_alias<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
     where
         F: FnOnce(&mut Type),
