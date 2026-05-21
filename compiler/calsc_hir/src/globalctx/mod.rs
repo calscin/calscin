@@ -3,13 +3,13 @@
 //! - Types ([`BaseTypeInstance`][`calsc_typing::base::instance::BaseTypeInstance`])
 //! - Functions (signatures, local contexts, declaration references)
 
-use std::{collections::HashMap, usize::MAX};
+use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_already_in_scope, build_cannot_find_element},
 };
-use calsc_utils::{hash::HashedString, str::levenshtein};
+use calsc_utils::str::levenshtein;
 
 use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
 
