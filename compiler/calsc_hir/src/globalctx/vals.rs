@@ -2,7 +2,9 @@
 
 use std::fmt::{Debug, Display};
 
-use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_expected_error};
+use calsc_diagnostics::{
+    DiagPossible, DiagResult, DiagnosticSource, diags::errors::build_expected_error,
+};
 use calsc_typing::{base::BaseType, tree::Type};
 
 /// An entry / value inside of the global context.
@@ -38,6 +40,36 @@ impl GlobalContextValue {
             Self::TypeAlias(ty) => Ok(ty.clone()),
 
             _ => return Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
+        }
+    }
+
+    pub fn mutate_type<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
+    where
+        F: FnOnce(&mut BaseType),
+    {
+        match self {
+            Self::Type(inst) => {
+                func(inst);
+
+                Ok(())
+            }
+
+            _ => Err(build_expected_error(&"type".to_string(), self, origin).into()),
+        }
+    }
+
+    pub fn mutate_type_alias<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
+    where
+        F: FnOnce(&mut Type),
+    {
+        match self {
+            Self::TypeAlias(inst) => {
+                func(inst);
+
+                Ok(())
+            }
+
+            _ => Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
         }
     }
 

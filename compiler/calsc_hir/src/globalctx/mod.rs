@@ -6,7 +6,7 @@
 use std::collections::HashMap;
 
 use calsc_diagnostics::{
-    DiagResult, DiagnosticSource,
+    DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{
         build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
     },
@@ -82,6 +82,31 @@ impl GlobalContext {
         }
 
         Ok(&self.values[self.key_to_ind[&key]])
+    }
+
+    /// Mutates the given entry at the given key according to the given mutation function.
+    ///
+    /// # Error
+    /// This function will error at the given origin if there is no entry related to the given key.
+    ///
+    pub fn mutate_entry<K: DiagnosticSource, F>(
+        &mut self,
+        key: GlobalContextKey,
+        func: F,
+        origin: &K,
+    ) -> DiagPossible
+    where
+        F: FnOnce(&mut GlobalContextValue),
+    {
+        if !self.key_to_ind.contains_key(&key) {
+            return Err(build_cannot_find_element_no_closest(&*key.name, origin).into());
+        }
+
+        let entry = &mut self.values[self.key_to_ind[&key]];
+
+        func(entry);
+
+        Ok(())
     }
 }
 
