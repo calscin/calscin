@@ -12,6 +12,8 @@ use std::collections::{HashMap, HashSet};
 use calsc_typing::tree::Type;
 use calsc_utils::hash::HashedString;
 
+pub mod vars;
+
 pub struct LocalContext {
     pub name: HashedString,
 
