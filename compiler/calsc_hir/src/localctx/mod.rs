@@ -130,11 +130,13 @@ impl LocalContext {
         self.introduce_variable_in_branch(key, t, has_default, self.current_branch + 1, origin)
     }
 
+    /// Checks if the given branch is currently alive or not.
     #[inline(always)]
     pub fn is_branch_alive(&self, branch: usize) -> bool {
         return !self.branch_ends.contains(&branch);
     }
 
+    /// Checks if the variable corresponding to the given index is still currently alive.
     pub fn is_variable_alive(&self, variable_ind: usize) -> bool {
         let start_branch = self.variables[variable_ind].introduced;
 
@@ -145,6 +147,11 @@ impl LocalContext {
         self.is_branch_alive(start_branch)
     }
 
+    /// Obtains a variable index from the variable name.
+    ///
+    /// # Errors
+    /// This function will error if the variable wasn't found or isn't alive anymore.
+    ///
     pub fn obtain<K: DiagnosticSource>(
         &mut self,
         name: HashedString,
