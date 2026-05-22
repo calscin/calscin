@@ -8,6 +8,9 @@
 
 use std::collections::{HashMap, HashSet};
 
+use calsc_diagnostics::{
+    DiagResult, Diagnostic, DiagnosticSource, diags::errors::build_already_in_scope,
+};
 use calsc_typing::tree::Type;
 use calsc_utils::hash::HashedString;
 
@@ -66,5 +69,61 @@ impl LocalContext {
     #[inline(always)]
     pub fn end_branch(&mut self, branch: usize) {
         self.branch_ends.insert(branch);
+    }
+
+    /// Introduces a variable in the given era
+    ///
+    /// # Errors
+    /// Will error if the local context already contains a variable with that name
+    ///
+    fn introduce_variable_in_era<K: DiagnosticSource>(
+        &mut self,
+        key: HashedString,
+        t: Type,
+        has_default: bool,
+        era: usize,
+        origin: &K,
+    ) -> DiagResult<usize> {
+        if self.hash_to_ind.contains_key(&key) {
+            return Err(build_already_in_scope(&*key, origin).into());
+        }
+
+        let var = LocalContextVariable::new(t, era, has_default);
+
+        let ind = self.variables.len();
+        self.variables.push(var);
+
+        self.hash_to_ind.insert(key, ind);
+        Ok(ind)
+    }
+
+    /// Introduces a variable in the current era
+    ///
+    /// # Errors
+    /// Will error if the local context already contains a variable with that name
+    ///
+    pub fn introduce_variable<K: DiagnosticSource>(
+        &mut self,
+        key: HashedString,
+        t: Type,
+        has_default: bool,
+        origin: &K,
+    ) -> DiagResult<usize> {
+        self.introduce_variable_in_era(key, t, has_default, self.current_branch, origin)
+    }
+
+    /// Introduces a variable in the next era
+    ///
+    /// # Errors
+    /// Will error if the local context already contains a variable with that name
+    ///
+    pub fn introduce_variable_next_era<K: DiagnosticSource>(
+        &mut self,
+        key: HashedString,
+        t: Type,
+        has_default: bool,
+        origin: &K,
+    ) -> DiagResult<usize> {
+        self.introduce_variable_in_era(key, t, has_default, self.current_branch + 1, origin)
     }
 }

@@ -9,14 +9,17 @@ pub struct LocalContextVariable {
     pub mutation_count: usize,
     pub reference_count: usize,
 
+    pub has_default: bool,
+
     pub introduced_values: Vec<usize>,
 }
 
 impl LocalContextVariable {
-    pub fn new(ty: Type, introduced: usize) -> Self {
+    pub fn new(ty: Type, introduced: usize, has_default: bool) -> Self {
         Self {
             introduced,
             ty,
+            has_default,
             usage_count: 0,
             mutation_count: 0,
             reference_count: 0,
