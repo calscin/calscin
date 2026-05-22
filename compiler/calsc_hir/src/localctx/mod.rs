@@ -29,6 +29,9 @@ pub struct LocalContext {
     /// Contains whenever ending points have been introduced
     pub ending_points: Vec<usize>,
 
+    /// Branches that cannot use the return trick. Example: if statements without else
+    pub contain_unreal_branches: bool,
+
     /// Stores whenever each branch ends. If a branch is contained here, it ended.
     pub branch_ends: HashSet<usize>,
 
@@ -44,6 +47,7 @@ impl LocalContext {
             hash_to_ind: HashMap::new(),
             branch_ends: HashSet::new(),
             ending_points: vec![],
+            contain_unreal_branches: false,
             variables: vec![],
             return_type,
             current_branch: 0,
@@ -175,6 +179,54 @@ impl LocalContext {
 
                 Ok(ind)
             }
+        }
+    }
+
+    #[inline(always)]
+    pub fn introduce_ending_point(&mut self) {
+        self.ending_points.push(self.current_branch)
+    }
+
+    pub fn is_code_in_branch_alive(&self, branch: usize) -> bool {
+        for ending in &self.ending_points {
+            let end = match self.branch_ends.get(&ending) {
+                Some(v) => *v,
+                None => *ending,
+            };
+
+            if branch >= end {
+                return false;
+            }
+        }
+
+        true
+    }
+
+    /// Determines if the function meets the ending points requirements.
+    ///
+    /// The requirement is that every simple branch should have an ending point active inside of it.
+    ///
+    /// This function first checks if the current branch have an active return point, if it does. It is valid.
+    /// If the current branch isn't qualified as "unreal", if then checks every branch before to check if they have an active return point. If all of them do, then it is valid
+    ///
+    ///
+    pub fn meets_ending_point_requirement(&self) -> bool {
+        if !self.is_code_in_branch_alive(self.current_branch) {
+            return true;
+        }
+
+        // If every branch before the current branch are stopped, then the codez is okay as well
+
+        if !self.contain_unreal_branches {
+            for i in 0..self.current_branch {
+                if self.is_code_in_branch_alive(i) {
+                    return false;
+                }
+            }
+
+            true
+        } else {
+            false
         }
     }
 }
