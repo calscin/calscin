@@ -10,9 +10,7 @@ use std::collections::{HashMap, HashSet};
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{
-        build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
-    },
+    diags::errors::{build_already_in_scope, build_cannot_find_element_no_closest},
 };
 use calsc_typing::tree::Type;
 use calsc_utils::hash::HashedString;
@@ -28,6 +26,9 @@ pub struct LocalContext {
     pub hash_to_ind: HashMap<HashedString, usize>,
     pub variables: Vec<LocalContextVariable>,
 
+    /// Contains whenever ending points have been introduced
+    pub ending_points: Vec<usize>,
+
     /// Stores whenever each branch ends. If a branch is contained here, it ended.
     pub branch_ends: HashSet<usize>,
 
@@ -42,6 +43,7 @@ impl LocalContext {
             name,
             hash_to_ind: HashMap::new(),
             branch_ends: HashSet::new(),
+            ending_points: vec![],
             variables: vec![],
             return_type,
             current_branch: 0,
