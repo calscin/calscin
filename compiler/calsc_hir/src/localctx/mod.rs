@@ -9,7 +9,10 @@
 use std::collections::{HashMap, HashSet};
 
 use calsc_diagnostics::{
-    DiagResult, Diagnostic, DiagnosticSource, diags::errors::build_already_in_scope,
+    DiagResult, DiagnosticSource,
+    diags::errors::{
+        build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
+    },
 };
 use calsc_typing::tree::Type;
 use calsc_utils::hash::HashedString;
@@ -76,19 +79,19 @@ impl LocalContext {
     /// # Errors
     /// Will error if the local context already contains a variable with that name
     ///
-    fn introduce_variable_in_era<K: DiagnosticSource>(
+    fn introduce_variable_in_branch<K: DiagnosticSource>(
         &mut self,
         key: HashedString,
         t: Type,
         has_default: bool,
-        era: usize,
+        branch: usize,
         origin: &K,
     ) -> DiagResult<usize> {
         if self.hash_to_ind.contains_key(&key) {
             return Err(build_already_in_scope(&*key, origin).into());
         }
 
-        let var = LocalContextVariable::new(t, era, has_default);
+        let var = LocalContextVariable::new(t, branch, has_default);
 
         let ind = self.variables.len();
         self.variables.push(var);
@@ -97,7 +100,7 @@ impl LocalContext {
         Ok(ind)
     }
 
-    /// Introduces a variable in the current era
+    /// Introduces a variable in the current branch
     ///
     /// # Errors
     /// Will error if the local context already contains a variable with that name
@@ -109,21 +112,60 @@ impl LocalContext {
         has_default: bool,
         origin: &K,
     ) -> DiagResult<usize> {
-        self.introduce_variable_in_era(key, t, has_default, self.current_branch, origin)
+        self.introduce_variable_in_branch(key, t, has_default, self.current_branch, origin)
     }
 
-    /// Introduces a variable in the next era
+    /// Introduces a variable in the next branch
     ///
     /// # Errors
     /// Will error if the local context already contains a variable with that name
     ///
-    pub fn introduce_variable_next_era<K: DiagnosticSource>(
+    pub fn introduce_variable_next_branch<K: DiagnosticSource>(
         &mut self,
         key: HashedString,
         t: Type,
         has_default: bool,
         origin: &K,
     ) -> DiagResult<usize> {
-        self.introduce_variable_in_era(key, t, has_default, self.current_branch + 1, origin)
+        self.introduce_variable_in_branch(key, t, has_default, self.current_branch + 1, origin)
+    }
+
+    #[inline(always)]
+    pub fn is_branch_alive(&self, branch: usize) -> bool {
+        return !self.branch_ends.contains(&branch);
+    }
+
+    pub fn is_variable_alive(&self, variable_ind: usize) -> bool {
+        let start_branch = self.variables[variable_ind].introduced;
+
+        if start_branch > self.current_branch {
+            return false; // Handle introduce_variable_next_branch
+        }
+
+        self.is_branch_alive(start_branch)
+    }
+
+    pub fn obtain<K: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        origin: &K,
+    ) -> DiagResult<usize> {
+        match self.hash_to_ind.get(&name) {
+            None => {
+                return Err(build_cannot_find_element_no_closest(&*name, origin).into());
+            }
+
+            Some(ind) => {
+                let ind = *ind;
+
+                if !self.is_variable_alive(ind) {
+                    return Err(build_cannot_find_element_no_closest(&*name, origin).into());
+                }
+
+                self.variables[ind].introduce_usage();
+
+                Ok(ind)
+            }
+        }
     }
 }
