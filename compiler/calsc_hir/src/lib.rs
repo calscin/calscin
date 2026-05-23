@@ -10,6 +10,7 @@ pub mod funcs;
 pub mod globalctx;
 pub mod localctx;
 pub mod nodes;
+pub mod prelude;
 pub mod refs;
 
 thread_local! {
