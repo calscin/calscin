@@ -2,6 +2,8 @@
 //! - Add types to the global scope
 //! - Add stage 1 functions to the global scope
 //! - Add extern function to the global scope
+//!
+//! The stage 1 should only create the local context and append the arguments inside
 
 pub mod funcs;
 pub mod types;
