@@ -1,6 +1,6 @@
 //! Defines the tree of the AST. The AST is represented into a tree like structure where every "main" structure has children AST nodes themselves
 
-use std::{clone, collections::HashMap};
+use std::collections::HashMap;
 
 use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,

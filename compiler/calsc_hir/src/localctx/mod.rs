@@ -74,6 +74,7 @@ impl LocalContext {
     /// Ends the given branch index at the current branch
     ///
     /// **Warn: Make sure to only use this with branches obtained through [`start_branch`][`LocalContext::start_branch`]**
+    /// **Warn: This doesn't change the current branch so make to change it naturally**
     ///
     #[inline(always)]
     pub fn end_branch(&mut self, branch: usize) {
@@ -184,7 +185,7 @@ impl LocalContext {
 
     #[inline(always)]
     pub fn introduce_ending_point(&mut self) {
-        self.ending_points.push(self.current_branch)
+        self.ending_points.push(self.current_branch);
     }
 
     pub fn is_code_in_branch_alive(&self, branch: usize) -> bool {
