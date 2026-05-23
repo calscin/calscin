@@ -1,6 +1,10 @@
+#[cfg(test)]
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
+
 #[cfg(test)]
 use calsc_hir::localctx::LocalContext;
+
+#[cfg(test)]
 use calsc_typing::{
     base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
     tree::Type,
@@ -85,7 +89,7 @@ fn test_variable_gather() {
         vec![],
     ));
 
-    let branch = ctx.start_branch();
+    let _ = ctx.start_branch();
 
     let var = ctx
         .introduce_variable("test".into(), sample_type.clone(), false, &origin)
@@ -109,7 +113,7 @@ pub fn test_ending_point() {
     assert!(!ctx.is_code_in_branch_alive(branch));
 
     ctx.end_branch(branch);
-    let branch = ctx.start_branch();
+    let _ = ctx.start_branch();
 
     assert!(ctx.meets_ending_point_requirement());
 }
