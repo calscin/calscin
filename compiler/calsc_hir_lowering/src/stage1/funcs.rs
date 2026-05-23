@@ -8,7 +8,10 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
     localctx::LocalContext,
 };
-use calsc_typing::base::BaseType;
+use calsc_typing::{
+    base::BaseType,
+    func::{MutableDeclBlockAffectedType, TypedFunction},
+};
 
 use crate::stage1::types::lower_ast_type;
 
@@ -43,6 +46,26 @@ pub fn lower_ast_function_decl_first_stage(
 
             local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node)?;
             args.push((argument.1, ty)); // TODO: pass struct type in order to propagate struct decl block type parameter further
+        }
+
+        if target.is_some() {
+            let k = GlobalContextKey::new(target.clone().unwrap().kind.get_name());
+
+            let mut argument_types = vec![];
+
+            for arg in &args {
+                argument_types.push(arg.1.clone());
+            }
+
+            let typed = TypedFunction::new((*name).clone(), argument_types, ret_type.clone());
+
+            HIR_CONTEXT.with_borrow_mut(|f| {
+                f.scope.mutate_entry(
+                    k,
+                    |e| e.mutate_type(|typ| typ.add_function(name, typed, &node), &node),
+                    &node,
+                )
+            })?;
         }
 
         let func = HIRFunction::new_stage_1(key.clone(), local_ctx, target, ret_type, args); // TODO: pass struct type in order to propagate struct decl block type parameter further

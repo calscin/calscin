@@ -73,9 +73,9 @@ impl GlobalContextValue {
     /// # Erorrs
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type
     ///
-    pub fn mutate_type<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
+    pub fn mutate_type<K: DiagnosticSource, F, R>(&mut self, func: F, origin: &K) -> DiagPossible
     where
-        F: FnOnce(&mut BaseType),
+        F: FnOnce(&mut BaseType) -> R,
     {
         match self {
             Self::Type(inst) => {
@@ -95,9 +95,13 @@ impl GlobalContextValue {
     /// # Erorrs
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type alias
     ///
-    pub fn mutate_type_alias<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
+    pub fn mutate_type_alias<K: DiagnosticSource, F, R>(
+        &mut self,
+        func: F,
+        origin: &K,
+    ) -> DiagPossible
     where
-        F: FnOnce(&mut Type),
+        F: FnOnce(&mut Type) -> R,
     {
         match self {
             Self::TypeAlias(inst) => {
@@ -117,9 +121,13 @@ impl GlobalContextValue {
     /// # Erorrs
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a function
     ///
-    pub fn mutate_function<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
+    pub fn mutate_function<K: DiagnosticSource, F, R>(
+        &mut self,
+        func: F,
+        origin: &K,
+    ) -> DiagPossible
     where
-        F: FnOnce(&mut HIRFunction),
+        F: FnOnce(&mut HIRFunction) -> R,
     {
         match self {
             Self::Function(f) => {

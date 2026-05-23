@@ -12,6 +12,7 @@ use calsc_diagnostics::{
         build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
     },
 };
+
 use calsc_utils::str::levenshtein;
 
 use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
@@ -90,14 +91,14 @@ impl GlobalContext {
     /// # Error
     /// This function will error at the given origin if there is no entry related to the given key.
     ///
-    pub fn mutate_entry<K: DiagnosticSource, F>(
+    pub fn mutate_entry<K: DiagnosticSource, F, R>(
         &mut self,
         key: GlobalContextKey,
         func: F,
         origin: &K,
     ) -> DiagPossible
     where
-        F: FnOnce(&mut GlobalContextValue),
+        F: FnOnce(&mut GlobalContextValue) -> R,
     {
         if !self.key_to_ind.contains_key(&key) {
             return Err(build_cannot_find_element_no_closest(&*key.name, origin).into());

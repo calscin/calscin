@@ -33,6 +33,31 @@ impl BaseTypeKind {
             _ => 0,
         }
     }
+
+    pub fn get_name(&self) -> HashedString {
+        let s = match self {
+            Self::Boolean => "bool",
+            Self::Floating { signed } => {
+                if *signed {
+                    "f"
+                } else {
+                    "uf"
+                }
+            }
+
+            Self::Integer { signed } => {
+                if *signed {
+                    "s"
+                } else {
+                    "u"
+                }
+            }
+
+            Self::Struct(container) => &container.name,
+        };
+
+        s.into()
+    }
 }
 
 impl FieldHavingType for BaseTypeKind {
