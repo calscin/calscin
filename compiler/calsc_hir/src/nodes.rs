@@ -11,7 +11,7 @@ use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
-use crate::{HIR_CONTEXT, HIRContext, globalctx::key::GlobalContextKey, refs::HIRArenaReference};
+use crate::{HIR_CONTEXT, globalctx::key::GlobalContextKey, refs::HIRArenaReference};
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
 pub enum HIRNodeKind {

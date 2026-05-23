@@ -33,14 +33,14 @@ pub enum ASTType {
     /// `s32` would be `Generic(s32, None, [])`
     ///
     /// `s.32<test>` would be `Generic(s, 32, [test])`
-    Generic(HashedString, Option<usize>, Vec<String>),
+    Generic(HashedString, Option<usize>, Vec<ASTType>),
 }
 
 /// Represents a simpler stage of AST types that are basically used to generate full `ASTType` trees.
 pub enum SimpleASTType {
     Reference(bool),
     Array(usize),
-    Generic(HashedString, Option<usize>, Vec<String>),
+    Generic(HashedString, Option<usize>, Vec<ASTType>),
 }
 
 impl SimpleASTType {

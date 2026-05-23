@@ -80,11 +80,7 @@ pub fn lower_ast_type<K: DiagnosticSource>(
             let mut type_params = vec![];
 
             for param in c {
-                type_params.push(Type::Base(BaseTypeInstance::new(
-                    lower_ast_generic_base(param.into(), origin)?,
-                    vec![],
-                    vec![],
-                )));
+                type_params.push(lower_ast_type(param, origin, inst.clone())?);
             }
 
             Ok(Type::Base(BaseTypeInstance::new(

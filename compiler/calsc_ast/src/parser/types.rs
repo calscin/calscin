@@ -159,7 +159,7 @@ pub fn parse_type_generic(
         *ind += 1; // keyword
 
         let size_spec;
-        let mut type_parameters: Vec<String> = vec![];
+        let mut type_parameters: Vec<ASTType> = vec![];
 
         // Parsing of the size specifier
         if tokens[*ind].kind == TokenKind::Dot {
@@ -185,11 +185,11 @@ pub fn parse_type_generic(
             type_parameters = parse_ast_list(
                 tokens,
                 ind,
-                &mut |toks, i| toks[*i].expects_keyword(),
+                &mut |toks, i| parse_ast_type(toks, i, true),
                 TokenKind::AngelBracketClose,
                 true,
-                true,
-            )?;
+                false,
+            )?; // Auto increments
         }
 
         return Ok(SimpleASTType::Generic(
