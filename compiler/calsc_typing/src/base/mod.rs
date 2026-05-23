@@ -1,6 +1,6 @@
 //! Definitions for base types. They are also named generics inside of the typing system.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_already_in_scope};
 use calsc_utils::hash::HashedString;
@@ -127,5 +127,13 @@ impl TypeParameterHaving for BaseType {
 impl PartialEq for BaseType {
     fn eq(&self, other: &Self) -> bool {
         self.kind == other.kind
+    }
+}
+
+impl Eq for BaseType {}
+
+impl Display for BaseType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        Ok(())
     }
 }

@@ -5,13 +5,14 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+use calsc_typing::base::BaseType;
 use calsc_utils::hash::HashedString;
 
 /// The key to an entry in the global ctx
 #[derive(PartialEq, Eq, Clone)]
 pub struct GlobalContextKey {
     pub name: HashedString,
-    pub type_name: Option<HashedString>,
+    pub type_name: Option<BaseType>,
 }
 
 impl GlobalContextKey {
@@ -24,7 +25,7 @@ impl GlobalContextKey {
     }
 
     /// Creates a new [`GlobalContextKey`] based on the given element name and type
-    pub fn new_typed(name: HashedString, type_name: HashedString) -> Self {
+    pub fn new_typed(name: HashedString, type_name: BaseType) -> Self {
         Self {
             name,
             type_name: Some(type_name),
@@ -54,7 +55,7 @@ impl Display for GlobalContextKey {
                 write!(
                     f,
                     "{}::{}",
-                    *self.type_name.clone().unwrap_unchecked(),
+                    self.type_name.clone().unwrap_unchecked(),
                     *self.name
                 )
             }
