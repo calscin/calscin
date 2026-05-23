@@ -1,4 +1,4 @@
-use std::{clone, hint::unreachable_unchecked};
+use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::DiagPossible;
@@ -8,7 +8,6 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
     localctx::LocalContext,
 };
-use calsc_utils::hash::HashedString;
 
 use crate::stage1::types::lower_ast_type;
 
@@ -17,8 +16,8 @@ pub fn lower_ast_function_decl_first_stage(node: ASTNode) -> DiagPossible {
         name,
         arguments,
         return_type,
-        body,
-    } = node.kind
+        body: _,
+    } = node.kind.clone()
     {
         let key = GlobalContextKey::new(name.clone());
 
@@ -34,7 +33,7 @@ pub fn lower_ast_function_decl_first_stage(node: ASTNode) -> DiagPossible {
         for argument in arguments {
             let ty = lower_ast_type(argument.0, &node, None)?;
 
-            local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node);
+            local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node)?;
             args.push((argument.1, ty)); // TODO: pass struct type in order to propagate struct decl block type parameter further
         }
 

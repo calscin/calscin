@@ -53,3 +53,18 @@ pub fn parse_ast_field_form(
 
     Ok((ty, name.into()))
 }
+
+/// Parses a return type form
+pub fn parse_ast_return_type_form(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<Option<ASTType>> {
+    if tokens[*ind].kind == TokenKind::Minus {
+        *ind += 1;
+        tokens[*ind].expects(TokenKind::AngelBracketClose)?;
+
+        return Ok(Some(parse_ast_type(tokens, ind, true)?));
+    }
+
+    return Ok(None);
+}
