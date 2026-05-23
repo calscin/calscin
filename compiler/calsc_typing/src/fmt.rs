@@ -1,6 +1,9 @@
 use std::fmt::Display;
 
-use crate::base::{BaseType, kind::BaseTypeKind};
+use crate::{
+    base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
+    tree::Type,
+};
 
 impl Display for BaseTypeKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -39,6 +42,51 @@ impl Display for BaseType {
             for i in 1..self.type_params_iter.len() {
                 write!(f, ", {}", self.type_params_iter[i])?;
             }
+
+            write!(f, ">")?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Array { size, inner } => write!(f, "{}[{}]", *inner, size),
+            Self::TypeParameter { name, param_ind: _ } => write!(f, "{}", name),
+            Self::Reference { mutable, inner } => {
+                if *mutable {
+                    write!(f, "{}&mut", *inner)
+                } else {
+                    write!(f, "{}&", *inner)
+                }
+            }
+            Self::Base(base) => write!(f, "{}", base),
+        }
+    }
+}
+
+impl Display for BaseTypeInstance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.ty)?;
+
+        if !self.size_specifiers.is_empty() {
+            write!(f, ".")?;
+
+            for param in &self.size_specifiers {
+                write!(f, ".{}", param)?;
+            }
+        }
+
+        if !self.type_parameters.is_empty() {
+            write!(f, "<{}", self.type_parameters[0])?;
+
+            for i in 1..self.type_parameters.len() {
+                write!(f, ", {}", self.type_parameters[i])?;
+            }
+
+            write!(f, ">")?;
         }
 
         Ok(())
