@@ -4,6 +4,7 @@ use calsc_utils::hash::HashedString;
 use crate::tree::Type;
 
 pub mod base;
+pub mod fmt;
 pub mod func;
 pub mod params;
 pub mod tree;

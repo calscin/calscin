@@ -1,6 +1,6 @@
 //! Structured type definitions
 
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 
 use calsc_diagnostics::diags::errors::build_already_in_scope;
 use calsc_utils::hash::HashedString;
@@ -23,6 +23,12 @@ impl BaseStructContainer {
             name,
             fields: HashMap::new(),
         }
+    }
+}
+
+impl Hash for BaseStructContainer {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.name.hash(state);
     }
 }
 

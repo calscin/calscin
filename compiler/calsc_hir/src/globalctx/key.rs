@@ -39,10 +39,12 @@ impl Hash for GlobalContextKey {
         hasher.write_usize(self.type_name.is_some() as usize);
 
         if self.type_name.is_some() {
-            unsafe { hasher.write_u64(self.type_name.clone().unwrap_unchecked().hash()) }
+            unsafe {
+                self.type_name.clone().unwrap_unchecked().hash(hasher);
+            }
         }
 
-        hasher.write_u64(self.name.hash());
+        self.name.hash(hasher);
     }
 }
 
