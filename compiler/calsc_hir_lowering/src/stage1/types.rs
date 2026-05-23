@@ -4,7 +4,9 @@ use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     types::ASTType,
 };
-use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
+use calsc_diagnostics::{
+    DiagPossible, DiagResult, DiagnosticSource, diags::errors::build_expected_error,
+};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
@@ -18,6 +20,8 @@ use calsc_typing::{
     tree::Type,
 };
 use calsc_utils::hash::HashedString;
+
+use crate::stage1::funcs::lower_ast_function_decl_first_stage;
 
 pub fn lower_ast_struct_declaration(node: ASTNode) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
@@ -50,6 +54,29 @@ pub fn lower_ast_struct_declaration(node: ASTNode) -> DiagPossible {
         Ok(())
     } else {
         unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_simple_ast_type<K: DiagnosticSource>(
+    ty: ASTType,
+    origin: &K,
+    inst: Option<BaseType>,
+) -> DiagResult<BaseType> {
+    if let ASTType::Generic(a, b, c) = ty.clone() {
+        if b.is_some() || !c.is_empty() {
+            return Err(build_expected_error(
+                &"type name",
+                &lower_ast_type(ty, origin, inst)?,
+                origin,
+            )
+            .into());
+        }
+
+        lower_ast_generic_base(a, origin)
+    } else {
+        return Err(
+            build_expected_error(&"type name", &lower_ast_type(ty, origin, inst)?, origin).into(),
+        );
     }
 }
 
@@ -112,4 +139,18 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
     let base_type = HIR_CONTEXT.with_borrow(|f| f.scope.get_entry(key, origin)?.as_type(origin))?;
 
     Ok(base_type)
+}
+
+pub fn lower_ast_decl_block(node: ASTNode) -> DiagPossible {
+    if let ASTNodeKind::StructDeclBlock { target, functions } = node.kind.clone() {
+        let target = lower_simple_ast_type(target, &node, None)?;
+
+        for func in functions {
+            lower_ast_function_decl_first_stage(ASTNode::clone(&func), Some(target.clone()))?;
+        }
+
+        Ok(())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
 }

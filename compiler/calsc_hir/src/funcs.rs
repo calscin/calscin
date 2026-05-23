@@ -1,6 +1,6 @@
 //! Declarations for HIR functions
 
-use calsc_typing::tree::Type;
+use calsc_typing::{base::BaseType, tree::Type};
 use calsc_utils::hash::HashedString;
 
 use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext, refs::HIRArenaReference};
@@ -24,7 +24,7 @@ pub struct HIRFunction {
 
     /// The type at the origin of this function
     /// Is used for type parameters
-    pub origin_type: Option<Type>,
+    pub origin_type: Option<BaseType>,
 
     /// The local context
     /// Is present in stage 1 and stage 2 functions
@@ -44,7 +44,7 @@ pub struct HIRFunction {
 impl HIRFunction {
     pub fn new_extern(
         name: GlobalContextKey,
-        origin_type: Option<Type>,
+        origin_type: Option<BaseType>,
         return_type: Option<Type>,
         arguments: Vec<(HashedString, Type)>,
     ) -> Self {
@@ -61,7 +61,7 @@ impl HIRFunction {
     pub fn new_stage_1(
         name: GlobalContextKey,
         local_ctx: LocalContext,
-        origin_type: Option<Type>,
+        origin_type: Option<BaseType>,
         return_type: Option<Type>,
         arguments: Vec<(HashedString, Type)>,
     ) -> Self {

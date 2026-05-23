@@ -1,6 +1,6 @@
 //! Definitions for base types. They are also named generics inside of the typing system.
 
-use std::{collections::HashMap, fmt::Display, hash::Hash};
+use std::{collections::HashMap, hash::Hash};
 
 use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_already_in_scope};
 use calsc_utils::hash::HashedString;
