@@ -7,6 +7,8 @@ use calsc_diagnostics::{
 };
 use calsc_typing::{base::BaseType, tree::Type};
 
+use crate::funcs::HIRFunction;
+
 /// An entry / value inside of the global context.
 /// This shouldn't be clonable due to the inner data modification not being able to be synced
 pub enum GlobalContextValue {
@@ -15,6 +17,8 @@ pub enum GlobalContextValue {
 
     /// Represents a type alias
     TypeAlias(Type),
+
+    Function(HIRFunction),
 }
 
 impl GlobalContextValue {
@@ -46,6 +50,19 @@ impl GlobalContextValue {
             Self::TypeAlias(ty) => Ok(ty.clone()),
 
             _ => return Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
+        }
+    }
+
+    /// Converts the [`GlobalContextValue`] into a function entry and returns the [`HIRFunction`] reference associated with it.
+    ///
+    /// # Errors
+    /// This function will error on the given [`DiagnosticSource`] if the entry is not a function
+    ///
+    pub fn as_function<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<&HIRFunction> {
+        match self {
+            Self::Function(func) => Ok(func),
+
+            _ => return Err(build_expected_error(&"function".to_string(), self, origin).into()),
         }
     }
 
@@ -93,6 +110,28 @@ impl GlobalContextValue {
         }
     }
 
+    /// Mutates the [`GlobalContextValue`] into a function entry and modifies the currently held [`HIRFunction`] according to the mutation function
+    ///
+    /// Mutation should be used to modify inner objects, not replace them
+    ///
+    /// # Erorrs
+    /// This function will error on the given [`DiagnosticSource`] if the entry is not a function
+    ///
+    pub fn mutate_function<K: DiagnosticSource, F>(&mut self, func: F, origin: &K) -> DiagPossible
+    where
+        F: FnOnce(&mut HIRFunction),
+    {
+        match self {
+            Self::Function(f) => {
+                func(f);
+
+                Ok(())
+            }
+
+            _ => Err(build_expected_error(&"function".to_string(), self, origin).into()),
+        }
+    }
+
     /// Checks whether the entry is a type or not
     pub fn is_type(&self) -> bool {
         match self {
@@ -110,6 +149,15 @@ impl GlobalContextValue {
             _ => false,
         }
     }
+
+    /// Checks whether the entry is a function or not
+    pub fn is_function(&self) -> bool {
+        match self {
+            Self::Function(_) => true,
+
+            _ => false,
+        }
+    }
 }
 
 impl Display for GlobalContextValue {
@@ -117,6 +165,7 @@ impl Display for GlobalContextValue {
         let s = match self {
             Self::Type(_) => "type",
             Self::TypeAlias(_) => "type alias",
+            Self::Function(_) => "function",
         };
 
         write!(f, "{}", s)
@@ -128,6 +177,7 @@ impl Debug for GlobalContextValue {
         let s = match self {
             Self::Type(_) => "type",
             Self::TypeAlias(_) => "type alias",
+            Self::Function(_) => "function",
         };
 
         write!(f, "{}", s)
