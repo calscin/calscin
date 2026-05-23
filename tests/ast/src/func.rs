@@ -25,6 +25,7 @@ pub fn function_decl_parsing_base_test() {
         ASTNodeKind::FunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
+            return_type: None,
             body: vec![]
         }
     )
@@ -95,6 +96,7 @@ pub fn parse_extern_function_decl_base_test() {
         ASTNodeKind::ExternFunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
+            return_type: None,
             triple_dot_position: None
         }
     )
@@ -112,6 +114,7 @@ pub fn parse_extern_function_decl_test() {
         ASTNodeKind::ExternFunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
+            return_type: None,
             triple_dot_position: Some(0)
         }
     )
