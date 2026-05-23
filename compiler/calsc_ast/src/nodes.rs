@@ -92,6 +92,7 @@ pub enum ASTNodeKind {
     ExternFunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
+        return_type: Option<ASTType>,
         triple_dot_position: Option<usize>,
     },
 
@@ -182,6 +183,7 @@ impl ASTNode {
             ASTNodeKind::ExternFunctionDeclaration {
                 name,
                 arguments: _,
+                return_type: _,
                 triple_dot_position: _,
             } => name.clone(),
             ASTNodeKind::StructDeclaration {

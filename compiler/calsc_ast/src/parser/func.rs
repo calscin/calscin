@@ -156,6 +156,8 @@ pub fn parse_extern_function_declaration(
         true,
     )?;
 
+    let return_type = parse_ast_return_type_form(tokens, ind)?; // Auto increments
+
     let end = tokens[*ind - 1].end.clone(); // Removes the increment to get end since parse_ast_list post increments after list parsing
 
     let mut args: Vec<(ASTType, HashedString)> = vec![];
@@ -178,6 +180,7 @@ pub fn parse_extern_function_declaration(
         ASTNodeKind::ExternFunctionDeclaration {
             name,
             arguments: args,
+            return_type,
             triple_dot_position: triple_dot_pos,
         },
         start,
