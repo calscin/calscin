@@ -2,12 +2,16 @@
 
 use std::collections::HashMap;
 
+use calsc_diagnostics::{
+    Diagnostic, DiagnosticCode, DiagnosticSource,
+    span::{Span, SpanKind},
+};
 use calsc_typing::tree::Type;
 use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
-use crate::{globalctx::key::GlobalContextKey, refs::HIRArenaReference};
+use crate::{HIR_CONTEXT, HIRContext, globalctx::key::GlobalContextKey, refs::HIRArenaReference};
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
 pub enum HIRNodeKind {
@@ -127,5 +131,42 @@ pub struct HIRNode {
 impl HIRNode {
     pub fn new(kind: HIRNodeKind, start: FilePosition, end: FilePosition) -> Self {
         Self { kind, start, end }
+    }
+
+    pub fn push(self) -> HIRArenaReference {
+        HIR_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
+    }
+}
+
+impl DiagnosticSource for HIRNode {
+    fn get_start_pos(&self) -> FilePosition {
+        self.start.clone()
+    }
+
+    fn get_end_pos(&self) -> FilePosition {
+        self.end.clone()
+    }
+
+    fn make_span(&self, kind: SpanKind, msg: Option<String>) -> Span {
+        Span::new(kind, self.start.clone(), self.end.clone(), msg)
+    }
+
+    fn make_diagnostic_simple(
+        &self,
+        code: DiagnosticCode,
+        message: String,
+        primary_span_msg: Option<String>,
+        spans: Vec<Span>,
+        notes: Vec<String>,
+        helps: Vec<String>,
+    ) -> Diagnostic {
+        Diagnostic::new(
+            code,
+            message,
+            self.make_span(SpanKind::Primary, primary_span_msg),
+            spans,
+            notes,
+            helps,
+        )
     }
 }

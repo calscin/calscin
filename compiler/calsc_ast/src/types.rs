@@ -28,6 +28,7 @@ pub enum ASTType {
     /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`. The second parameter represents the size specifier
     /// The third parameter represents any type parameters
     ///
+    ///
     /// # Example
     /// `s32` would be `Generic(s32, None, [])`
     ///

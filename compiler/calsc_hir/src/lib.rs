@@ -13,7 +13,7 @@ pub mod nodes;
 pub mod refs;
 
 thread_local! {
-    static HIR_CONTEXT: RefCell<HIRContext> = RefCell::new(HIRContext::new());
+    pub static HIR_CONTEXT: RefCell<HIRContext> = RefCell::new(HIRContext::new());
 }
 
 pub struct HIRContext {
