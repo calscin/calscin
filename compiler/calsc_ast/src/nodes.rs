@@ -1,6 +1,6 @@
 //! Defines the tree of the AST. The AST is represented into a tree like structure where every "main" structure has children AST nodes themselves
 
-use std::collections::HashMap;
+use std::{any::TypeId, collections::HashMap};
 
 use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,
@@ -85,6 +85,7 @@ pub enum ASTNodeKind {
     FunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
+        return_type: Option<ASTType>,
         body: Vec<ASTArenaReference>,
     },
 

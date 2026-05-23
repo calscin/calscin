@@ -14,6 +14,7 @@ use calsc_typing::{
     base::{
         BaseType, instance::BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer,
     },
+    params::TypeParameterHaving,
     tree::Type,
 };
 use calsc_utils::hash::HashedString;
@@ -69,7 +70,17 @@ pub fn lower_ast_type<K: DiagnosticSource>(
         }),
 
         ASTType::Generic(a, b, c) => {
-            let base_type = lower_ast_generic_base(a, origin)?;
+            if inst.is_some() {
+                let inst = inst.unwrap();
+
+                // TODO: enforce that b and c are empty since it is a type parameter
+
+                if inst.has_type_parameter(a) {
+                    return Ok(inst.get_type_parameter_type(a));
+                }
+            }
+
+            let base_type = lower_ast_generic_base(a, origin, inst)?;
 
             let mut size_specifiers = vec![];
 
@@ -95,6 +106,7 @@ pub fn lower_ast_type<K: DiagnosticSource>(
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
     name: HashedString,
     origin: &K,
+    inst: Option<BaseType>,
 ) -> DiagResult<BaseType> {
     let key = GlobalContextKey::new(name);
 

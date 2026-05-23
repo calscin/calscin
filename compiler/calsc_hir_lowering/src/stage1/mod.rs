@@ -3,4 +3,5 @@
 //! - Add stage 1 functions to the global scope
 //! - Add extern function to the global scope
 
+pub mod funcs;
 pub mod types;
