@@ -26,12 +26,21 @@ pub fn test_simple_type_parsing_generic_type_specs() {
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
+    let type1 = lexer_tokenize("test", "test.cal".to_string()).unwrap_cleanly();
+    let type2 = lexer_tokenize("abcdef", "test.cal".to_string()).unwrap_cleanly();
+
+    let mut ind1 = 0;
+    let mut ind2 = 0;
+
     assert_eq!(
         ty,
         ASTType::Generic(
             "s32".into(),
             None,
-            vec!["test".to_string(), "abcdef".to_string()]
+            vec![
+                parse_ast_type(&type1, &mut ind1, true).unwrap_cleanly(),
+                parse_ast_type(&type2, &mut ind2, true).unwrap_cleanly()
+            ]
         )
     )
 }
@@ -53,6 +62,12 @@ pub fn test_complex_type_parsing() {
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
+    let type1 = lexer_tokenize("test", "test.cal".to_string()).unwrap_cleanly();
+    let type2 = lexer_tokenize("abcdef", "test.cal".to_string()).unwrap_cleanly();
+
+    let mut ind1 = 0;
+    let mut ind2 = 0;
+
     assert_eq!(
         ty,
         ASTType::Reference(
@@ -62,7 +77,10 @@ pub fn test_complex_type_parsing() {
                 Box::new(ASTType::Generic(
                     "s".into(),
                     Some(32),
-                    vec!["test".to_string(), "abcdef".to_string()]
+                    vec![
+                        parse_ast_type(&type1, &mut ind1, true).unwrap_cleanly(),
+                        parse_ast_type(&type2, &mut ind2, true).unwrap_cleanly()
+                    ]
                 ))
             ))
         )
