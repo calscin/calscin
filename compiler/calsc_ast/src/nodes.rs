@@ -1,6 +1,6 @@
 //! Defines the tree of the AST. The AST is represented into a tree like structure where every "main" structure has children AST nodes themselves
 
-use std::collections::HashMap;
+use std::{clone, collections::HashMap};
 
 use calsc_diagnostics::{
     Diagnostic, DiagnosticCode, DiagnosticSource,
@@ -167,6 +167,36 @@ impl ASTNode {
     /// Pushes the node into the arena allocator and consumes it
     pub fn push(self) -> ASTArenaReference {
         AST_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
+    }
+
+    pub fn get_top_level_name(&self) -> HashedString {
+        match &self.kind {
+            ASTNodeKind::FunctionDeclaration {
+                name,
+                arguments: _,
+                body: _,
+            } => name.clone(),
+
+            ASTNodeKind::ExternFunctionDeclaration {
+                name,
+                arguments: _,
+                triple_dot_position: _,
+            } => name.clone(),
+            ASTNodeKind::StructDeclaration {
+                name,
+                type_params: _,
+                fields: _,
+            } => name.clone(),
+
+            _ => panic!("Cannot get level top level name on a non top level node"),
+        }
+    }
+
+    pub fn is_additional_tree(&self) -> bool {
+        match self.kind {
+            ASTNodeKind::StructDeclBlock { .. } => true,
+            _ => false,
+        }
     }
 }
 
