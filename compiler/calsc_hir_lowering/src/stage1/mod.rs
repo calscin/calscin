@@ -13,7 +13,7 @@ use calsc_diagnostics::DiagPossible;
 use calsc_hir::{HIR_CONTEXT, prelude::apply_prelude};
 
 use crate::stage1::{
-    funcs::lower_ast_function_decl_first_stage,
+    funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
     types::{lower_ast_decl_block, lower_ast_struct_declaration},
 };
 
@@ -37,7 +37,9 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
                 lower_ast_function_decl_first_stage(ASTNode::clone(&node), None)?;
             }
 
-            ASTNodeKind::ExternFunctionDeclaration { .. } => todo!(),
+            ASTNodeKind::ExternFunctionDeclaration { .. } => {
+                lower_ast_extern_function(ASTNode::clone(&node))?
+            }
             ASTNodeKind::StructDeclaration { .. } => {
                 lower_ast_struct_declaration(ASTNode::clone(&node))?
             }

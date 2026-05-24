@@ -36,7 +36,7 @@ pub fn lower_ast_function_decl_first_stage(
         let mut ret_type = None;
 
         if let Some(v) = return_type {
-            ret_type = Some(lower_ast_type(v, &node, target.clone())?); // TODO: pass struct type in order to propagate struct decl block type parameter further
+            ret_type = Some(lower_ast_type(v, &node, target.clone())?);
         }
 
         let mut local_ctx = LocalContext::new(name.clone(), ret_type.clone());
@@ -45,7 +45,7 @@ pub fn lower_ast_function_decl_first_stage(
             let ty = lower_ast_type(argument.0, &node, target.clone())?;
 
             local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node)?;
-            args.push((argument.1, ty)); // TODO: pass struct type in order to propagate struct decl block type parameter further
+            args.push((argument.1, ty));
         }
 
         if target.is_some() {
@@ -68,7 +68,43 @@ pub fn lower_ast_function_decl_first_stage(
             })?;
         }
 
-        let func = HIRFunction::new_stage_1(key.clone(), local_ctx, target, ret_type, args); // TODO: pass struct type in order to propagate struct decl block type parameter further
+        let func = HIRFunction::new_stage_1(key.clone(), local_ctx, target, ret_type, args);
+
+        let _ = HIR_CONTEXT.with_borrow_mut(|f| {
+            f.scope
+                .append(key, GlobalContextValue::Function(func), &node)
+        })?;
+
+        Ok(())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_extern_function(node: ASTNode) -> DiagPossible {
+    if let ASTNodeKind::ExternFunctionDeclaration {
+        name,
+        arguments,
+        return_type,
+        triple_dot_position,
+    } = node.kind.clone()
+    {
+        let key = GlobalContextKey::new(name.clone());
+
+        let mut args = vec![];
+        let mut ret_type = None;
+
+        if let Some(v) = return_type {
+            ret_type = Some(lower_ast_type(v, &node, None)?);
+        }
+
+        for argument in arguments {
+            let ty = lower_ast_type(argument.0, &node, None)?;
+
+            args.push((argument.1, ty));
+        }
+
+        let func = HIRFunction::new_extern(key.clone(), None, ret_type, args, triple_dot_position);
 
         let _ = HIR_CONTEXT.with_borrow_mut(|f| {
             f.scope

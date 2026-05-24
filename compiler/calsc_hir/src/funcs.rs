@@ -40,6 +40,9 @@ pub struct HIRFunction {
     /// The implementation node
     /// Is present only in stage 2 functions
     pub impl_node: Option<HIRArenaReference>,
+
+    /// The triple dot position for extern functions
+    pub triple_dot_position: Option<usize>,
 }
 
 impl HIRFunction {
@@ -48,6 +51,7 @@ impl HIRFunction {
         origin_type: Option<BaseType>,
         return_type: Option<Type>,
         arguments: Vec<(HashedString, Type)>,
+        triple_dot_position: Option<usize>,
     ) -> Self {
         Self {
             name,
@@ -56,6 +60,7 @@ impl HIRFunction {
             return_type,
             arguments,
             impl_node: None,
+            triple_dot_position,
         }
     }
 
@@ -73,6 +78,7 @@ impl HIRFunction {
             return_type,
             arguments,
             impl_node: None,
+            triple_dot_position: None,
         }
     }
 
