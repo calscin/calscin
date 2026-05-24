@@ -5,6 +5,7 @@ use calsc_utils::pos::FilePosition;
 
 /// Struct representing a span.
 /// Holds a position, a label and a span kind.
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct Span {
     pub start: FilePosition,

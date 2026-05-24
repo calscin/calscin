@@ -9,3 +9,4 @@ calsc_utils = { path = "../calsc_utils" }
 
 [features]
 backtraces = []
+debug = []
