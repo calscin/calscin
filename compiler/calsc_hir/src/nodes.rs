@@ -11,7 +11,9 @@ use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
-use crate::{HIR_CONTEXT, globalctx::key::GlobalContextKey, refs::HIRArenaReference};
+use crate::{
+    HIR_CONTEXT, globalctx::key::GlobalContextKey, localctx::LocalContext, refs::HIRArenaReference,
+};
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
 #[derive(Debug)]
@@ -80,7 +82,7 @@ pub enum HIRNodeKind {
         values: HashMap<HashedString, HIRArenaReference>,
     },
 
-    ASsignment {
+    Assignment {
         variable: HIRArenaReference,
         value: HIRArenaReference,
     },
