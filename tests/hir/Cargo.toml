@@ -1,0 +1,10 @@
+[package]
+name = "hir"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+calsc_utils = { path = "../../compiler/calsc_utils" }
+calsc_hir = { path = "../../compiler/calsc_hir" }
+calsc_diagnostics = { path = "../../compiler/calsc_diagnostics" }
+calsc_typing = { path = "../../compiler/calsc_typing" }

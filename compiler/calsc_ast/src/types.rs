@@ -28,18 +28,19 @@ pub enum ASTType {
     /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`. The second parameter represents the size specifier
     /// The third parameter represents any type parameters
     ///
+    ///
     /// # Example
     /// `s32` would be `Generic(s32, None, [])`
     ///
     /// `s.32<test>` would be `Generic(s, 32, [test])`
-    Generic(HashedString, Option<usize>, Vec<String>),
+    Generic(HashedString, Option<usize>, Vec<ASTType>),
 }
 
 /// Represents a simpler stage of AST types that are basically used to generate full `ASTType` trees.
 pub enum SimpleASTType {
     Reference(bool),
     Array(usize),
-    Generic(HashedString, Option<usize>, Vec<String>),
+    Generic(HashedString, Option<usize>, Vec<ASTType>),
 }
 
 impl SimpleASTType {

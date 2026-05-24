@@ -7,7 +7,9 @@ use calsc_utils::{Either, hash::HashedString};
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        forms::parse_ast_body_form, types::parse_ast_type, utils::parse_ast_list,
+        forms::{parse_ast_body_form, parse_ast_return_type_form},
+        types::parse_ast_type,
+        utils::parse_ast_list,
         values::parse_ast_value,
     },
     refs::ASTArenaReference,
@@ -54,6 +56,8 @@ pub fn parse_function_declaration(
         true,
     )?; // Auto increments
 
+    let return_type = parse_ast_return_type_form(tokens, ind)?; // Auto increments
+
     let body = parse_ast_body_form(tokens, ind)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
@@ -61,6 +65,7 @@ pub fn parse_function_declaration(
     let node = ASTNode::new(
         ASTNodeKind::FunctionDeclaration {
             name: HashedString::new(func_name),
+            return_type,
             arguments,
             body,
         },
@@ -151,6 +156,8 @@ pub fn parse_extern_function_declaration(
         true,
     )?;
 
+    let return_type = parse_ast_return_type_form(tokens, ind)?; // Auto increments
+
     let end = tokens[*ind - 1].end.clone(); // Removes the increment to get end since parse_ast_list post increments after list parsing
 
     let mut args: Vec<(ASTType, HashedString)> = vec![];
@@ -173,6 +180,7 @@ pub fn parse_extern_function_declaration(
         ASTNodeKind::ExternFunctionDeclaration {
             name,
             arguments: args,
+            return_type,
             triple_dot_position: triple_dot_pos,
         },
         start,

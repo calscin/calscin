@@ -47,3 +47,35 @@ pub fn print_blank_line(end: usize) -> String {
 
     str
 }
+
+/// Performs the Levenshtein distance algorithm:
+/// https://en.wikipedia.org/wiki/Levenshtein_distance
+pub fn levenshtein(a: &str, b: &str) -> usize {
+    let a = a.as_bytes();
+    let b = b.as_bytes();
+
+    if a.len() < b.len() {
+        return levenshtein_bytes(b, a);
+    }
+
+    levenshtein_bytes(a, b)
+}
+
+fn levenshtein_bytes(a: &[u8], b: &[u8]) -> usize {
+    let mut prev: Vec<usize> = (0..=b.len()).collect();
+    let mut curr = vec![0; b.len() + 1];
+
+    for (i, &ac) in a.iter().enumerate() {
+        curr[0] = i + 1;
+
+        for (j, &bc) in b.iter().enumerate() {
+            let cost = (ac != bc) as usize;
+
+            curr[j + 1] = (prev[j + 1] + 1).min(curr[j] + 1).min(prev[j] + cost);
+        }
+
+        std::mem::swap(&mut prev, &mut curr);
+    }
+
+    prev[b.len()]
+}

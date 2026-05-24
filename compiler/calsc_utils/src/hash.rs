@@ -1,4 +1,4 @@
-use std::{hash::Hash, ops::Deref};
+use std::{fmt::Display, hash::Hash, ops::Deref};
 
 #[macro_export]
 macro_rules! fnvhash {
@@ -16,7 +16,7 @@ macro_rules! fnvhash {
 ///
 /// let hash: hash::HashedString = hash::HashedString::new("test".to_string());
 ///
-/// assert_eq!(hash.hash(), hash::hash_fnv_1a("test"))
+/// assert_eq!(hash.get_hash(), hash::hash_fnv_1a("test"))
 /// ```
 #[derive(Clone, Debug)]
 pub struct HashedString {
@@ -49,7 +49,7 @@ impl HashedString {
     ///
     /// let hash: hash::HashedString = hash::HashedString::new("test".to_string());
     ///
-    /// assert_eq!(hash.hash(), hash::hash_fnv_1a("test"))
+    /// assert_eq!(hash.get_hash(), hash::hash_fnv_1a("test"))
     /// ```
     pub fn new(val: String) -> Self {
         Self {
@@ -66,9 +66,9 @@ impl HashedString {
     ///
     /// let mut hash: hash::HashedString = hash::HashedString::new("test".to_string());
     ///
-    /// assert_eq!(hash.hash(), hash::hash_fnv_1a("test"));
+    /// assert_eq!(hash.get_hash(), hash::hash_fnv_1a("test"));
     /// hash.set("test2".to_string());
-    /// assert_eq!(hash.hash(), hash::hash_fnv_1a("test2"));
+    /// assert_eq!(hash.get_hash(), hash::hash_fnv_1a("test2"));
     /// ```
     pub fn set(&mut self, new: String) {
         self.val = new;
@@ -83,9 +83,9 @@ impl HashedString {
     ///
     /// let hash: hash::HashedString = hash::HashedString::new("test".to_string());
     ///
-    /// assert_eq!(hash.hash(), hash::hash_fnv_1a("test"))
+    /// assert_eq!(hash.get_hash(), hash::hash_fnv_1a("test"))
     /// ```
-    pub fn hash(&self) -> u64 {
+    pub fn get_hash(&self) -> u64 {
         self.hash
     }
 }
@@ -121,5 +121,11 @@ impl From<&str> for HashedString {
 impl From<String> for HashedString {
     fn from(value: String) -> Self {
         HashedString::new(value)
+    }
+}
+
+impl Display for HashedString {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.val)
     }
 }

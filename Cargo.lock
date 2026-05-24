@@ -30,6 +30,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "calsc_hir"
+version = "0.1.0"
+dependencies = [
+ "calsc_diagnostics",
+ "calsc_typing",
+ "calsc_utils",
+]
+
+[[package]]
+name = "calsc_hir_lowering"
+version = "0.1.0"
+dependencies = [
+ "calsc_ast",
+ "calsc_diagnostics",
+ "calsc_hir",
+ "calsc_typing",
+ "calsc_utils",
+]
+
+[[package]]
 name = "calsc_lexer"
 version = "0.0.0"
 dependencies = [
@@ -56,6 +76,27 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "faf9468729b8cbcea668e36183cb69d317348c2e08e994829fb56ebfdfbaac34"
 dependencies = [
  "windows-sys",
+]
+
+[[package]]
+name = "hir"
+version = "0.1.0"
+dependencies = [
+ "calsc_diagnostics",
+ "calsc_hir",
+ "calsc_typing",
+ "calsc_utils",
+]
+
+[[package]]
+name = "main"
+version = "0.1.0"
+dependencies = [
+ "calsc_ast",
+ "calsc_diagnostics",
+ "calsc_hir",
+ "calsc_hir_lowering",
+ "calsc_lexer",
 ]
 
 [[package]]

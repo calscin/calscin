@@ -1,6 +1,6 @@
 //! Definitions for base types. They are also named generics inside of the typing system.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, hash::Hash};
 
 use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_already_in_scope};
 use calsc_utils::hash::HashedString;
@@ -26,6 +26,8 @@ pub struct BaseType {
     /// The type parameters of the type
     pub type_params: HashMap<HashedString, usize>,
 
+    pub type_params_iter: Vec<HashedString>,
+
     /// The functions of the given type
     pub functions: HashMap<HashedString, TypedFunction>,
 }
@@ -36,6 +38,7 @@ impl BaseType {
     pub fn new(kind: BaseTypeKind) -> Self {
         Self {
             kind,
+            type_params_iter: vec![],
             type_params: HashMap::new(),
             functions: HashMap::new(),
         }
@@ -55,6 +58,8 @@ impl BaseType {
         }
 
         let ind = self.type_params.len();
+
+        self.type_params_iter.push(name.clone());
 
         self.type_params.insert(name, ind);
         Ok(ind)
@@ -127,5 +132,13 @@ impl TypeParameterHaving for BaseType {
 impl PartialEq for BaseType {
     fn eq(&self, other: &Self) -> bool {
         self.kind == other.kind
+    }
+}
+
+impl Eq for BaseType {}
+
+impl Hash for BaseType {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        self.kind.hash(state); // TODO: check if this works
     }
 }

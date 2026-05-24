@@ -85,12 +85,14 @@ pub enum ASTNodeKind {
     FunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
+        return_type: Option<ASTType>,
         body: Vec<ASTArenaReference>,
     },
 
     ExternFunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
+        return_type: Option<ASTType>,
         triple_dot_position: Option<usize>,
     },
 
@@ -167,6 +169,38 @@ impl ASTNode {
     /// Pushes the node into the arena allocator and consumes it
     pub fn push(self) -> ASTArenaReference {
         AST_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
+    }
+
+    pub fn get_top_level_name(&self) -> HashedString {
+        match &self.kind {
+            ASTNodeKind::FunctionDeclaration {
+                name,
+                arguments: _,
+                return_type: _,
+                body: _,
+            } => name.clone(),
+
+            ASTNodeKind::ExternFunctionDeclaration {
+                name,
+                arguments: _,
+                return_type: _,
+                triple_dot_position: _,
+            } => name.clone(),
+            ASTNodeKind::StructDeclaration {
+                name,
+                type_params: _,
+                fields: _,
+            } => name.clone(),
+
+            _ => panic!("Cannot get level top level name on a non top level node"),
+        }
+    }
+
+    pub fn is_additional_tree(&self) -> bool {
+        match self.kind {
+            ASTNodeKind::StructDeclBlock { .. } => true,
+            _ => false,
+        }
     }
 }
 

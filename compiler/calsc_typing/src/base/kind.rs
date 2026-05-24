@@ -6,7 +6,7 @@ use crate::{
     FieldHavingType, MutableFieldHavingType, base::structs::BaseStructContainer, tree::Type,
 };
 
-#[derive(PartialEq, Clone, Debug)] // Remove this and replace it with a custom implementation whenever structs are added
+#[derive(PartialEq, Clone, Debug, Hash)] // Remove this and replace it with a custom implementation whenever structs are added
 pub enum BaseTypeKind {
     /// An integer type that is possibly signed
     Integer {
@@ -32,6 +32,31 @@ impl BaseTypeKind {
             Self::Integer { .. } | Self::Floating { .. } => 1,
             _ => 0,
         }
+    }
+
+    pub fn get_name(&self) -> HashedString {
+        let s = match self {
+            Self::Boolean => "bool",
+            Self::Floating { signed } => {
+                if *signed {
+                    "f"
+                } else {
+                    "uf"
+                }
+            }
+
+            Self::Integer { signed } => {
+                if *signed {
+                    "s"
+                } else {
+                    "u"
+                }
+            }
+
+            Self::Struct(container) => &container.name,
+        };
+
+        s.into()
     }
 }
 
