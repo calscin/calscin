@@ -1,6 +1,6 @@
 use calsc_typing::tree::Type;
 
-#[derive(Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct LocalContextVariable {
     pub introduced: usize,
 

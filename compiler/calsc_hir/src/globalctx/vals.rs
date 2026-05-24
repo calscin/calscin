@@ -180,6 +180,7 @@ impl Display for GlobalContextValue {
     }
 }
 
+#[cfg(feature = "debug")]
 impl Debug for GlobalContextValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
