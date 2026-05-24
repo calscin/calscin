@@ -1,7 +1,8 @@
 //! Math related utilities
 
 /// Represents every possible math operation possible in Calscin
-#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone, PartialEq)]
 pub enum MathOperation {
     /// +
     Add,
@@ -38,7 +39,8 @@ pub enum MathOperation {
 }
 
 /// Represents a full math operator
-#[derive(Clone, Debug, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone, PartialEq)]
 pub struct MathOperator {
     pub operation: MathOperation,
     pub fast: bool,

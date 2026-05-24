@@ -1,0 +1,7 @@
+[package]
+name = "lexer"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+calsc_lexer = { path = "../../compiler/calsc_lexer", features = ["debug"] }

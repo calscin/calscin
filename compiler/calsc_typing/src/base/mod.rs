@@ -17,7 +17,8 @@ pub mod instance;
 pub mod kind;
 pub mod structs;
 
-#[derive(Clone, Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 /// Represents an actual base type. This is the type that should be registered as a type
 pub struct BaseType {
     /// The kind of the base type

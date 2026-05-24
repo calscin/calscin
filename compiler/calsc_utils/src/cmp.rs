@@ -1,6 +1,7 @@
 //! Comparing utilities
 
-#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone, PartialEq)]
 pub enum ComparePredicate {
     Equal,       // a == b
     NotEqual,    // a != b
@@ -9,7 +10,8 @@ pub enum ComparePredicate {
 }
 
 /// Represents an operator used for comparing
-#[derive(Debug, Clone, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone, PartialEq)]
 pub struct CompareOperator {
     pub predicate: ComparePredicate,
     pub also_equal: bool,

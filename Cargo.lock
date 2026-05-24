@@ -89,6 +89,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "lexer"
+version = "0.1.0"
+dependencies = [
+ "calsc_lexer",
+]
+
+[[package]]
 name = "main"
 version = "0.1.0"
 dependencies = [

@@ -16,7 +16,7 @@ use crate::{
 };
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
-#[derive(Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum HIRNodeKind {
     /// An integer literal
     IntLiteral(i128),
@@ -125,7 +125,7 @@ pub enum HIRNodeKind {
 }
 
 /// Represents a full HIR node. Holds the node kind and the start and end positions of it
-#[derive(Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct HIRNode {
     pub kind: HIRNodeKind,
     pub start: FilePosition,

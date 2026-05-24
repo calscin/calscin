@@ -11,9 +11,6 @@ use calsc_utils::{fnvhash, pos::FilePosition};
 use crate::toks::{Token, TokenKind};
 use calsc_utils::hash::hash_fnv_1a;
 
-#[cfg(test)]
-pub mod tests;
-
 pub mod toks;
 
 pub const FUNCTION_HASH: u64 = fnvhash!("func");

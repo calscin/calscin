@@ -1,6 +1,9 @@
 //! Node reference definitions
 
-use std::{fmt::Debug, ops::Deref};
+#[cfg(feature = "debug")]
+use std::fmt::Debug;
+
+use std::ops::Deref;
 
 use calsc_utils::alloc::arena::ArenaAllocatorReference;
 
@@ -32,6 +35,7 @@ impl From<ASTArenaReference> for usize {
     }
 }
 
+#[cfg(feature = "debug")]
 impl Debug for ASTArenaReference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

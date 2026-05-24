@@ -6,7 +6,8 @@ use crate::{
     FieldHavingType, MutableFieldHavingType, base::structs::BaseStructContainer, tree::Type,
 };
 
-#[derive(PartialEq, Clone, Debug, Hash)] // Remove this and replace it with a custom implementation whenever structs are added
+#[derive(PartialEq, Clone, Hash)] // Remove this and replace it with a custom implementation whenever structs are added
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum BaseTypeKind {
     /// An integer type that is possibly signed
     Integer {

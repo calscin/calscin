@@ -9,7 +9,8 @@ use crate::{FieldHavingType, MutableFieldHavingType, tree::Type};
 
 /// Represents a `struct` type container.
 /// Holds information such as the name of the type and fields
-#[derive(Clone, Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub struct BaseStructContainer {
     pub name: HashedString,
 

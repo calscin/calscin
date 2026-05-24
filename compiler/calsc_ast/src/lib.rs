@@ -21,6 +21,7 @@ thread_local! {
 
 /// The context of the AST, is used to share things around inside of the AST process
 #[derive(Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ASTContext {
     pub nodes: ArenaAllocator<ASTNode, ASTArenaReference>,
     pub tree: HashMap<HashedString, ASTArenaReference>,
