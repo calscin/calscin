@@ -9,7 +9,8 @@ use calsc_utils::hash::HashedString;
 /// -	`Array(35)`
 /// -	-> `Pointer()`
 /// - 	-->`Generic(s32)`
-#[derive(Debug, PartialEq, Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(PartialEq, Clone)]
 pub enum ASTType {
     /// Represents a reference node. The parameter represents the inner type.
     ///
@@ -37,6 +38,7 @@ pub enum ASTType {
 }
 
 /// Represents a simpler stage of AST types that are basically used to generate full `ASTType` trees.
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum SimpleASTType {
     Reference(bool),
     Array(usize),

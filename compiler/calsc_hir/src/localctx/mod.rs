@@ -19,7 +19,7 @@ use crate::localctx::vars::LocalContextVariable;
 
 pub mod vars;
 
-#[derive(Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct LocalContext {
     pub name: HashedString,
 

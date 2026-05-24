@@ -56,12 +56,14 @@ pub trait DiagnosticSource {
 
 /// An implementation of `DiagnosticSource` that only relies on a start and end position.
 /// Allowing to use diagnostic builders where there isn't really a diagnostic source.
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct PosDiagnosticSource {
     pub start: FilePosition,
     pub end: FilePosition,
 }
 
 /// The level of diagnostics. Represents the type of diagnostic (eg: error, warning or information).
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone, PartialEq)]
 pub enum Level {
     Error,
@@ -79,6 +81,7 @@ pub enum Level {
 /// // Represents the diagnostic "E123"
 /// let code: DiagnosticCode = DiagnosticCode::new(Level::Error, 123);
 /// ```
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct DiagnosticCode {
     pub level: Level,
@@ -88,6 +91,7 @@ pub struct DiagnosticCode {
 /// Represents a diagnostic inside of the diagnostic system. Can be directly used with a formatter to get the display version of the Diagnostic.
 /// Contains the diagnostic code, the message of the diagnostic, the spans, info messages and help messages.
 /// Also potentially holds a backtrace if the `backtrace` feature is enabled
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct Diagnostic {
     /// The warning / error code of the diagnostic

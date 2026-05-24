@@ -9,7 +9,8 @@ use crate::tree::Type;
 pub type TypeSignature = (Vec<Type>, Option<Type>);
 
 /// Represents a function inside of the typing system
-#[derive(Clone, Debug, PartialEq)]
+#[derive(Clone, PartialEq)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct TypedFunction {
     pub name: HashedString,
 

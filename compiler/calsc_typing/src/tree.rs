@@ -9,7 +9,8 @@ use crate::{
 };
 
 /// The actual type used for typing in Calscin. Allows for nested references and arrays with base types
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum Type {
     /// Represents a basic type
     Base(BaseTypeInstance),

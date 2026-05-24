@@ -12,6 +12,7 @@ use calsc_utils::pos::FilePosition;
 /// A parsed token by the lexer.
 /// Contains the kind of token as well as the data such as literal values.
 /// Also contains a position of where the token starts and ends
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct Token {
     /// The kind of token. Holds the data such as literal values and the overall type of token
     pub kind: TokenKind,
@@ -24,7 +25,8 @@ pub struct Token {
 }
 
 /// Enum representing common lexer token kinds.
-#[derive(PartialEq, Debug, Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(PartialEq, Clone)]
 pub enum TokenKind {
     // Keywords
     /// `func`
