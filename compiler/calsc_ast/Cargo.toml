@@ -10,4 +10,5 @@ calsc_utils = { path = "../calsc_utils" }
 
 [features]
 parser = []
+debug = []
 default = ["parser"]

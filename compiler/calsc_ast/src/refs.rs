@@ -1,12 +1,16 @@
 //! Node reference definitions
 
-use std::{fmt::Debug, ops::Deref};
+#[cfg(feature = "debug")]
+use std::fmt::Debug;
+
+use std::ops::Deref;
 
 use calsc_utils::alloc::arena::ArenaAllocatorReference;
 
 use crate::{AST_CONTEXT, nodes::ASTNode};
 
 #[must_use]
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone, PartialEq)]
 pub struct ASTArenaReference {
     pub refer: ArenaAllocatorReference,
@@ -32,6 +36,7 @@ impl From<ASTArenaReference> for usize {
     }
 }
 
+#[cfg(feature = "debug")]
 impl Debug for ASTArenaReference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(

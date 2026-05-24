@@ -1,6 +1,7 @@
 use crate::refs::ASTArenaReference;
 
-#[derive(PartialEq, Debug, Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(PartialEq, Clone)]
 pub enum IfStatementBranch {
     If {
         condition: ASTArenaReference,

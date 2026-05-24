@@ -1,7 +1,8 @@
 use calsc_utils::hash::HashedString;
 
 /// The kind of import statement
-#[derive(Clone, PartialEq, Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone, PartialEq)]
 pub enum ImportKind {
     /// Imports the whole module with the module namespace
     Whole,
