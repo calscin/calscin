@@ -5,6 +5,7 @@ use std::marker::PhantomData;
 /// An arena allocator. Handles storing elements and handing out a reference index
 ///
 /// https://en.wikipedia.org/wiki/Region-based_memory_management
+#[derive(Clone, Debug)]
 pub struct ArenaAllocator<V, Key> {
     pub arena: Vec<V>,
     pub dummy: PhantomData<Key>,

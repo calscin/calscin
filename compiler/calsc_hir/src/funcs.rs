@@ -18,6 +18,7 @@ use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext, refs::HIRA
 /// - **Stage 2**: Convertion of function bodies into HIR vartiants using the seeked functions. Modifies stage 1 type functions into stage 2 functions.
 ///
 /// This system allows for recursion and out of order function calling.
+#[derive(Debug)]
 pub struct HIRFunction {
     /// Represents the key related to the function
     pub name: GlobalContextKey,

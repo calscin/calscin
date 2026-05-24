@@ -17,6 +17,7 @@ thread_local! {
     pub static HIR_CONTEXT: RefCell<HIRContext> = RefCell::new(HIRContext::new());
 }
 
+#[derive(Debug)]
 pub struct HIRContext {
     pub nodes: ArenaAllocator<HIRNode, HIRArenaReference>,
     pub scope: GlobalContext,

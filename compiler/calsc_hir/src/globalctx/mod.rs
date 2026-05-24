@@ -20,6 +20,7 @@ use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
 pub mod key;
 pub mod vals;
 
+#[derive(Debug)]
 pub struct GlobalContext {
     key_to_ind: HashMap<GlobalContextKey, usize>,
     pub values: Vec<GlobalContextValue>,

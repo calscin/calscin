@@ -9,7 +9,7 @@ use calsc_typing::base::BaseType;
 use calsc_utils::hash::HashedString;
 
 /// The key to an entry in the global ctx
-#[derive(PartialEq, Eq, Clone)]
+#[derive(PartialEq, Eq, Clone, Debug)]
 pub struct GlobalContextKey {
     pub name: HashedString,
     pub type_name: Option<BaseType>,

@@ -5,7 +5,7 @@ use calsc_utils::alloc::arena::ArenaAllocatorReference;
 use crate::{HIR_CONTEXT, nodes::HIRNode};
 
 #[must_use]
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Debug)]
 pub struct HIRArenaReference {
     pub refer: ArenaAllocatorReference,
 }

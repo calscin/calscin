@@ -1,5 +1,6 @@
 use calsc_typing::tree::Type;
 
+#[derive(Debug)]
 pub struct LocalContextVariable {
     pub introduced: usize,
 

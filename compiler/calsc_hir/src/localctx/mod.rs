@@ -19,6 +19,7 @@ use crate::localctx::vars::LocalContextVariable;
 
 pub mod vars;
 
+#[derive(Debug)]
 pub struct LocalContext {
     pub name: HashedString,
 

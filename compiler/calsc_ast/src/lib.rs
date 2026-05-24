@@ -16,10 +16,11 @@ pub mod types;
 pub mod parser;
 
 thread_local! {
-    static AST_CONTEXT: RefCell<ASTContext> = RefCell::new(ASTContext::new());
+    pub static AST_CONTEXT: RefCell<ASTContext> = RefCell::new(ASTContext::new());
 }
 
 /// The context of the AST, is used to share things around inside of the AST process
+#[derive(Clone)]
 pub struct ASTContext {
     pub nodes: ArenaAllocator<ASTNode, ASTArenaReference>,
     pub tree: HashMap<HashedString, ASTArenaReference>,
