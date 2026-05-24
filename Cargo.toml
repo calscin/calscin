@@ -6,6 +6,6 @@ members = [
 	"compiler/calsc_lexer",
 	"compiler/calsc_typing",
 	"compiler/calsc_utils", "compiler/main",
-	"tests/ast", "tests/hir",
+	"tests/ast", "tests/hir", "tests/lexer",
 	"tests/typing",
 ]
