@@ -9,7 +9,8 @@ use crate::{
 };
 
 /// Represents an instance of a [`BaseType`]. Stores the base type, size speicifers and type parameters.
-#[derive(PartialEq, Clone, Debug)]
+#[derive(PartialEq, Clone)]
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct BaseTypeInstance {
     /// The actual used type
     pub ty: BaseType,
