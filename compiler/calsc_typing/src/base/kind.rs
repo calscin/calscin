@@ -21,6 +21,12 @@ pub enum BaseTypeKind {
 
     Struct(BaseStructContainer),
 
+    /// A string type
+    String,
+
+    /// A char type
+    Char,
+
     /// A boolean type
     Boolean,
 }
@@ -38,6 +44,8 @@ impl BaseTypeKind {
     pub fn get_name(&self) -> HashedString {
         let s = match self {
             Self::Boolean => "bool",
+            Self::Char => "char",
+            Self::String => "str",
             Self::Floating { signed } => {
                 if *signed {
                     "f"
