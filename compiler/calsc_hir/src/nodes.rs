@@ -91,6 +91,11 @@ pub enum HIRNodeKind {
         values: HashMap<HashedString, HIRArenaReference>,
     },
 
+    TypedStructuredInit {
+        ty: Type,
+        values: HashMap<HashedString, HIRArenaReference>,
+    },
+
     Assignment {
         variable: HIRArenaReference,
         value: HIRArenaReference,
@@ -140,6 +145,7 @@ pub enum HIRNodeKind {
 
 /// Represents a full HIR node. Holds the node kind and the start and end positions of it
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub struct HIRNode {
     pub kind: HIRNodeKind,
     pub start: FilePosition,

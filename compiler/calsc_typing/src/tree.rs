@@ -43,6 +43,38 @@ impl Type {
         }
     }
 
+    /// Checks if the tyoe is of type [`Type::Base`]
+    pub fn is_base(&self) -> bool {
+        match self {
+            Type::Base(_) => true,
+            _ => false,
+        }
+    }
+
+    /// Checks if the tyoe is of type [`Type::Array`]
+    pub fn is_array(&self) -> bool {
+        match self {
+            Type::Array { .. } => true,
+            _ => false,
+        }
+    }
+
+    /// Checks if the tyoe is of type [`Type::Reference`]
+    pub fn is_reference(&self) -> bool {
+        match self {
+            Type::Reference { .. } => true,
+            _ => false,
+        }
+    }
+
+    /// Checks if the tyoe is of type [`Type::TypeParameter`]
+    pub fn is_type_parameter(&self) -> bool {
+        match self {
+            Type::TypeParameter { .. } => true,
+            _ => false,
+        }
+    }
+
     /// Checks if the type is real or not.
     ///
     /// A type is real as long as long as it represents something concrete
