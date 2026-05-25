@@ -1,5 +1,7 @@
 //! Convertion definitions for HIR nodes
 
+use std::hint::unreachable_unchecked;
+
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_expected_error, build_unexpected_error},
@@ -58,5 +60,8 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
     ty: Type,
     origin: &K,
 ) -> DiagResult<HIRNode> {
-    todo!()
+    if let HIRNodeKind::StructuredInit { values } = structured_init.kind {
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
 }

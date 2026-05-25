@@ -84,6 +84,10 @@ impl FieldHavingType for BaseTypeInstance {
         self.ty.has_field(name)
     }
 
+    fn get_fields(&self) -> Vec<HashedString> {
+        self.ty.get_fields()
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         resolve_type_parameter_type(self.ty.get_field_type(name), self) // Resolves type parameters
     }

@@ -44,6 +44,16 @@ impl FieldHavingType for BaseStructContainer {
         self.fields.contains_key(&name)
     }
 
+    fn get_fields(&self) -> Vec<HashedString> {
+        let mut fields = vec![];
+
+        for k in self.fields.keys() {
+            fields.push(k.clone())
+        }
+
+        fields
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         self.fields[&name].clone()
     }

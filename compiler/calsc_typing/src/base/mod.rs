@@ -101,6 +101,10 @@ impl FieldHavingType for BaseType {
         self.kind.has_field(name)
     }
 
+    fn get_fields(&self) -> Vec<HashedString> {
+        self.kind.get_fields()
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         self.kind.get_field_type(name)
     }

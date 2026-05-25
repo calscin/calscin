@@ -98,6 +98,15 @@ impl FieldHavingType for Type {
         }
     }
 
+    fn get_fields(&self) -> Vec<HashedString> {
+        match self {
+            Self::Array { .. } => vec![],
+            Self::TypeParameter { .. } => vec![],
+            Self::Reference { mutable: _, inner } => inner.get_fields(),
+            Self::Base(instance) => instance.get_fields(),
+        }
+    }
+
     fn has_field(&self, name: HashedString) -> bool {
         match self {
             Self::Array { .. } => false,

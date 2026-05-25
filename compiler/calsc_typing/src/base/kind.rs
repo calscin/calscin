@@ -78,6 +78,13 @@ impl FieldHavingType for BaseTypeKind {
         }
     }
 
+    fn get_fields(&self) -> Vec<HashedString> {
+        match self {
+            Self::Struct(container) => container.get_fields(),
+            _ => vec![],
+        }
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         match self {
             Self::Struct(container) => container.get_field_type(name),
