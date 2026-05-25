@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_typing::{FieldHavingType, tree::Type};
+use calsc_typing::{FieldHavingType, func::DeclBlockAffectedType, tree::Type};
 use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
@@ -225,7 +225,10 @@ impl HIRNode {
                     let ty = ty.unwrap();
 
                     match &right_expr.kind {
-                        HIRNodeKind::FunctionCall { .. } => todo!(),
+                        HIRNodeKind::FunctionCall { func, arguments: _ } => {
+                            ty.get_func_signature(func.name.clone()).1
+                        }
+
                         HIRNodeKind::FieldReference { name } => {
                             Some(ty.get_field_type(name.clone()))
                         } // The creation of FieldReference should check if the field is there
