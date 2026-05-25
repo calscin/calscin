@@ -10,6 +10,7 @@ declare_diagnostic!(UNEXPECTED_TOKEN, 2);
 declare_diagnostic!(EXPECTED, 3);
 declare_diagnostic!(ALREADY_IN_SCOPE, 4);
 declare_diagnostic!(CANNOT_FIND, 5);
+declare_diagnostic!(FIELD_MISSING, 6);
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
@@ -85,6 +86,17 @@ pub fn build_cannot_find_element_no_closest<E: Display, S: DiagnosticSource>(
     source.make_diagnostic_simple(
         DiagnosticCode::new(Level::Error, CANNOT_FIND),
         format!("cannot find {}", element),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_missing_field<E: Display, S: DiagnosticSource>(element: &E, source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, FIELD_MISSING),
+        format!("missing field {}", element),
         None,
         vec![],
         vec![],
