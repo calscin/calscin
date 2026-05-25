@@ -167,8 +167,14 @@ impl HIRNode {
             HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
             HIRNodeKind::InverseCondition(_) => Some(make_bool_type(self)),
 
-            HIRNodeKind::PointerDereference(_) => todo!(),
-            HIRNodeKind::PointerReference(_) => todo!(),
+            HIRNodeKind::PointerDereference(val) => Some(Type::Reference {
+                mutable: true, // Mutable by default, will change
+                inner: Box::new(val.get_type(local_ctx)?.unwrap()),
+            }),
+
+            HIRNodeKind::PointerReference(val) => {
+                Some(val.get_type(local_ctx)?.unwrap().get_inner()) // Assumes the container of a pointer reference is a pointer.
+            }
 
             HIRNodeKind::MathExpression {
                 left_expr,
