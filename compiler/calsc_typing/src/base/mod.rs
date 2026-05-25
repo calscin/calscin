@@ -6,7 +6,7 @@ use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_alrea
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType, MutableFieldHavingType,
+    FieldHavingType, MutableFieldHavingType, TransmutableType,
     base::kind::BaseTypeKind,
     func::{DeclBlockAffectedType, MutableDeclBlockAffectedType, TypeSignature, TypedFunction},
     params::TypeParameterHaving,
@@ -141,5 +141,11 @@ impl Eq for BaseType {}
 impl Hash for BaseType {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.kind.hash(state); // TODO: check if this works
+    }
+}
+
+impl TransmutableType for BaseType {
+    fn can_transmute(&self, into: Self) -> bool {
+        self.kind.can_transmute(into.kind)
     }
 }

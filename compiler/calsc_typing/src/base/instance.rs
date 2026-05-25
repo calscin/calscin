@@ -88,3 +88,21 @@ impl FieldHavingType for BaseTypeInstance {
         resolve_type_parameter_type(self.ty.get_field_type(name), self) // Resolves type parameters
     }
 }
+
+impl TransmutableType for BaseTypeInstance {
+    fn can_transmute(&self, into: Self) -> bool {
+        if !self.ty.can_transmute(into.ty) {
+            return false;
+        }
+
+        if !self.size_specifiers.is_empty() {
+            for i in 0..self.size_specifiers.len() {
+                if self.size_specifiers[i] > into.size_specifiers[i] {
+                    return false;
+                }
+            }
+        }
+
+        self.type_parameters == into.type_parameters
+    }
+}
