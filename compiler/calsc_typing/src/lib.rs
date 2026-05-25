@@ -40,3 +40,9 @@ pub trait MutableFieldHavingType {
         source: &K,
     ) -> DiagPossible;
 }
+
+/// Represents a type that can potentially transmute into another type
+pub trait TransmutableType {
+    /// Determines if the current type can be transmuted into the given type.
+    fn can_transmute(&self, into: Type) -> bool;
+}
