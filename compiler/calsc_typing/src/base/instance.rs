@@ -1,7 +1,7 @@
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType,
+    FieldHavingType, TransmutableType,
     base::BaseType,
     func::{DeclBlockAffectedType, TypeSignature},
     params::resolve_type_parameter_type,

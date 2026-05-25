@@ -3,7 +3,8 @@
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType, MutableFieldHavingType, base::structs::BaseStructContainer, tree::Type,
+    FieldHavingType, MutableFieldHavingType, TransmutableType, base::structs::BaseStructContainer,
+    tree::Type,
 };
 
 #[derive(PartialEq, Clone, Hash)] // Remove this and replace it with a custom implementation whenever structs are added
@@ -96,6 +97,21 @@ impl MutableFieldHavingType for BaseTypeKind {
             Self::Struct(container) => container.add_field(name, ty, source),
 
             _ => panic!("Fields cannot be added onto this type"),
+        }
+    }
+}
+
+impl TransmutableType for BaseTypeKind {
+    fn can_transmute(&self, into: Self) -> bool {
+        if self == &into {
+            return true;
+        }
+
+        match (self, into) {
+            (BaseTypeKind::Integer { signed }, BaseTypeKind::Integer { .. }) => !*signed, // Allow unsigned -> signed convertion
+            (BaseTypeKind::Floating { signed }, BaseTypeKind::Floating { .. }) => !*signed, // Allow unsigned -> signed convertion,
+
+            _ => false,
         }
     }
 }
