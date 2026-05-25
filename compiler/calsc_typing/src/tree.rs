@@ -42,6 +42,18 @@ impl Type {
             _ => panic!("The type {} doesn't hold any inner type", self),
         }
     }
+
+    /// Checks if the type is real or not.
+    ///
+    /// A type is real as long as long as it represents something concrete
+    pub fn is_real(&self) -> bool {
+        match self {
+            Self::Array { size: _, inner } => inner.is_real(),
+            Self::Reference { mutable: _, inner } => inner.is_real(),
+            Self::TypeParameter { .. } => false,
+            Self::Base(_) => true,
+        }
+    }
 }
 
 impl FieldHavingType for Type {
