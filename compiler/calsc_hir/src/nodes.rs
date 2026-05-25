@@ -16,7 +16,7 @@ use crate::{
     globalctx::key::GlobalContextKey,
     localctx::LocalContext,
     refs::HIRArenaReference,
-    types::{make_bool_type, make_float_type, make_int_type},
+    types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
 };
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
@@ -162,8 +162,8 @@ impl HIRNode {
         let ty = match self.kind.clone() {
             HIRNodeKind::IntLiteral(v) => Some(make_int_type(v < 0, 128, self)),
             HIRNodeKind::FloatLiteral(v) => Some(make_float_type(v < 0.0, 128, self)),
-            HIRNodeKind::StringLiteral(_) => todo!(),
-            HIRNodeKind::CharLiteral(_) => todo!(),
+            HIRNodeKind::StringLiteral(_) => Some(make_string_type(self)),
+            HIRNodeKind::CharLiteral(_) => Some(make_char_type(self)),
             HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
             HIRNodeKind::InverseCondition(_) => Some(make_bool_type(self)),
 

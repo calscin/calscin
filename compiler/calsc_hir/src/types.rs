@@ -54,3 +54,31 @@ pub fn make_bool_type<K: DiagnosticSource>(origin: &K) -> Type {
 
     Type::Base(BaseTypeInstance::new(base_type, vec![], vec![]))
 }
+
+pub fn make_string_type<K: DiagnosticSource>(origin: &K) -> Type {
+    let key = GlobalContextKey::new("str".into());
+
+    let base_type = HIR_CONTEXT.with_borrow(|f| {
+        f.scope
+            .get_entry(key, origin)
+            .unwrap_cleanly()
+            .as_type(origin)
+            .unwrap()
+    });
+
+    Type::Base(BaseTypeInstance::new(base_type, vec![], vec![]))
+}
+
+pub fn make_char_type<K: DiagnosticSource>(origin: &K) -> Type {
+    let key = GlobalContextKey::new("char".into());
+
+    let base_type = HIR_CONTEXT.with_borrow(|f| {
+        f.scope
+            .get_entry(key, origin)
+            .unwrap_cleanly()
+            .as_type(origin)
+            .unwrap()
+    });
+
+    Type::Base(BaseTypeInstance::new(base_type, vec![], vec![]))
+}
