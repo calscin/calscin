@@ -3,20 +3,25 @@
 use std::collections::HashMap;
 
 use calsc_diagnostics::{
-    Diagnostic, DiagnosticCode, DiagnosticSource,
+    DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_typing::tree::Type;
+use calsc_typing::{FieldHavingType, tree::Type};
 use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
 
 use crate::{
-    HIR_CONTEXT, globalctx::key::GlobalContextKey, localctx::LocalContext, refs::HIRArenaReference,
+    HIR_CONTEXT,
+    globalctx::key::GlobalContextKey,
+    localctx::LocalContext,
+    refs::HIRArenaReference,
+    types::{make_bool_type, make_float_type, make_int_type},
 };
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub enum HIRNodeKind {
     /// An integer literal
     IntLiteral(i128),
@@ -72,6 +77,10 @@ pub enum HIRNodeKind {
 
         /// The actual index representing the index inside of the local context
         variable_index: usize,
+    },
+
+    FieldReference {
+        name: HashedString,
     },
 
     FunctionReference {
@@ -139,6 +148,91 @@ impl HIRNode {
 
     pub fn push(self) -> HIRArenaReference {
         HIR_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
+    }
+
+    /// Gets the type of the [`HIRNode`] based on the node kind and the potentially given local context reference.
+    ///
+    /// # Errors & Panics
+    /// This function will error if any type cannot be found or if the builder functions fails.
+    ///
+    /// This function will panic if references are wrong
+    ///
+    ///
+    pub fn get_type(&self, local_ctx: Option<&LocalContext>) -> DiagResult<Option<Type>> {
+        let ty = match self.kind.clone() {
+            HIRNodeKind::IntLiteral(v) => Some(make_int_type(v < 0, 128, self)),
+            HIRNodeKind::FloatLiteral(v) => Some(make_float_type(v < 0.0, 128, self)),
+            HIRNodeKind::StringLiteral(_) => todo!(),
+            HIRNodeKind::CharLiteral(_) => todo!(),
+            HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
+            HIRNodeKind::InverseCondition(_) => Some(make_bool_type(self)),
+
+            HIRNodeKind::PointerDereference(_) => todo!(),
+            HIRNodeKind::PointerReference(_) => todo!(),
+
+            HIRNodeKind::MathExpression {
+                left_expr,
+                right_expr: _,
+                operator,
+            } => {
+                if operator.assigns {
+                    None
+                } else {
+                    left_expr.get_type(local_ctx)?
+                }
+            }
+
+            HIRNodeKind::CompareExpression { .. } => Some(make_bool_type(self)),
+
+            HIRNodeKind::VariableReference {
+                name: _,
+                variable_index,
+            } => {
+                if local_ctx.is_none() {
+                    None
+                } else {
+                    Some(local_ctx.unwrap().variables[variable_index].ty.clone())
+                }
+            }
+
+            HIRNodeKind::FunctionCall { func, arguments: _ } => {
+                let ty = HIR_CONTEXT.with_borrow(|f| {
+                    Ok(f.scope
+                        .get_entry(func, self)?
+                        .as_function(self)?
+                        .return_type
+                        .clone())
+                });
+
+                ty?
+            }
+
+            HIRNodeKind::StructLRUsage {
+                left_expr,
+                right_expr,
+            } => {
+                let ty = left_expr.get_type(local_ctx)?;
+
+                if ty.is_none() {
+                    None
+                } else {
+                    let ty = ty.unwrap();
+
+                    match &right_expr.kind {
+                        HIRNodeKind::FunctionCall { .. } => todo!(),
+                        HIRNodeKind::FieldReference { name } => {
+                            Some(ty.get_field_type(name.clone()))
+                        } // The creation of FieldReference should check if the field is there
+
+                        _ => panic!(),
+                    }
+                }
+            }
+
+            _ => None,
+        };
+
+        Ok(ty)
     }
 }
 
