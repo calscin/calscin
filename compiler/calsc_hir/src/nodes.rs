@@ -131,6 +131,11 @@ pub enum HIRNodeKind {
         left_expr: HIRArenaReference,
         right_expr: HIRArenaReference,
     },
+
+    CastNode {
+        original: HIRArenaReference,
+        into: Type,
+    },
 }
 
 /// Represents a full HIR node. Holds the node kind and the start and end positions of it
