@@ -28,6 +28,22 @@ pub enum Type {
     Array { size: usize, inner: Box<Type> },
 }
 
+impl Type {
+    /// Gets the inner type contained in the given type
+    ///
+    /// # Panics
+    /// This function will panic if the type doesn't hold an inner type
+    ///
+    pub fn get_inner(&self) -> Type {
+        match self {
+            Self::Reference { mutable: _, inner } => *inner.clone(),
+            Self::Array { size: _, inner } => *inner.clone(),
+
+            _ => panic!("The type {} doesn't hold any inner type", self),
+        }
+    }
+}
+
 impl FieldHavingType for Type {
     fn get_field_type(&self, name: HashedString) -> Type {
         match self {
