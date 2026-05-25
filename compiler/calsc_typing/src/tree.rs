@@ -3,7 +3,7 @@
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType,
+    FieldHavingType, TransmutableType,
     base::instance::BaseTypeInstance,
     func::{DeclBlockAffectedType, TypeSignature},
 };
@@ -92,6 +92,36 @@ impl DeclBlockAffectedType for Type {
             Self::TypeParameter { .. } => panic!("Cannot find function!"),
             Self::Reference { mutable: _, inner } => inner.get_func_signature(name),
             Self::Base(instance) => instance.get_func_signature(name),
+        }
+    }
+}
+
+impl TransmutableType for Type {
+    fn can_transmute(&self, into: Self) -> bool {
+        if !self.is_real() || into.is_real() {
+            return false;
+        }
+
+        match (self, into) {
+            (
+                Self::Array { size, inner },
+                Self::Array {
+                    size: size2,
+                    inner: inner2,
+                },
+            ) => *size == size2 && inner.can_transmute(*inner2),
+
+            (
+                Self::Reference { mutable, inner },
+                Self::Reference {
+                    mutable: into_mutable,
+                    inner: inner2,
+                },
+            ) => *mutable == into_mutable && inner.can_transmute(*inner2),
+
+            (Self::Base(base), Self::Base(into_base)) => base.can_transmute(into_base),
+
+            _ => false,
         }
     }
 }
