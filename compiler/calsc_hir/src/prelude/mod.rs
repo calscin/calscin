@@ -20,23 +20,33 @@ pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K)
     let unsigned_float_type =
         GlobalContextValue::new_type(BaseType::new(BaseTypeKind::Floating { signed: false }));
 
+    let string_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::String));
+    let char_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::Char));
+
     scope.append(GlobalContextKey::new("bool".into()), bool_type, origin)?;
+
     scope.append(
         GlobalContextKey::new("s".into()),
         signed_integer_type,
         origin,
     )?;
+
     scope.append(
         GlobalContextKey::new("u".into()),
         unsigned_integer_type,
         origin,
     )?;
+
     scope.append(GlobalContextKey::new("f".into()), signed_float_type, origin)?;
+
     scope.append(
         GlobalContextKey::new("uf".into()),
         unsigned_float_type,
         origin,
     )?;
 
-    Ok(())
+    scope.append(GlobalContextKey::new("str".into()), string_type, origin)?;
+    scope
+        .append(GlobalContextKey::new("char".into()), char_type, origin)?;
+        .Ok(())
 }
