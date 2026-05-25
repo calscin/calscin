@@ -46,7 +46,5 @@ pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K)
     )?;
 
     scope.append(GlobalContextKey::new("str".into()), string_type, origin)?;
-    scope
-        .append(GlobalContextKey::new("char".into()), char_type, origin)?;
-        .Ok(())
+    scope.append(GlobalContextKey::new("char".into()), char_type, origin)?;
 }
