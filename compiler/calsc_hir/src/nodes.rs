@@ -1,6 +1,6 @@
 //! The node declarations for the HIR.
 
-use std::collections::HashMap;
+use std::{collections::HashMap, fmt::Display};
 
 use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
