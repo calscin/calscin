@@ -42,6 +42,13 @@ impl BaseTypeKind {
         }
     }
 
+    pub fn is_numerical_lit(&self) -> bool {
+        match self {
+            Self::Integer { .. } | Self::Floating { .. } => true,
+            _ => false,
+        }
+    }
+
     pub fn get_name(&self) -> HashedString {
         let s = match self {
             Self::Boolean => "bool",

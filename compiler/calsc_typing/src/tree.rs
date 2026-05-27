@@ -86,6 +86,21 @@ impl Type {
             Self::Base(_) => true,
         }
     }
+
+    pub fn as_base(&self) -> BaseTypeInstance {
+        match self {
+            Self::Base(base) => base.clone(),
+            _ => panic!(),
+        }
+    }
+
+    pub fn is_direct_numeric_generic(&self) -> bool {
+        if !self.is_base() {
+            return false;
+        }
+
+        return self.as_base().ty.kind.is_numerical_lit();
+    }
 }
 
 impl FieldHavingType for Type {

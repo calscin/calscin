@@ -38,6 +38,10 @@ impl HIRNode {
             return Err(build_expected_error(&ty, &self_type, self).into());
         }
 
+        if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
+            return convert_numerical_literal_into(self.clone(), local_ctx, self);
+        }
+
         let node = HIRNode::new(
             HIRNodeKind::CastNode {
                 original: self.clone().push(),
@@ -83,4 +87,12 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
     } else {
         unsafe { unreachable_unchecked() }
     }
+}
+
+pub fn convert_numerical_literal_into<K: DiagnosticSource>(
+    lit: HIRNode,
+    local_ctx: Option<&LocalContext>,
+    origin: &K,
+) -> DiagResult<HIRNode> {
+    todo!()
 }

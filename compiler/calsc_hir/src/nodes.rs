@@ -254,6 +254,14 @@ impl HIRNode {
 
         Ok(ty)
     }
+
+    pub fn is_numerical_lit(&self) -> bool {
+        match self.kind {
+            HIRNodeKind::IntLiteral(_, _, _) => true,
+            HIRNodeKind::FloatLiteral(_, _, _) => true,
+            _ => false,
+        }
+    }
 }
 
 impl DiagnosticSource for HIRNode {
