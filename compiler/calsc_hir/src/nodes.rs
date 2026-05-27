@@ -24,10 +24,10 @@ use crate::{
 #[derive(Clone)]
 pub enum HIRNodeKind {
     /// An integer literal
-    IntLiteral(i128),
+    IntLiteral(i128, usize, bool),
 
     /// A float literal
-    FloatLiteral(f64),
+    FloatLiteral(f64, usize, bool),
 
     /// A string literal
     StringLiteral(String),
@@ -171,8 +171,8 @@ impl HIRNode {
     ///
     pub fn get_type(&self, local_ctx: Option<&LocalContext>) -> DiagResult<Option<Type>> {
         let ty = match self.kind.clone() {
-            HIRNodeKind::IntLiteral(v) => Some(make_int_type(v < 0, 128, self)),
-            HIRNodeKind::FloatLiteral(v) => Some(make_float_type(v < 0.0, 128, self)),
+            HIRNodeKind::IntLiteral(_, size, signed) => Some(make_int_type(signed, size, self)),
+            HIRNodeKind::FloatLiteral(_, size, signed) => Some(make_float_type(signed, size, self)),
             HIRNodeKind::StringLiteral(_) => Some(make_string_type(self)),
             HIRNodeKind::CharLiteral(_) => Some(make_char_type(self)),
             HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
