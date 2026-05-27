@@ -8,12 +8,16 @@ use calsc_hir::{
     localctx::LocalContext,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
+    types::make_bool_type,
 };
 
-use crate::stage2::values::{
-    booleans::lower_hir_inverse_condition,
-    lits::lower_ast_literal,
-    ptrs::{lower_ast_pointer_dereference, lower_ast_pointer_reference},
+use crate::stage2::{
+    values::{
+        booleans::lower_hir_inverse_condition,
+        lits::lower_ast_literal,
+        ptrs::{lower_ast_pointer_dereference, lower_ast_pointer_reference},
+    },
+    vars::lower_hir_variable_reference,
 };
 
 pub mod booleans;
@@ -38,6 +42,11 @@ pub fn lower_ast_value(
         ASTNodeKind::PointerDereference(_) => lower_ast_pointer_dereference(node, local_ctx),
 
         ASTNodeKind::Range { .. } => lower_ast_range(node, local_ctx),
+
+        ASTNodeKind::MathExpression { .. } => lower_ast_math_expression(node, local_ctx),
+        ASTNodeKind::CompareExpression { .. } => lower_ast_compare_expression(node, local_ctx),
+
+        ASTNodeKind::ElementReference(_) => lower_hir_variable_reference(node, local_ctx),
 
         _ => unsafe { unreachable_unchecked() },
     }
@@ -85,6 +94,96 @@ pub fn lower_ast_range(
                 start,
                 end,
                 increment: incr,
+            },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_math_expression(
+    node: ASTNode,
+    local_ctx: Option<&LocalContext>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::MathExpression {
+        left_expr,
+        right_expr,
+        operator,
+    } = &node.kind
+    {
+        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx)?;
+        let left_expr_type = left_expr.get_type(local_ctx)?;
+
+        if left_expr_type.is_none() || !left_expr_type.clone().unwrap().is_direct_numeric_generic()
+        {
+            return Err(build_expected_error(
+                &"numeric type".to_string(),
+                &"".to_string(),
+                &*left_expr,
+            )
+            .into());
+        }
+
+        let left_expr_type = left_expr_type.unwrap();
+
+        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx)?
+            .use_as(left_expr_type.clone(), local_ctx)?
+            .push();
+
+        let node = HIRNode::new(
+            HIRNodeKind::MathExpression {
+                left_expr,
+                right_expr,
+                operator: operator.clone(),
+            },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_compare_expression(
+    node: ASTNode,
+    local_ctx: Option<&LocalContext>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::CompareExpression {
+        left_expr,
+        right_expr,
+        operator,
+    } = &node.kind
+    {
+        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx)?;
+        let left_expr_type = left_expr.get_type(local_ctx)?;
+
+        if left_expr_type.is_none() || !left_expr_type.clone().unwrap().is_direct_numeric_generic()
+        {
+            return Err(build_expected_error(
+                &"numeric type".to_string(),
+                &"".to_string(),
+                &*left_expr,
+            )
+            .into());
+        }
+
+        let left_expr_type = left_expr_type.unwrap();
+
+        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx)?
+            .use_as(left_expr_type.clone(), local_ctx)?
+            .push();
+
+        let node = HIRNode::new(
+            HIRNodeKind::CompareExpression {
+                left_expr,
+                right_expr,
+                operator: operator.clone(),
             },
             node.start.clone(),
             node.end.clone(),

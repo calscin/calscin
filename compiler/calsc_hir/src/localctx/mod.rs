@@ -160,16 +160,13 @@ impl LocalContext {
     /// # Errors
     /// This function will error if the variable wasn't found or isn't alive anymore.
     ///
-    pub fn obtain<K: DiagnosticSource>(
-        &mut self,
-        name: HashedString,
-        origin: &K,
-    ) -> DiagResult<usize> {
+    pub fn obtain<K: DiagnosticSource>(&self, name: HashedString, origin: &K) -> DiagResult<usize> {
         match self.hash_to_ind.get(&name) {
             None => {
                 return Err(build_cannot_find_element_no_closest(&*name, origin).into());
             }
 
+            // TODO: add usage tracking
             Some(ind) => {
                 let ind = *ind;
 
@@ -177,7 +174,7 @@ impl LocalContext {
                     return Err(build_cannot_find_element_no_closest(&*name, origin).into());
                 }
 
-                self.variables[ind].introduce_usage();
+                //self.variables[ind].introduce_usage();
 
                 Ok(ind)
             }
