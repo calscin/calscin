@@ -262,6 +262,19 @@ impl HIRNode {
             _ => false,
         }
     }
+
+    /// Does the node represent a pointer referencable
+    pub fn represents_pointer_referencable(&self) -> bool {
+        match &self.kind {
+            HIRNodeKind::VariableReference { .. } => true,
+            HIRNodeKind::StructLRUsage {
+                left_expr: _,
+                right_expr,
+            } => right_expr.represents_pointer_referencable(),
+
+            _ => false,
+        }
+    }
 }
 
 impl DiagnosticSource for HIRNode {
