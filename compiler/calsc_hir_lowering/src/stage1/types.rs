@@ -100,9 +100,7 @@ pub fn lower_ast_type<K: DiagnosticSource>(
             if inst.is_some() {
                 let inst = inst.clone().unwrap();
 
-                // TODO: enforce that b and c are empty since it is a type parameter
-
-                if inst.has_type_parameter(a.clone()) {
+                if inst.has_type_parameter(a.clone()) && b.is_none() && c.is_empty() {
                     return Ok(inst.get_type_parameter_type(a));
                 }
             }

@@ -8,7 +8,6 @@ use calsc_hir::{
     localctx::LocalContext,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
-    types::make_bool_type,
 };
 
 use crate::stage2::{
