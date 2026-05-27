@@ -129,6 +129,15 @@ pub fn lower_ast_math_expression(
             .into());
         }
 
+        if operator.assigns && !left_expr.represents_mutable_variable() {
+            return Err(build_expected_error(
+                &"mutable variable-like".to_string(),
+                &"".to_string(),
+                &*left_expr,
+            )
+            .into());
+        }
+
         let left_expr_type = left_expr_type.unwrap();
 
         let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx)?

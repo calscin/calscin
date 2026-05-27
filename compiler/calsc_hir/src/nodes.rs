@@ -275,6 +275,21 @@ impl HIRNode {
             _ => false,
         }
     }
+
+    /// Does the node represent a mutable variable-like
+    pub fn represents_mutable_variable(&self) -> bool {
+        match &self.kind {
+            HIRNodeKind::VariableReference { .. } => true,
+            HIRNodeKind::StructLRUsage {
+                left_expr,
+                right_expr,
+            } => {
+                left_expr.represents_mutable_variable() && right_expr.represents_mutable_variable()
+            }
+
+            _ => false,
+        }
+    }
 }
 
 impl DiagnosticSource for HIRNode {
