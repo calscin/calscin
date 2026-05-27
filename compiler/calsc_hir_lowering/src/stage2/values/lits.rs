@@ -16,6 +16,7 @@ pub fn lower_ast_literal(node: ASTNode) -> DiagResult<HIRArenaReference> {
         ASTNodeKind::FloatLiteral(val) => HIRNodeKind::FloatLiteral(*val, 128, *val < 0.0),
         ASTNodeKind::StringLiteral(val) => HIRNodeKind::StringLiteral(val.clone()),
         ASTNodeKind::CharLiteral(val) => HIRNodeKind::CharLiteral(*val),
+        ASTNodeKind::BooleanLiteral(val) => HIRNodeKind::BooleanLiteral(*val),
 
         _ => unsafe { unreachable_unchecked() },
     };
