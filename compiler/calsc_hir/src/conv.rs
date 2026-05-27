@@ -6,7 +6,9 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_expected_error, build_missing_field, build_unexpected_error},
 };
-use calsc_typing::{FieldHavingType, TransmutableType, tree::Type};
+use calsc_typing::{
+    FieldHavingType, TransmutableType, base::instance::BaseTypeInstance, tree::Type,
+};
 
 use crate::{
     localctx::LocalContext,
@@ -39,7 +41,7 @@ impl HIRNode {
         }
 
         if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
-            return convert_numerical_literal_into(self.clone(), local_ctx, self);
+            return convert_numerical_literal_into(self.clone(), ty.as_base());
         }
 
         let node = HIRNode::new(
@@ -89,10 +91,25 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
     }
 }
 
-pub fn convert_numerical_literal_into<K: DiagnosticSource>(
-    lit: HIRNode,
-    local_ctx: Option<&LocalContext>,
-    origin: &K,
-) -> DiagResult<HIRNode> {
-    todo!()
+pub fn convert_numerical_literal_into(lit: HIRNode, ty: BaseTypeInstance) -> DiagResult<HIRNode> {
+    let size = ty.size_specifiers[0];
+    let signed = ty.ty.kind.get_signed_state();
+
+    if let HIRNodeKind::IntLiteral(val, _, _) = &lit.kind {
+        return Ok(HIRNode::new(
+            HIRNodeKind::IntLiteral(*val, size, signed),
+            lit.start.clone(),
+            lit.end.clone(),
+        ));
+    }
+
+    if let HIRNodeKind::FloatLiteral(val, _, _) = &lit.kind {
+        return Ok(HIRNode::new(
+            HIRNodeKind::FloatLiteral(*val, size, signed),
+            lit.start.clone(),
+            lit.end.clone(),
+        ));
+    }
+
+    unsafe { unreachable_unchecked() }
 }

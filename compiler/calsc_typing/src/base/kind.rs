@@ -49,6 +49,14 @@ impl BaseTypeKind {
         }
     }
 
+    pub fn get_signed_state(&self) -> bool {
+        match self {
+            Self::Integer { signed } => *signed,
+            Self::Floating { signed } => *signed,
+            _ => panic!(),
+        }
+    }
+
     pub fn get_name(&self) -> HashedString {
         let s = match self {
             Self::Boolean => "bool",
