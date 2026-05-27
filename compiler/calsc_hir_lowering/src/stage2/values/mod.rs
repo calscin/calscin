@@ -1,6 +1,6 @@
 //! Lowering for values
 
-use std::hint::unreachable_unchecked;
+use std::{collections::HashMap, hint::unreachable_unchecked};
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
@@ -46,6 +46,8 @@ pub fn lower_ast_value(
         ASTNodeKind::CompareExpression { .. } => lower_ast_compare_expression(node, local_ctx),
 
         ASTNodeKind::ElementReference(_) => lower_hir_variable_reference(node, local_ctx),
+
+        ASTNodeKind::StructuredInit { .. } => lower_ast_structured_init(node, local_ctx),
 
         _ => unsafe { unreachable_unchecked() },
     }
@@ -184,6 +186,29 @@ pub fn lower_ast_compare_expression(
                 right_expr,
                 operator: operator.clone(),
             },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_structured_init(
+    node: ASTNode,
+    local_ctx: Option<&LocalContext>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::StructuredInit { values } = node.kind.clone() {
+        let mut hir_values = HashMap::new();
+
+        for (k, v) in values {
+            hir_values.insert(k, lower_ast_value(ASTNode::clone(&v), local_ctx)?);
+        }
+
+        let node = HIRNode::new(
+            HIRNodeKind::StructuredInit { values: hir_values },
             node.start.clone(),
             node.end.clone(),
         );
