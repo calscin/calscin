@@ -5,7 +5,7 @@ use std::{collections::HashMap, hint::unreachable_unchecked};
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
 use calsc_hir::{
-    localctx::LocalContext,
+    globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
 };
@@ -26,7 +26,7 @@ pub mod ptrs;
 /// Lowers an AST value into an HIR value
 pub fn lower_ast_value(
     node: ASTNode,
-    local_ctx: Option<&LocalContext>,
+    local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     match node.kind {
         ASTNodeKind::IntLiteral(_)
@@ -55,7 +55,7 @@ pub fn lower_ast_value(
 
 pub fn lower_ast_range(
     node: ASTNode,
-    local_ctx: Option<&LocalContext>,
+    local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::Range {
         start,
@@ -63,8 +63,8 @@ pub fn lower_ast_range(
         increment,
     } = &node.kind
     {
-        let start = lower_ast_value(ASTNode::clone(start), local_ctx)?;
-        let start_type = start.get_type(local_ctx)?;
+        let start = lower_ast_value(ASTNode::clone(start), local_ctx.clone())?;
+        let start_type = start.get_type(local_ctx.clone())?;
 
         if start_type.is_none() {
             return Err(build_expected_error(
@@ -77,8 +77,8 @@ pub fn lower_ast_range(
 
         let start_type = start_type.unwrap();
 
-        let end = lower_ast_value(ASTNode::clone(end), local_ctx)?
-            .use_as(start_type.clone(), local_ctx)?
+        let end = lower_ast_value(ASTNode::clone(end), local_ctx.clone())?
+            .use_as(start_type.clone(), local_ctx.clone())?
             .push();
 
         let mut incr = None;
@@ -108,7 +108,7 @@ pub fn lower_ast_range(
 
 pub fn lower_ast_math_expression(
     node: ASTNode,
-    local_ctx: Option<&LocalContext>,
+    local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::MathExpression {
         left_expr,
@@ -116,8 +116,8 @@ pub fn lower_ast_math_expression(
         operator,
     } = &node.kind
     {
-        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx)?;
-        let left_expr_type = left_expr.get_type(local_ctx)?;
+        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx.clone())?;
+        let left_expr_type = left_expr.get_type(local_ctx.clone())?;
 
         if left_expr_type.is_none() || !left_expr_type.clone().unwrap().is_direct_numeric_generic()
         {
@@ -140,7 +140,7 @@ pub fn lower_ast_math_expression(
 
         let left_expr_type = left_expr_type.unwrap();
 
-        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx)?
+        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?
             .use_as(left_expr_type.clone(), local_ctx)?
             .push();
 
@@ -162,7 +162,7 @@ pub fn lower_ast_math_expression(
 
 pub fn lower_ast_compare_expression(
     node: ASTNode,
-    local_ctx: Option<&LocalContext>,
+    local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::CompareExpression {
         left_expr,
@@ -170,8 +170,8 @@ pub fn lower_ast_compare_expression(
         operator,
     } = &node.kind
     {
-        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx)?;
-        let left_expr_type = left_expr.get_type(local_ctx)?;
+        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx.clone())?;
+        let left_expr_type = left_expr.get_type(local_ctx.clone())?;
 
         if left_expr_type.is_none() || !left_expr_type.clone().unwrap().is_direct_numeric_generic()
         {
@@ -185,7 +185,7 @@ pub fn lower_ast_compare_expression(
 
         let left_expr_type = left_expr_type.unwrap();
 
-        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx)?
+        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?
             .use_as(left_expr_type.clone(), local_ctx)?
             .push();
 
@@ -207,13 +207,13 @@ pub fn lower_ast_compare_expression(
 
 pub fn lower_ast_structured_init(
     node: ASTNode,
-    local_ctx: Option<&LocalContext>,
+    local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::StructuredInit { values } = node.kind.clone() {
         let mut hir_values = HashMap::new();
 
         for (k, v) in values {
-            hir_values.insert(k, lower_ast_value(ASTNode::clone(&v), local_ctx)?);
+            hir_values.insert(k, lower_ast_value(ASTNode::clone(&v), local_ctx.clone())?);
         }
 
         let node = HIRNode::new(

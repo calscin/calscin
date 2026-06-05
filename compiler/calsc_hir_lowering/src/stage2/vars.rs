@@ -5,19 +5,30 @@ use std::hint::unreachable_unchecked;
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::DiagResult;
 use calsc_hir::{
-    localctx::LocalContext,
+    HIR_CONTEXT,
+    globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
 };
 
 pub fn lower_hir_variable_reference(
     node: ASTNode,
-    curr_ctx: Option<&LocalContext>,
+    curr_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::ElementReference(val) = &node.kind {
-        let curr_ctx = curr_ctx.unwrap();
+        let res = HIR_CONTEXT.with_borrow(|f| {
+            f.scope
+                .get_entry(curr_ctx.unwrap(), &node)
+                .unwrap()
+                .as_function(&node)
+                .unwrap()
+                .local_context
+                .as_ref()
+                .unwrap()
+                .obtain(val.clone(), &node)
+        });
 
-        let ind = curr_ctx.obtain(val.clone(), &node)?;
+        let ind = res?;
 
         let node = HIRNode::new(
             HIRNodeKind::VariableReference {

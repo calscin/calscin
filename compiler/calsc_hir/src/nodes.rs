@@ -14,7 +14,6 @@ use calsc_utils::{
 use crate::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
-    localctx::LocalContext,
     refs::HIRArenaReference,
     types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
 };
@@ -169,7 +168,7 @@ impl HIRNode {
     /// This function will panic if references are wrong
     ///
     ///
-    pub fn get_type(&self, local_ctx: Option<&LocalContext>) -> DiagResult<Option<Type>> {
+    pub fn get_type(&self, local_func_key: Option<GlobalContextKey>) -> DiagResult<Option<Type>> {
         let ty = match self.kind.clone() {
             HIRNodeKind::IntLiteral(_, size, signed) => Some(make_int_type(signed, size, self)),
             HIRNodeKind::FloatLiteral(_, size, signed) => Some(make_float_type(signed, size, self)),
@@ -180,11 +179,11 @@ impl HIRNode {
 
             HIRNodeKind::PointerDereference(val) => Some(Type::Reference {
                 mutable: true, // Mutable by default, will change
-                inner: Box::new(val.get_type(local_ctx)?.unwrap()),
+                inner: Box::new(val.get_type(local_func_key)?.unwrap()),
             }),
 
             HIRNodeKind::PointerReference(val) => {
-                Some(val.get_type(local_ctx)?.unwrap().get_inner()) // Assumes the container of a pointer reference is a pointer.
+                Some(val.get_type(local_func_key)?.unwrap().get_inner()) // Assumes the container of a pointer reference is a pointer.
             }
 
             HIRNodeKind::MathExpression {
@@ -195,7 +194,7 @@ impl HIRNode {
                 if operator.assigns {
                     None
                 } else {
-                    left_expr.get_type(local_ctx)?
+                    left_expr.get_type(local_func_key)?
                 }
             }
 
@@ -205,10 +204,22 @@ impl HIRNode {
                 name: _,
                 variable_index,
             } => {
-                if local_ctx.is_none() {
+                if local_func_key.is_none() {
                     None
                 } else {
-                    Some(local_ctx.unwrap().variables[variable_index].ty.clone())
+                    Some(HIR_CONTEXT.with_borrow(|f| {
+                        f.scope
+                            .get_entry(local_func_key.unwrap(), self)
+                            .unwrap()
+                            .as_function(self)
+                            .unwrap()
+                            .local_context
+                            .as_ref()
+                            .unwrap()
+                            .variables[variable_index]
+                            .ty
+                            .clone()
+                    }))
                 }
             }
 
@@ -228,7 +239,7 @@ impl HIRNode {
                 left_expr,
                 right_expr,
             } => {
-                let ty = left_expr.get_type(local_ctx)?;
+                let ty = left_expr.get_type(local_func_key)?;
 
                 if ty.is_none() {
                     None
