@@ -94,6 +94,17 @@ impl Type {
         }
     }
 
+    /// Checks whenever the given type is an empty base type
+    /// An "empty" base type represents a [`Type::Base`] without:
+    /// - type parameters
+    /// - size specifiers
+    pub fn is_empty_base(&self) -> bool {
+        match self {
+            Self::Base(base) => base.size_specifiers.is_empty() && base.type_parameters.is_empty(),
+            _ => false,
+        }
+    }
+
     pub fn is_direct_numeric_generic(&self) -> bool {
         if !self.is_base() {
             return false;
