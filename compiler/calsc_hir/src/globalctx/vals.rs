@@ -91,16 +91,12 @@ impl GlobalContextValue {
     /// # Erorrs
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type
     ///
-    pub fn mutate_type<K: DiagnosticSource, F, R>(&mut self, func: F, origin: &K) -> DiagPossible
+    pub fn mutate_type<K: DiagnosticSource, F, R>(&mut self, func: F, origin: &K) -> DiagResult<R>
     where
         F: FnOnce(&mut BaseType) -> R,
     {
         match self {
-            Self::Type(inst) => {
-                func(inst);
-
-                Ok(())
-            }
+            Self::Type(inst) => Ok(func(inst)),
 
             _ => Err(build_expected_error(&"type".to_string(), self, origin).into()),
         }
@@ -117,16 +113,12 @@ impl GlobalContextValue {
         &mut self,
         func: F,
         origin: &K,
-    ) -> DiagPossible
+    ) -> DiagResult<R>
     where
         F: FnOnce(&mut Type) -> R,
     {
         match self {
-            Self::TypeAlias(inst) => {
-                func(inst);
-
-                Ok(())
-            }
+            Self::TypeAlias(inst) => Ok(func(inst)),
 
             _ => Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
         }
@@ -143,16 +135,12 @@ impl GlobalContextValue {
         &mut self,
         func: F,
         origin: &K,
-    ) -> DiagPossible
+    ) -> DiagResult<R>
     where
         F: FnOnce(&mut HIRFunction) -> R,
     {
         match self {
-            Self::Function(f) => {
-                func(f);
-
-                Ok(())
-            }
+            Self::Function(f) => Ok(func(f)),
 
             _ => Err(build_expected_error(&"function".to_string(), self, origin).into()),
         }

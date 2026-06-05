@@ -97,7 +97,7 @@ impl GlobalContext {
         key: GlobalContextKey,
         func: F,
         origin: &K,
-    ) -> DiagPossible
+    ) -> DiagResult<R>
     where
         F: FnOnce(&mut GlobalContextValue) -> R,
     {
@@ -107,9 +107,7 @@ impl GlobalContext {
 
         let entry = &mut self.values[self.key_to_ind[&key]];
 
-        func(entry);
-
-        Ok(())
+        Ok(func(entry))
     }
 }
 

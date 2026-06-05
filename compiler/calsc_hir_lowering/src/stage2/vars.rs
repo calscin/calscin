@@ -11,6 +11,9 @@ use calsc_hir::{
     refs::HIRArenaReference,
 };
 
+use crate::stage1::types::lower_ast_type;
+
+#[deprecated = "will be changed to lower_ast_variable_reference"]
 pub fn lower_hir_variable_reference(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
@@ -34,6 +37,57 @@ pub fn lower_hir_variable_reference(
             HIRNodeKind::VariableReference {
                 name: val.clone(),
                 variable_index: ind,
+            },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_variable_declaration(
+    node: ASTNode,
+    curr_ctx: Option<GlobalContextKey>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::VariableDeclaration {
+        mutable,
+        var_type,
+        name,
+        value,
+    } = node.kind.clone()
+    {
+        let var_type = lower_ast_type(var_type, &node, None)?;
+
+        let id = HIR_CONTEXT.with_borrow_mut(|f| {
+            f.scope.mutate_entry(
+                curr_ctx.unwrap(),
+                |entry| {
+                    entry.mutate_function(
+                        |ff| {
+                            let local_ctx = ff.local_context.as_mut().unwrap();
+                            local_ctx.introduce_variable(
+                                name.clone(),
+                                var_type.clone(),
+                                value.is_some(),
+                                &node,
+                            )
+                        },
+                        &node,
+                    )
+                },
+                &node,
+            )
+        })???;
+
+        let node = HIRNode::new(
+            HIRNodeKind::VariableDeclaration {
+                mutable,
+                var_type,
+                name,
+                variable_index: id,
             },
             node.start.clone(),
             node.end.clone(),

@@ -65,7 +65,7 @@ pub fn lower_ast_function_decl_first_stage(
                     |e| e.mutate_type(|typ| typ.add_function(name, typed, &node), &node),
                     &node,
                 )
-            })?;
+            })???;
         }
 
         let func = HIRFunction::new_stage_1(key.clone(), local_ctx, target, ret_type, args);

@@ -132,7 +132,7 @@ pub fn lower_ast_function_decl(
                 |entry| entry.mutate_function(|ff| ff.impl_node = Some(r.clone()), &node),
                 &node,
             )
-        })?;
+        })??;
 
         Ok(r)
     } else {
