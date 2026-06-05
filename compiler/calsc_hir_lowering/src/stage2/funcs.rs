@@ -83,7 +83,6 @@ pub fn lower_ast_function_call(
 pub fn lower_ast_function_decl(
     node: ASTNode,
     ty: Option<BaseType>,
-    local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::FunctionDeclaration {
         name,
@@ -109,7 +108,10 @@ pub fn lower_ast_function_decl(
             ret_type = None;
         }
 
-        let body = lower_ast_body(body.iter().map(|f| ASTNode::clone(f)).collect(), local_ctx)?;
+        let body = lower_ast_body(
+            body.iter().map(|f| ASTNode::clone(f)).collect(),
+            Some(key.clone()),
+        )?;
 
         let n = HIRNode::new(
             HIRNodeKind::FunctionDeclaration {
