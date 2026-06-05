@@ -5,7 +5,10 @@ use std::fmt::{Debug, Display};
 use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource, diags::errors::build_expected_error,
 };
-use calsc_typing::{base::BaseType, tree::Type};
+use calsc_typing::{
+    base::{BaseType, instance::BaseTypeInstance},
+    tree::Type,
+};
 
 use crate::funcs::HIRFunction;
 
@@ -50,6 +53,21 @@ impl GlobalContextValue {
             Self::TypeAlias(ty) => Ok(ty.clone()),
 
             _ => return Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
+        }
+    }
+
+    /// Gets a type from the given [`GlobalContextValue`].
+    /// This function works both with types and type aliases and will craft a new empty [`Type::Base`] instance for raw types.
+    pub fn craft_type<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<Type> {
+        match self {
+            Self::TypeAlias(ty) => Ok(ty.clone()),
+            Self::Type(ty) => Ok(Type::Base(BaseTypeInstance::new(
+                ty.clone(),
+                vec![],
+                vec![],
+            ))),
+
+            _ => return Err(build_expected_error(&"type".to_string(), self, origin).into()),
         }
     }
 
