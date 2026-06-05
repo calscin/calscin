@@ -3,5 +3,6 @@
 //!
 //! The stage 2 should propagate the function body implementations
 
+pub mod funcs;
 pub mod values;
 pub mod vars;
