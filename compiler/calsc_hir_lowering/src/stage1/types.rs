@@ -5,7 +5,8 @@ use calsc_ast::{
     types::ASTType,
 };
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource, diags::errors::build_expected_error,
+    DiagPossible, DiagResult, DiagnosticSource,
+    diags::errors::{build_expected_error, build_unexpected_error},
 };
 use calsc_hir::{
     HIR_CONTEXT,
@@ -72,12 +73,20 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
             .into());
         }
 
-        lower_ast_generic_base(a, origin)
-    } else {
-        return Err(
-            build_expected_error(&"type name", &lower_ast_type(ty, origin, inst)?, origin).into(),
-        );
+        let ty = lower_ast_generic_base(a, origin)?;
+
+        if ty.is_empty_base() {
+            if let Type::Base(instance) = ty {
+                return Ok(instance.ty);
+            } else {
+                unreachable!()
+            }
+        }
     }
+
+    return Err(
+        build_expected_error(&"type name", &lower_ast_type(ty, origin, inst)?, origin).into(),
+    );
 }
 
 pub fn lower_ast_type<K: DiagnosticSource>(
@@ -105,25 +114,38 @@ pub fn lower_ast_type<K: DiagnosticSource>(
                 }
             }
 
-            let base_type = lower_ast_generic_base(a, origin)?;
-
             let mut size_specifiers = vec![];
+            let mut type_params = vec![];
 
             if b.is_some() {
                 size_specifiers.push(b.unwrap());
             }
 
-            let mut type_params = vec![];
-
             for param in c {
                 type_params.push(lower_ast_type(param, origin, inst.clone())?);
             }
 
-            Ok(Type::Base(BaseTypeInstance::new(
-                base_type,
-                size_specifiers,
-                type_params,
-            )))
+            let ty = lower_ast_generic_base(a, origin)?;
+
+            if !ty.is_empty_base() {
+                if !size_specifiers.is_empty() || !type_params.is_empty() {
+                    return Err(build_unexpected_error(
+                        &"additional type parameters or size specifiers".to_string(),
+                        origin,
+                    )
+                    .into());
+                }
+
+                return Ok(ty);
+            }
+
+            if let Type::Base(instance) = ty {
+                let instance = BaseTypeInstance::new(instance.ty, size_specifiers, type_params);
+
+                return Ok(Type::Base(instance));
+            } else {
+                unreachable!();
+            }
         }
     }
 }
@@ -131,12 +153,12 @@ pub fn lower_ast_type<K: DiagnosticSource>(
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
     name: HashedString,
     origin: &K,
-) -> DiagResult<BaseType> {
+) -> DiagResult<Type> {
     let key = GlobalContextKey::new(name);
 
-    let base_type = HIR_CONTEXT.with_borrow(|f| f.scope.get_entry(key, origin)?.as_type(origin))?;
+    let ty = HIR_CONTEXT.with_borrow(|f| f.scope.get_entry(key, origin)?.craft_type(origin))?;
 
-    Ok(base_type)
+    Ok(ty)
 }
 
 pub fn lower_ast_decl_block(node: ASTNode) -> DiagPossible {
