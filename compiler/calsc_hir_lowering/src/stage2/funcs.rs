@@ -10,7 +10,7 @@ use calsc_hir::{
 };
 use calsc_typing::base::BaseType;
 
-use crate::stage2::values::lower_ast_value;
+use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
 
 pub fn lower_ast_body_node(
     node: ASTNode,
@@ -75,6 +75,64 @@ pub fn lower_ast_function_call(
         );
 
         Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_function_decl(
+    node: ASTNode,
+    ty: Option<BaseType>,
+    local_ctx: Option<GlobalContextKey>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::FunctionDeclaration {
+        name,
+        arguments,
+        return_type,
+        body,
+    } = node.kind.clone()
+    {
+        let key = GlobalContextKey::new(name.clone());
+        let mut hir_arguments = vec![];
+        let ret_type;
+
+        for argument in arguments {
+            hir_arguments.push((
+                lower_ast_type(argument.0.clone(), &node, ty.clone())?,
+                argument.1,
+            ));
+        }
+
+        if return_type.is_some() {
+            ret_type = Some(lower_ast_type(return_type.unwrap(), &node, None)?);
+        } else {
+            ret_type = None;
+        }
+
+        let body = lower_ast_body(body.iter().map(|f| ASTNode::clone(f)).collect(), local_ctx)?;
+
+        let n = HIRNode::new(
+            HIRNodeKind::FunctionDeclaration {
+                key: key.clone(),
+                arguments: hir_arguments,
+                body,
+                return_type: ret_type,
+            },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        let r = n.push();
+
+        HIR_CONTEXT.with_borrow_mut(|f| {
+            f.scope.mutate_entry(
+                key.clone(),
+                |entry| entry.mutate_function(|ff| ff.impl_node = Some(r.clone()), &node),
+                &node,
+            )
+        })?;
+
+        Ok(r)
     } else {
         unsafe { unreachable_unchecked() }
     }

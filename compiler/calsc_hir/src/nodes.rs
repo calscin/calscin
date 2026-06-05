@@ -120,6 +120,7 @@ pub enum HIRNodeKind {
         key: GlobalContextKey,
         arguments: Vec<(Type, HashedString)>,
         body: Vec<HIRArenaReference>,
+        return_type: Option<Type>,
     },
 
     Loop {
