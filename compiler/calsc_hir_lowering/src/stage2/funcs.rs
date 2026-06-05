@@ -10,7 +10,10 @@ use calsc_hir::{
 };
 use calsc_typing::base::BaseType;
 
-use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
+use crate::{
+    stage1::types::lower_ast_type,
+    stage2::values::{lower_ast_value, lru::lower_ast_lru},
+};
 
 pub fn lower_ast_body_node(
     node: ASTNode,
@@ -18,6 +21,7 @@ pub fn lower_ast_body_node(
 ) -> DiagResult<HIRArenaReference> {
     match &node.kind {
         ASTNodeKind::FunctionCall { .. } => lower_ast_function_call(node, None, local_ctx),
+        ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
 
         _ => panic!(),
     }
@@ -58,10 +62,10 @@ pub fn lower_ast_function_call(
             )?);
         }
 
-        let is_function = HIR_CONTEXT
-            .with_borrow(|f| f.scope.get_entry(key.clone(), &node).unwrap().is_function());
+        let is_function =
+            HIR_CONTEXT.with_borrow(|f| Ok(f.scope.get_entry(key.clone(), &node)?.is_function()));
 
-        if !is_function {
+        if !is_function? {
             return Err(build_expected_error(&"function", &"?? TODO", &node).into());
         }
 

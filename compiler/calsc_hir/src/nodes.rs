@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_typing::{FieldHavingType, func::DeclBlockAffectedType, tree::Type};
+use calsc_typing::tree::Type;
 use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
@@ -79,6 +79,7 @@ pub enum HIRNodeKind {
     },
 
     FieldReference {
+        val: HIRArenaReference,
         name: HashedString,
     },
 
@@ -130,11 +131,6 @@ pub enum HIRNodeKind {
     WhileLoop {
         condition: HIRArenaReference,
         body: Vec<HIRArenaReference>,
-    },
-
-    StructLRUsage {
-        left_expr: HIRArenaReference,
-        right_expr: HIRArenaReference,
     },
 
     CastNode {
@@ -236,31 +232,6 @@ impl HIRNode {
                 ty?
             }
 
-            HIRNodeKind::StructLRUsage {
-                left_expr,
-                right_expr,
-            } => {
-                let ty = left_expr.get_type(local_func_key)?;
-
-                if ty.is_none() {
-                    None
-                } else {
-                    let ty = ty.unwrap();
-
-                    match &right_expr.kind {
-                        HIRNodeKind::FunctionCall { func, arguments: _ } => {
-                            ty.get_func_signature(func.name.clone()).1
-                        }
-
-                        HIRNodeKind::FieldReference { name } => {
-                            Some(ty.get_field_type(name.clone()))
-                        } // The creation of FieldReference should check if the field is there
-
-                        _ => panic!(),
-                    }
-                }
-            }
-
             _ => None,
         };
 
@@ -279,11 +250,7 @@ impl HIRNode {
     pub fn represents_pointer_referencable(&self) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
-            HIRNodeKind::StructLRUsage {
-                left_expr: _,
-                right_expr,
-            } => right_expr.represents_pointer_referencable(),
-
+            HIRNodeKind::FieldReference { .. } => true,
             _ => false,
         }
     }
@@ -292,12 +259,7 @@ impl HIRNode {
     pub fn represents_mutable_variable(&self) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
-            HIRNodeKind::StructLRUsage {
-                left_expr,
-                right_expr,
-            } => {
-                left_expr.represents_mutable_variable() && right_expr.represents_mutable_variable()
-            }
+            HIRNodeKind::FieldReference { val, name: _ } => val.represents_mutable_variable(),
 
             _ => false,
         }

@@ -11,9 +11,11 @@ use calsc_hir::{
 };
 
 use crate::stage2::{
+    funcs::lower_ast_function_call,
     values::{
         booleans::lower_hir_inverse_condition,
         lits::lower_ast_literal,
+        lru::lower_ast_lru,
         ptrs::{lower_ast_pointer_dereference, lower_ast_pointer_reference},
     },
     vars::lower_hir_variable_reference,
@@ -21,6 +23,7 @@ use crate::stage2::{
 
 pub mod booleans;
 pub mod lits;
+pub mod lru;
 pub mod ptrs;
 
 /// Lowers an AST value into an HIR value
@@ -45,7 +48,11 @@ pub fn lower_ast_value(
         ASTNodeKind::MathExpression { .. } => lower_ast_math_expression(node, local_ctx),
         ASTNodeKind::CompareExpression { .. } => lower_ast_compare_expression(node, local_ctx),
 
+        ASTNodeKind::FunctionCall { .. } => lower_ast_function_call(node, None, local_ctx),
+
         ASTNodeKind::ElementReference(_) => lower_hir_variable_reference(node, local_ctx),
+
+        ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
 
         ASTNodeKind::StructuredInit { .. } => lower_ast_structured_init(node, local_ctx),
 

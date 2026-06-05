@@ -105,6 +105,25 @@ impl Type {
         }
     }
 
+    /// Gets the [`BaseTypeInstance`] troguh transparent research.
+    /// Only references and base nodes won't panic here
+    pub fn get_transparent_real(&self) -> BaseTypeInstance {
+        match self {
+            Self::Base(base) => base.clone(),
+            Self::Reference { mutable: _, inner } => inner.get_transparent_real(),
+            _ => panic!(),
+        }
+    }
+
+    pub fn is_transparent_real(&self) -> bool {
+        match self {
+            Self::Base(_) => true,
+            Self::Reference { mutable: _, inner } => inner.is_transparent_real(),
+
+            _ => false,
+        }
+    }
+
     pub fn is_direct_numeric_generic(&self) -> bool {
         if !self.is_base() {
             return false;
