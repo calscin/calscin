@@ -63,7 +63,7 @@ pub fn lower_ast_variable_declaration(
 
         let id = HIR_CONTEXT.with_borrow_mut(|f| {
             f.scope.mutate_entry(
-                curr_ctx.unwrap(),
+                curr_ctx.clone().unwrap(),
                 |entry| {
                     entry.mutate_function(
                         |ff| {
@@ -82,10 +82,18 @@ pub fn lower_ast_variable_declaration(
             )
         })???;
 
+        let mut v = None;
+
+        if value.is_some() {
+            let value = lower_ast_value(ASTNode::clone(&value.unwrap()), curr_ctx.clone())?;
+            v = Some(value.use_as(var_type.clone(), curr_ctx.clone())?.push());
+        }
+
         let node = HIRNode::new(
             HIRNodeKind::VariableDeclaration {
                 mutable,
                 var_type,
+                value: v,
                 name,
                 variable_index: id,
             },
@@ -105,6 +113,7 @@ pub fn lower_ast_variable_assign(
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::Assignment { variable, value } = node.kind.clone() {
         let variable = lower_ast_value(ASTNode::clone(&variable), curr_ctx.clone())?;
+
         let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?
             .use_as(
                 variable.get_type(curr_ctx.clone())?.unwrap(),

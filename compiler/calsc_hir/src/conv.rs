@@ -41,7 +41,9 @@ impl HIRNode {
         }
 
         if !self_type.can_transmute(ty.clone()) {
-            return Err(build_expected_error(&ty, &self_type, self).into());
+            if self.is_weakly_typed() && !self_type.can_transmute_weakly(ty.clone()) {
+                return Err(build_expected_error(&ty, &self_type, self).into());
+            }
         }
 
         if self.is_numerical_lit() && ty.is_direct_numeric_generic() {

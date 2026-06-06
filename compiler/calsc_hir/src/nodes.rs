@@ -65,6 +65,8 @@ pub enum HIRNodeKind {
         mutable: bool,
         var_type: Type,
 
+        value: Option<HIRArenaReference>,
+
         name: HashedString,
 
         /// The actual index representing the index inside of the local context
