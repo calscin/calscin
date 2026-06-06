@@ -3,14 +3,12 @@
 use std::fmt::{Debug, Display};
 
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource, diags::errors::build_expected_error,
+    DiagResult, DiagnosticSource,
+    diags::errors::{build_expected_error, build_unexpected_error},
 };
-use calsc_typing::{
-    base::{BaseType, instance::BaseTypeInstance},
-    tree::Type,
-};
+use calsc_typing::{base::BaseType, tree::Type};
 
-use crate::funcs::HIRFunction;
+use crate::{funcs::HIRFunction, types::safely_make_type_instance};
 
 /// An entry / value inside of the global context.
 /// This shouldn't be clonable due to the inner data modification not being able to be synced
@@ -65,12 +63,23 @@ impl GlobalContextValue {
         type_parameters: Vec<Type>,
     ) -> DiagResult<Type> {
         match self {
-            Self::TypeAlias(ty) => Ok(ty.clone()),
-            Self::Type(ty) => Ok(Type::Base(BaseTypeInstance::new(
+            Self::TypeAlias(ty) => {
+                if size_specifiers.is_empty() && type_parameters.is_empty() {
+                    Ok(ty.clone())
+                } else {
+                    Err(build_unexpected_error(
+                        &"additional type parameters or size specifiers".to_string(),
+                        origin,
+                    )
+                    .into())
+                }
+            }
+            Self::Type(ty) => Ok(Type::Base(safely_make_type_instance(
                 ty.clone(),
-                vec![],
-                vec![],
-            ))),
+                size_specifiers,
+                type_parameters,
+                origin,
+            )?)),
 
             _ => return Err(build_expected_error(&"type".to_string(), self, origin).into()),
         }

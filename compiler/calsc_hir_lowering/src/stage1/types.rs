@@ -5,8 +5,7 @@ use calsc_ast::{
     types::ASTType,
 };
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource,
-    diags::errors::{build_expected_error, build_unexpected_error},
+    DiagPossible, DiagResult, DiagnosticSource, diags::errors::build_expected_error,
 };
 use calsc_hir::{
     HIR_CONTEXT,
@@ -14,9 +13,7 @@ use calsc_hir::{
 };
 use calsc_typing::{
     MutableFieldHavingType,
-    base::{
-        BaseType, instance::BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer,
-    },
+    base::{BaseType, kind::BaseTypeKind, structs::BaseStructContainer},
     params::TypeParameterHaving,
     tree::Type,
 };
@@ -73,7 +70,7 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
             .into());
         }
 
-        let ty = lower_ast_generic_base(a, origin)?;
+        let ty = lower_ast_generic_base(a, vec![], vec![], origin)?;
 
         if ty.is_empty_base() {
             if let Type::Base(instance) = ty {
@@ -125,38 +122,26 @@ pub fn lower_ast_type<K: DiagnosticSource>(
                 type_params.push(lower_ast_type(param, origin, inst.clone())?);
             }
 
-            let ty = lower_ast_generic_base(a, origin)?;
+            let ty = lower_ast_generic_base(a, size_specifiers, type_params, origin)?;
 
-            if !ty.is_empty_base() {
-                if !size_specifiers.is_empty() || !type_params.is_empty() {
-                    return Err(build_unexpected_error(
-                        &"additional type parameters or size specifiers".to_string(),
-                        origin,
-                    )
-                    .into());
-                }
-
-                return Ok(ty);
-            }
-
-            if let Type::Base(instance) = ty {
-                let instance = BaseTypeInstance::new(instance.ty, size_specifiers, type_params);
-
-                return Ok(Type::Base(instance));
-            } else {
-                unreachable!();
-            }
+            Ok(ty)
         }
     }
 }
 
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
     name: HashedString,
+    size_specifiers: Vec<usize>,
+    type_parameters: Vec<Type>,
     origin: &K,
 ) -> DiagResult<Type> {
     let key = GlobalContextKey::new(name);
 
-    let ty = HIR_CONTEXT.with_borrow(|f| f.scope.get_entry(key, origin)?.craft_type(origin))?;
+    let ty = HIR_CONTEXT.with_borrow(|f| {
+        f.scope
+            .get_entry(key, origin)?
+            .craft_type(origin, size_specifiers, type_parameters)
+    })?;
 
     Ok(ty)
 }
