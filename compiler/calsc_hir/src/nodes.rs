@@ -297,8 +297,13 @@ impl HIRNode {
         match &self.kind {
             HIRNodeKind::IntLiteral(_, _, _) => true,
             HIRNodeKind::FloatLiteral(_, _, _) => true,
+            HIRNodeKind::MathExpression {
+                left_expr,
+                right_expr,
+                operator: _,
+            } => left_expr.is_weakly_typed() && right_expr.is_weakly_typed(),
 
-            _ => true,
+            _ => false,
         }
     }
 }

@@ -164,6 +164,15 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
                 .with_borrow_mut(|f| f.nodes.arena[curr_node.refer].stronger_type = Some(ty));
         }
 
-        _ => panic!(),
+        HIRNodeKind::MathExpression {
+            left_expr,
+            right_expr,
+            operator: _,
+        } => {
+            weakly_transmute(left_expr.clone(), ty.clone());
+            weakly_transmute(right_expr.clone(), ty);
+        }
+
+        kind => panic!("Unexpected {:#?}", kind),
     }
 }
