@@ -71,7 +71,7 @@ pub fn test_complex_type_parsing() {
     assert_eq!(
         ty,
         ASTType::Reference(
-            false,
+            true,
             Box::new(ASTType::Array(
                 32,
                 Box::new(ASTType::Generic(
