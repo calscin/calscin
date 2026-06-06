@@ -37,6 +37,8 @@ pub fn lower_ast_body_node(
         ASTNodeKind::WhileLoop { .. } => lower_ast_while_loop(node, local_ctx),
         ASTNodeKind::Loop { .. } => lower_ast_loop(node, local_ctx),
 
+        ASTNodeKind::ReturnStatement { .. } => lower_ast_return_statement(node, local_ctx),
+
         _ => lower_ast_value(node, local_ctx),
     }
 }
@@ -49,7 +51,18 @@ pub fn lower_ast_body<K: DiagnosticSource>(
 ) -> DiagResult<Vec<HIRArenaReference>> {
     let mut hir_nodes = vec![];
 
+    let previous_branch = HIR_CONTEXT.with_borrow(|f| {
+        Ok(f.scope
+            .get_entry(local_ctx.clone().unwrap(), origin)?
+            .as_function(origin)?
+            .local_context
+            .as_ref()
+            .unwrap()
+            .current_branch)
+    })?;
+
     let mut branch = 0;
+    let mut last = &nodes[0];
 
     if introduce_branch {
         branch = HIR_CONTEXT.with_borrow_mut(|f| {
@@ -66,8 +79,9 @@ pub fn lower_ast_body<K: DiagnosticSource>(
         })??;
     }
 
-    for node in nodes {
-        hir_nodes.push(lower_ast_body_node(node, local_ctx.clone())?);
+    for node in &nodes {
+        last = &node;
+        hir_nodes.push(lower_ast_body_node(node.clone(), local_ctx.clone())?);
     }
 
     if introduce_branch {
@@ -77,7 +91,8 @@ pub fn lower_ast_body<K: DiagnosticSource>(
                 |entry| {
                     entry.mutate_function(
                         |ff| {
-                            ff.local_context.as_mut().unwrap().end_branch(branch);
+                            ff.local_context.as_mut().unwrap().end_branch(branch, last);
+                            ff.local_context.as_mut().unwrap().current_branch = previous_branch;
                         },
                         origin,
                     )
@@ -124,6 +139,34 @@ pub fn lower_ast_function_call(
                 func: key,
                 arguments: hir_arguments,
             },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_return_statement(
+    node: ASTNode,
+    local_ctx: Option<GlobalContextKey>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::ReturnStatement { val } = node.kind.clone() {
+        let v;
+
+        if val.is_some() {
+            v = Some(lower_ast_value(
+                ASTNode::clone(&val.unwrap()),
+                local_ctx.clone(),
+            )?);
+        } else {
+            v = None;
+        }
+
+        let node = HIRNode::new(
+            HIRNodeKind::ReturnStatement { val: v },
             node.start.clone(),
             node.end.clone(),
         );

@@ -132,6 +132,10 @@ pub enum HIRNodeKind {
         return_type: Option<Type>,
     },
 
+    ReturnStatement {
+        val: Option<HIRArenaReference>,
+    },
+
     Loop {
         body: Vec<HIRArenaReference>,
     },

@@ -44,13 +44,6 @@ impl HIRNode {
             return convert_structured_init_into(self.clone(), ty, local_func_key, self);
         }
 
-        println!("{:#?}", self);
-        println!("Can transmute weakly {}", self.is_weakly_typed());
-        println!(
-            "Can transmute weakly {}",
-            self_type.can_transmute_weakly(ty.clone())
-        );
-
         if self_type.can_transmute(ty.clone()) {
             if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
                 return convert_numerical_literal_into(self.clone(), ty.as_base());

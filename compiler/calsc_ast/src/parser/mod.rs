@@ -7,6 +7,7 @@ use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
+    nodes::{ASTNode, ASTNodeKind},
     parser::{
         control::{
             for_loop::parse_ast_for_loop, ifelse::parse_ast_if_statement, loops::parse_ast_loop,
@@ -63,8 +64,33 @@ pub fn parse_ast_node_body_member(
         TokenKind::Loop => parse_ast_loop(tokens, ind),
         TokenKind::While => parse_ast_while_loop(tokens, ind),
         TokenKind::If => parse_ast_if_statement(tokens, ind),
+        TokenKind::Return => parse_ast_return_statement(tokens, ind),
         _ => parse_ast_value(tokens, ind, true, true),
     }
+}
+
+pub fn parse_ast_return_statement(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<ASTArenaReference> {
+    let start = tokens[*ind].start.clone();
+
+    *ind += 1; // return
+
+    let val;
+
+    if tokens[*ind].kind == TokenKind::SemiColon {
+        val = None;
+        *ind += 1; // ;
+    } else {
+        val = Some(parse_ast_value(tokens, ind, true, false)?);
+    }
+
+    let end = tokens[*ind - 1].end.clone();
+
+    let node = ASTNode::new(ASTNodeKind::ReturnStatement { val }, start, end);
+
+    Ok(node.push())
 }
 
 /// Parses an AST body
