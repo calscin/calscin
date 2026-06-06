@@ -1,10 +1,10 @@
-func main() -> s32 {
-	var s32 add = 1 + 1
-	var s32 sub = 1 - 1
-	var s32 mul = 1 * 1
-	var s32 div = 1 / 1
-	var s32 mod = 1 \ 1
-	var s32 or = 1 -- 1
-	var s32 and = 1 ++ 1
-	var s32 xor = 1 !! 1
+func main() -> s.32 {
+	var s.32 add = 1 + 1;
+	var s.32 sub = 1 - 1;
+	var s.32 mul = 1 * 1;
+	var s.32 div = 1 / 1;
+	var s.32 mod = 1 \ 1;
+	var s.32 or = 1 -- 1;
+	var s.32 and = 1 ++ 1;
+	var s.32 xor = 1 !! 1;
 }

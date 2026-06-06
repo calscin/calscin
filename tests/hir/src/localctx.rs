@@ -12,13 +12,15 @@ use calsc_typing::{
 
 #[test]
 fn test_alive_branch_simple() {
+    let origin = PosDiagnosticSource::new(Default::default(), Default::default());
+
     let mut ctx = LocalContext::new("test".into(), None);
 
     let branch = ctx.start_branch();
 
     assert!(ctx.is_branch_alive(branch));
 
-    ctx.end_branch(branch);
+    ctx.end_branch(branch, &origin);
     assert!(!ctx.is_branch_alive(branch));
 }
 
@@ -42,7 +44,7 @@ fn test_alive_variable() {
 
     assert!(ctx.is_variable_alive(var));
 
-    ctx.end_branch(branch);
+    ctx.end_branch(branch, &origin);
 
     assert!(!ctx.is_variable_alive(var));
 }
@@ -71,8 +73,8 @@ fn test_alive_variable_next_branch() {
 
     assert!(ctx.is_variable_alive(var));
 
-    ctx.end_branch(branch2);
-    ctx.end_branch(branch);
+    ctx.end_branch(branch2, &origin);
+    ctx.end_branch(branch, &origin);
 
     assert!(!ctx.is_variable_alive(var));
 }
@@ -102,6 +104,8 @@ fn test_variable_gather() {
 
 #[test]
 pub fn test_ending_point() {
+    let origin = PosDiagnosticSource::new(Default::default(), Default::default());
+
     let mut ctx = LocalContext::new("test".into(), None);
 
     let branch = ctx.start_branch();
@@ -112,7 +116,7 @@ pub fn test_ending_point() {
 
     assert!(!ctx.is_code_in_branch_alive(branch));
 
-    ctx.end_branch(branch);
+    ctx.end_branch(branch, &origin);
     let _ = ctx.start_branch();
 
     assert!(ctx.meets_ending_point_requirement());
@@ -120,6 +124,8 @@ pub fn test_ending_point() {
 
 #[test]
 fn test_ending_point_unreal_branches() {
+    let origin = PosDiagnosticSource::new(Default::default(), Default::default());
+
     let mut ctx = LocalContext::new("test".into(), None);
 
     ctx.contain_unreal_branches = true;
@@ -132,19 +138,21 @@ fn test_ending_point_unreal_branches() {
 
     ctx.introduce_ending_point();
 
-    ctx.end_branch(branch2);
+    ctx.end_branch(branch2, &origin);
     ctx.move_branch(branch1);
 
     assert!(ctx.is_code_in_branch_alive(branch1));
     assert!(!ctx.is_code_in_branch_alive(branch2));
 
-    ctx.end_branch(branch1);
+    ctx.end_branch(branch1, &origin);
 
     assert!(!ctx.meets_ending_point_requirement());
 }
 
 #[test]
 fn test_ending_point_real_branches() {
+    let origin = PosDiagnosticSource::new(Default::default(), Default::default());
+
     let mut ctx = LocalContext::new("test".into(), None);
 
     let branch1 = ctx.start_branch();
@@ -155,13 +163,13 @@ fn test_ending_point_real_branches() {
 
     ctx.introduce_ending_point();
 
-    ctx.end_branch(branch2);
+    ctx.end_branch(branch2, &origin);
     ctx.move_branch(branch1);
 
     assert!(ctx.is_code_in_branch_alive(branch1));
     assert!(!ctx.is_code_in_branch_alive(branch2));
 
-    ctx.end_branch(branch1);
+    ctx.end_branch(branch1, &origin);
 
     assert!(!ctx.meets_ending_point_requirement());
 }

@@ -12,6 +12,7 @@ use crate::{funcs::HIRFunction, types::safely_make_type_instance};
 
 /// An entry / value inside of the global context.
 /// This shouldn't be clonable due to the inner data modification not being able to be synced
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum GlobalContextValue {
     /// Represents a type-based entry
     Type(BaseType),
@@ -189,19 +190,6 @@ impl GlobalContextValue {
 }
 
 impl Display for GlobalContextValue {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let s = match self {
-            Self::Type(_) => "type",
-            Self::TypeAlias(_) => "type alias",
-            Self::Function(_) => "function",
-        };
-
-        write!(f, "{}", s)
-    }
-}
-
-#[cfg(feature = "debug")]
-impl Debug for GlobalContextValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             Self::Type(_) => "type",

@@ -188,7 +188,16 @@ pub fn lower_ast_function_decl(
         body,
     } = node.kind.clone()
     {
-        let key = GlobalContextKey::new(name.clone());
+        let key;
+
+        if ty.is_some() {
+            key = GlobalContextKey::new_typed(name.clone(), ty.clone().unwrap());
+        } else {
+            key = GlobalContextKey::new(name.clone());
+        }
+
+        println!("Key: {}", key);
+
         let mut hir_arguments = vec![];
         let ret_type;
 
@@ -200,7 +209,7 @@ pub fn lower_ast_function_decl(
         }
 
         if return_type.is_some() {
-            ret_type = Some(lower_ast_type(return_type.unwrap(), &node, None)?);
+            ret_type = Some(lower_ast_type(return_type.unwrap(), &node, ty.clone())?);
         } else {
             ret_type = None;
         }
