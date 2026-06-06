@@ -105,7 +105,12 @@ pub fn lower_ast_variable_assign(
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::Assignment { variable, value } = node.kind.clone() {
         let variable = lower_ast_value(ASTNode::clone(&variable), curr_ctx.clone())?;
-        let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?;
+        let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?
+            .use_as(
+                variable.get_type(curr_ctx.clone())?.unwrap(),
+                curr_ctx.clone(),
+            )?
+            .push();
 
         if !variable.represents_mutable_variable() {
             return Err(build_expected_error(

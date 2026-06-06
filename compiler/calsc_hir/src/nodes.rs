@@ -276,6 +276,15 @@ impl HIRNode {
             _ => false,
         }
     }
+
+    pub fn is_weakly_typed(&self) -> bool {
+        match &self.kind {
+            HIRNodeKind::IntLiteral(_, _, _) => true,
+            HIRNodeKind::FloatLiteral(_, _, _) => true,
+
+            _ => true,
+        }
+    }
 }
 
 impl DiagnosticSource for HIRNode {
