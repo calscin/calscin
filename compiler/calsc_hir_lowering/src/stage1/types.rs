@@ -13,9 +13,7 @@ use calsc_hir::{
 };
 use calsc_typing::{
     MutableFieldHavingType,
-    base::{
-        BaseType, instance::BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer,
-    },
+    base::{BaseType, kind::BaseTypeKind, structs::BaseStructContainer},
     params::TypeParameterHaving,
     tree::Type,
 };
@@ -72,12 +70,20 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
             .into());
         }
 
-        lower_ast_generic_base(a, origin)
-    } else {
-        return Err(
-            build_expected_error(&"type name", &lower_ast_type(ty, origin, inst)?, origin).into(),
-        );
+        let ty = lower_ast_generic_base(a, vec![], vec![], origin)?;
+
+        if ty.is_empty_base() {
+            if let Type::Base(instance) = ty {
+                return Ok(instance.ty);
+            } else {
+                unreachable!()
+            }
+        }
     }
+
+    return Err(
+        build_expected_error(&"type name", &lower_ast_type(ty, origin, inst)?, origin).into(),
+    );
 }
 
 pub fn lower_ast_type<K: DiagnosticSource>(
@@ -100,45 +106,44 @@ pub fn lower_ast_type<K: DiagnosticSource>(
             if inst.is_some() {
                 let inst = inst.clone().unwrap();
 
-                // TODO: enforce that b and c are empty since it is a type parameter
-
-                if inst.has_type_parameter(a.clone()) {
+                if inst.has_type_parameter(a.clone()) && b.is_none() && c.is_empty() {
                     return Ok(inst.get_type_parameter_type(a));
                 }
             }
 
-            let base_type = lower_ast_generic_base(a, origin)?;
-
             let mut size_specifiers = vec![];
+            let mut type_params = vec![];
 
             if b.is_some() {
                 size_specifiers.push(b.unwrap());
             }
 
-            let mut type_params = vec![];
-
             for param in c {
                 type_params.push(lower_ast_type(param, origin, inst.clone())?);
             }
 
-            Ok(Type::Base(BaseTypeInstance::new(
-                base_type,
-                size_specifiers,
-                type_params,
-            )))
+            let ty = lower_ast_generic_base(a, size_specifiers, type_params, origin)?;
+
+            Ok(ty)
         }
     }
 }
 
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
     name: HashedString,
+    size_specifiers: Vec<usize>,
+    type_parameters: Vec<Type>,
     origin: &K,
-) -> DiagResult<BaseType> {
+) -> DiagResult<Type> {
     let key = GlobalContextKey::new(name);
 
-    let base_type = HIR_CONTEXT.with_borrow(|f| f.scope.get_entry(key, origin)?.as_type(origin))?;
+    let ty = HIR_CONTEXT.with_borrow(|f| {
+        f.scope
+            .get_entry(key, origin)?
+            .craft_type(origin, size_specifiers, type_parameters)
+    })?;
 
-    Ok(base_type)
+    Ok(ty)
 }
 
 pub fn lower_ast_decl_block(node: ASTNode) -> DiagPossible {

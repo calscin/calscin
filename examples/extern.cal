@@ -1,5 +1,5 @@
-externfunc printf(ptr fmt, ...);
+externfunc printf(ptr fmt, ...)
 
-func main() -> s32 {
-	printf("Hello World! From %d", 52)
+func main() -> s.32 {
+	printf("Hello World! From %d", 52);
 }

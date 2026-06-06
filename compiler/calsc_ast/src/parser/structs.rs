@@ -90,6 +90,8 @@ pub fn parse_ast_struct_decl_block(
         functions.push(func);
     }
 
+    *ind += 1;
+
     let end = tokens[*ind - 1].end.clone(); // Counters the auto increment
 
     let node = ASTNode::new(

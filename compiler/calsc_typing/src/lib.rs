@@ -15,6 +15,9 @@ pub trait FieldHavingType {
     /// Checks if the type has a field with the given name
     fn has_field(&self, name: HashedString) -> bool;
 
+    /// Gets the list of fields inside of the type
+    fn get_fields(&self) -> Vec<HashedString>;
+
     /// Gets the field with the given name's type.
     ///
     /// # Panic
@@ -39,4 +42,14 @@ pub trait MutableFieldHavingType {
         ty: Type,
         source: &K,
     ) -> DiagPossible;
+}
+
+/// Represents a type that can potentially transmute into another type
+pub trait TransmutableType {
+    /// Determines if the current type can be transmuted into the given type.
+    fn can_transmute(&self, into: Self) -> bool;
+
+    /// Determines if the current type can be transmuted into the given type.
+    /// Determines that the self instance of type is weakly typed (infered) and can be further overriden.
+    fn can_transmute_weakly(&self, into: Self) -> bool;
 }

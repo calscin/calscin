@@ -6,12 +6,15 @@ use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{globalctx::GlobalContext, nodes::HIRNode, refs::HIRArenaReference};
 
+pub mod conv;
 pub mod funcs;
 pub mod globalctx;
+pub mod ifs;
 pub mod localctx;
 pub mod nodes;
 pub mod prelude;
 pub mod refs;
+pub mod types;
 
 thread_local! {
     pub static HIR_CONTEXT: RefCell<HIRContext> = RefCell::new(HIRContext::new());

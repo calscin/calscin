@@ -1,9 +1,7 @@
-// In arguments, mut can only be used on pointers to decide 
-// if a pointer is mutable or immutable
-func move_from_pointer(mut s32* a, mut s32* b) { 
-	var s32 origin = *a // Gets the value of a
-	var s32 second = *b // gets the value of b
+func move_from_pointer(s.32& a, s.32& b) { 
+	var s.32 origin = *a;
+	var s.32 second = *b;
 
-	*b = origin // Changes the value of b
-	*a = second // Changes the value of a 
+	*b = origin;
+	*a = second;
 }

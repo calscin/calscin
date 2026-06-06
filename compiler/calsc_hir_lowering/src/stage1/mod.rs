@@ -43,10 +43,17 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
             ASTNodeKind::StructDeclaration { .. } => {
                 lower_ast_struct_declaration(ASTNode::clone(&node))?
             }
-            ASTNodeKind::StructDeclBlock { .. } => lower_ast_decl_block(ASTNode::clone(&node))?,
 
             _ => panic!(),
         };
+    }
+
+    for iter in ast_context.additional_tree {
+        match &iter.kind {
+            ASTNodeKind::StructDeclBlock { .. } => lower_ast_decl_block(ASTNode::clone(&iter))?,
+
+            _ => panic!(),
+        }
     }
 
     Ok(())

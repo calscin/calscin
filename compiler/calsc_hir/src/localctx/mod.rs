@@ -6,14 +6,16 @@
 //! - Finshing / ending points
 //!
 
-use std::collections::{HashMap, HashSet};
+use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_already_in_scope, build_cannot_find_element_no_closest},
+    diags::errors::{
+        build_already_in_scope, build_cannot_find_element_no_closest, build_variable_unalive,
+    },
 };
 use calsc_typing::tree::Type;
-use calsc_utils::hash::HashedString;
+use calsc_utils::{hash::HashedString, pos::FilePosition};
 
 use crate::localctx::vars::LocalContextVariable;
 
@@ -34,7 +36,8 @@ pub struct LocalContext {
     pub contain_unreal_branches: bool,
 
     /// Stores whenever each branch ends. If a branch is contained here, it ended.
-    pub branch_ends: HashSet<usize>,
+    pub branch_ends: HashMap<usize, usize>,
+    pub branch_ends_positions: HashMap<usize, (FilePosition, FilePosition)>,
 
     pub return_type: Option<Type>,
 
@@ -46,7 +49,8 @@ impl LocalContext {
         Self {
             name,
             hash_to_ind: HashMap::new(),
-            branch_ends: HashSet::new(),
+            branch_ends: HashMap::new(),
+            branch_ends_positions: HashMap::new(),
             ending_points: vec![],
             contain_unreal_branches: false,
             variables: vec![],
@@ -60,6 +64,7 @@ impl LocalContext {
     #[inline(always)]
     pub fn start_branch(&mut self) -> usize {
         self.current_branch += 1;
+
         self.current_branch
     }
 
@@ -78,8 +83,10 @@ impl LocalContext {
     /// **Warn: This doesn't change the current branch so make to change it naturally**
     ///
     #[inline(always)]
-    pub fn end_branch(&mut self, branch: usize) {
-        self.branch_ends.insert(branch);
+    pub fn end_branch<K: DiagnosticSource>(&mut self, branch: usize, origin: &K) {
+        self.branch_ends.insert(branch, self.current_branch);
+        self.branch_ends_positions
+            .insert(branch, (origin.get_start_pos(), origin.get_end_pos()));
     }
 
     /// Introduces a variable in the given era
@@ -141,7 +148,7 @@ impl LocalContext {
     /// Checks if the given branch is currently alive or not.
     #[inline(always)]
     pub fn is_branch_alive(&self, branch: usize) -> bool {
-        return !self.branch_ends.contains(&branch);
+        return !self.branch_ends.contains_key(&branch);
     }
 
     /// Checks if the variable corresponding to the given index is still currently alive.
@@ -160,24 +167,35 @@ impl LocalContext {
     /// # Errors
     /// This function will error if the variable wasn't found or isn't alive anymore.
     ///
-    pub fn obtain<K: DiagnosticSource>(
-        &mut self,
-        name: HashedString,
-        origin: &K,
-    ) -> DiagResult<usize> {
+    pub fn obtain<K: DiagnosticSource>(&self, name: HashedString, origin: &K) -> DiagResult<usize> {
         match self.hash_to_ind.get(&name) {
             None => {
                 return Err(build_cannot_find_element_no_closest(&*name, origin).into());
             }
 
+            // TODO: add usage tracking
             Some(ind) => {
                 let ind = *ind;
 
                 if !self.is_variable_alive(ind) {
-                    return Err(build_cannot_find_element_no_closest(&*name, origin).into());
+                    let introdued = self.variables[ind].introduced;
+                    let branch_end = self.branch_ends[&introdued];
+                    let positions = self.branch_ends_positions[&branch_end].clone();
+                    let start = positions.0;
+                    let end = positions.1;
+
+                    return Err(build_variable_unalive(
+                        &name,
+                        &introdued,
+                        &branch_end,
+                        origin,
+                        start,
+                        end,
+                    )
+                    .into());
                 }
 
-                self.variables[ind].introduce_usage();
+                //self.variables[ind].introduce_usage();
 
                 Ok(ind)
             }

@@ -6,7 +6,7 @@ use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_alrea
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType, MutableFieldHavingType,
+    FieldHavingType, MutableFieldHavingType, TransmutableType,
     base::kind::BaseTypeKind,
     func::{DeclBlockAffectedType, MutableDeclBlockAffectedType, TypeSignature, TypedFunction},
     params::TypeParameterHaving,
@@ -101,6 +101,10 @@ impl FieldHavingType for BaseType {
         self.kind.has_field(name)
     }
 
+    fn get_fields(&self) -> Vec<HashedString> {
+        self.kind.get_fields()
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         self.kind.get_field_type(name)
     }
@@ -128,6 +132,10 @@ impl TypeParameterHaving for BaseType {
             param_ind: self.type_params[&name],
         }
     }
+
+    fn get_type_parameter_count(&self) -> usize {
+        self.type_params.len()
+    }
 }
 
 impl PartialEq for BaseType {
@@ -141,5 +149,15 @@ impl Eq for BaseType {}
 impl Hash for BaseType {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
         self.kind.hash(state); // TODO: check if this works
+    }
+}
+
+impl TransmutableType for BaseType {
+    fn can_transmute(&self, into: Self) -> bool {
+        self.kind.can_transmute(into.kind)
+    }
+
+    fn can_transmute_weakly(&self, into: Self) -> bool {
+        self.can_transmute(into)
     }
 }

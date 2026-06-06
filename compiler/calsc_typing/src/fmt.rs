@@ -9,6 +9,8 @@ impl Display for BaseTypeKind {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             Self::Boolean => "bool",
+            Self::Char => "char",
+            Self::String => "str",
             Self::Floating { signed } => {
                 if *signed {
                     "f"

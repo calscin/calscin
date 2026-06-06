@@ -33,7 +33,7 @@ pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
         }
 
         TokenKind::Minus => {
-            if tokens[*ind].kind == TokenKind::Minus {
+            if tokens[*ind + 1].kind == TokenKind::Minus {
                 *ind += 1; // first -
 
                 MathOperation::Or

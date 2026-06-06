@@ -3,7 +3,8 @@
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    FieldHavingType, MutableFieldHavingType, base::structs::BaseStructContainer, tree::Type,
+    FieldHavingType, MutableFieldHavingType, TransmutableType, base::structs::BaseStructContainer,
+    tree::Type,
 };
 
 #[derive(PartialEq, Clone, Hash)] // Remove this and replace it with a custom implementation whenever structs are added
@@ -21,6 +22,12 @@ pub enum BaseTypeKind {
 
     Struct(BaseStructContainer),
 
+    /// A string type
+    String,
+
+    /// A char type
+    Char,
+
     /// A boolean type
     Boolean,
 }
@@ -35,9 +42,40 @@ impl BaseTypeKind {
         }
     }
 
+    pub fn is_int(&self) -> bool {
+        match self {
+            Self::Integer { .. } => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_float(&self) -> bool {
+        match self {
+            Self::Floating { .. } => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_numerical_lit(&self) -> bool {
+        match self {
+            Self::Integer { .. } | Self::Floating { .. } => true,
+            _ => false,
+        }
+    }
+
+    pub fn get_signed_state(&self) -> bool {
+        match self {
+            Self::Integer { signed } => *signed,
+            Self::Floating { signed } => *signed,
+            _ => panic!(),
+        }
+    }
+
     pub fn get_name(&self) -> HashedString {
         let s = match self {
             Self::Boolean => "bool",
+            Self::Char => "char",
+            Self::String => "str",
             Self::Floating { signed } => {
                 if *signed {
                     "f"
@@ -69,6 +107,13 @@ impl FieldHavingType for BaseTypeKind {
         }
     }
 
+    fn get_fields(&self) -> Vec<HashedString> {
+        match self {
+            Self::Struct(container) => container.get_fields(),
+            _ => vec![],
+        }
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         match self {
             Self::Struct(container) => container.get_field_type(name),
@@ -89,5 +134,24 @@ impl MutableFieldHavingType for BaseTypeKind {
 
             _ => panic!("Fields cannot be added onto this type"),
         }
+    }
+}
+
+impl TransmutableType for BaseTypeKind {
+    fn can_transmute(&self, into: Self) -> bool {
+        if self == &into {
+            return true;
+        }
+
+        match (self, into) {
+            (BaseTypeKind::Integer { signed }, BaseTypeKind::Integer { .. }) => !*signed, // Allow unsigned -> signed convertion
+            (BaseTypeKind::Floating { signed }, BaseTypeKind::Floating { .. }) => !*signed, // Allow unsigned -> signed convertion,
+
+            _ => false,
+        }
+    }
+
+    fn can_transmute_weakly(&self, into: Self) -> bool {
+        self.can_transmute(into)
     }
 }

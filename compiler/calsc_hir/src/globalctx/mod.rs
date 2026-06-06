@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource,
+    DiagResult, DiagnosticSource,
     diags::errors::{
         build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
     },
@@ -97,7 +97,7 @@ impl GlobalContext {
         key: GlobalContextKey,
         func: F,
         origin: &K,
-    ) -> DiagPossible
+    ) -> DiagResult<R>
     where
         F: FnOnce(&mut GlobalContextValue) -> R,
     {
@@ -107,9 +107,7 @@ impl GlobalContext {
 
         let entry = &mut self.values[self.key_to_ind[&key]];
 
-        func(entry);
-
-        Ok(())
+        Ok(func(entry))
     }
 }
 

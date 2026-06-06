@@ -102,6 +102,10 @@ pub enum ASTNodeKind {
         arguments: Vec<ASTArenaReference>,
     },
 
+    ReturnStatement {
+        val: Option<ASTArenaReference>,
+    },
+
     ForLoop {
         iterator_type: ASTType,
         iterator_name: HashedString,
@@ -214,6 +218,9 @@ impl ASTNodeKind {
             | Self::ForLoop { .. }
             | Self::WhileLoop { .. }
             | Self::Loop { .. } => true,
+
+            Self::ReturnStatement { val } => val.is_none(),
+
             _ => false,
         }
     }
