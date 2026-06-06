@@ -11,6 +11,7 @@ use calsc_diagnostics::DiagPossible;
 
 use crate::stage2::funcs::lower_ast_function_decl;
 
+pub mod control;
 pub mod funcs;
 pub mod values;
 pub mod vars;

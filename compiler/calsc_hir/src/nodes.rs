@@ -14,6 +14,7 @@ use calsc_utils::{
 use crate::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
+    ifs::IfStatementBranch,
     refs::HIRArenaReference,
     types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
 };
@@ -131,6 +132,10 @@ pub enum HIRNodeKind {
     WhileLoop {
         condition: HIRArenaReference,
         body: Vec<HIRArenaReference>,
+    },
+
+    IfStatement {
+        branches: Vec<IfStatementBranch>,
     },
 
     CastNode {

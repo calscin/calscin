@@ -9,6 +9,7 @@ use crate::{globalctx::GlobalContext, nodes::HIRNode, refs::HIRArenaReference};
 pub mod conv;
 pub mod funcs;
 pub mod globalctx;
+pub mod ifs;
 pub mod localctx;
 pub mod nodes;
 pub mod prelude;

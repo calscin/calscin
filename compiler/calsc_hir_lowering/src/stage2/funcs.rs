@@ -1,7 +1,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
+use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_expected_error};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
@@ -27,14 +27,50 @@ pub fn lower_ast_body_node(
     }
 }
 
-pub fn lower_ast_body(
+pub fn lower_ast_body<K: DiagnosticSource>(
     nodes: Vec<ASTNode>,
     local_ctx: Option<GlobalContextKey>,
+    introduce_branch: bool,
+    origin: &K,
 ) -> DiagResult<Vec<HIRArenaReference>> {
     let mut hir_nodes = vec![];
 
+    let mut branch = 0;
+
+    if introduce_branch {
+        branch = HIR_CONTEXT.with_borrow_mut(|f| {
+            Ok(f.scope.mutate_entry(
+                local_ctx.clone().unwrap(),
+                |entry| {
+                    entry.mutate_function(
+                        |ff| ff.local_context.as_mut().unwrap().start_branch(),
+                        origin,
+                    )
+                },
+                origin,
+            )?)
+        })??;
+    }
+
     for node in nodes {
         hir_nodes.push(lower_ast_body_node(node, local_ctx.clone())?);
+    }
+
+    if introduce_branch {
+        HIR_CONTEXT.with_borrow_mut(|f| {
+            f.scope.mutate_entry(
+                local_ctx.unwrap(),
+                |entry| {
+                    entry.mutate_function(
+                        |ff| {
+                            ff.local_context.as_mut().unwrap().end_branch(branch);
+                        },
+                        origin,
+                    )
+                },
+                origin,
+            )
+        });
     }
 
     Ok(hir_nodes)
@@ -115,6 +151,8 @@ pub fn lower_ast_function_decl(
         let body = lower_ast_body(
             body.iter().map(|f| ASTNode::clone(f)).collect(),
             Some(key.clone()),
+            false,
+            &node,
         )?;
 
         let n = HIRNode::new(
