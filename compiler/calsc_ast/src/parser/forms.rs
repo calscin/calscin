@@ -62,6 +62,7 @@ pub fn parse_ast_return_type_form(
     if tokens[*ind].kind == TokenKind::Minus {
         *ind += 1;
         tokens[*ind].expects(TokenKind::AngelBracketClose)?;
+        *ind += 1;
 
         return Ok(Some(parse_ast_type(tokens, ind, true)?));
     }

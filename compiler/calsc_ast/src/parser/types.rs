@@ -53,6 +53,8 @@ pub fn parse_ast_type(
         }
     }
 
+    println!("{:#?}", &simples[0]);
+
     let len = simples.len() - 1;
 
     Ok(lower_simple_type(simples, len))
@@ -136,7 +138,10 @@ pub(crate) fn parse_type_step(
             )?));
         }
 
-        _ => return Ok(None),
+        kind => {
+            println!("Took {}", kind);
+            return Ok(None);
+        }
     };
 
     Ok(Some(kind))
