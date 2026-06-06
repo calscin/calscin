@@ -184,12 +184,12 @@ impl HIRNode {
             HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
             HIRNodeKind::InverseCondition(_) => Some(make_bool_type(self)),
 
-            HIRNodeKind::PointerDereference(val) => Some(Type::Reference {
+            HIRNodeKind::PointerReference(val) => Some(Type::Reference {
                 mutable: true, // Mutable by default, will change
                 inner: Box::new(val.get_type(local_func_key)?.unwrap()),
             }),
 
-            HIRNodeKind::PointerReference(val) => {
+            HIRNodeKind::PointerDereference(val) => {
                 Some(val.get_type(local_func_key)?.unwrap().get_inner()) // Assumes the container of a pointer reference is a pointer.
             }
 

@@ -44,12 +44,11 @@ pub fn lower_ast_pointer_dereference(
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::PointerDereference(val) = node.kind.clone() {
         let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
-        let val_type = val.get_type(local_ctx)?;
 
-        if val_type.is_none() || !val_type.unwrap().is_reference() {
+        if !val.represents_pointer_referencable() {
             return Err(build_expected_error(
-                &"pointer".to_string(),
-                &"non addressable type".to_string(),
+                &"referencable".to_string(),
+                &val.get_type(local_ctx)?.unwrap(),
                 &*val,
             )
             .into());
