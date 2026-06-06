@@ -58,7 +58,12 @@ impl GlobalContextValue {
 
     /// Gets a type from the given [`GlobalContextValue`].
     /// This function works both with types and type aliases and will craft a new empty [`Type::Base`] instance for raw types.
-    pub fn craft_type<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<Type> {
+    pub fn craft_type<K: DiagnosticSource>(
+        &self,
+        origin: &K,
+        size_specifiers: Vec<usize>,
+        type_parameters: Vec<Type>,
+    ) -> DiagResult<Type> {
         match self {
             Self::TypeAlias(ty) => Ok(ty.clone()),
             Self::Type(ty) => Ok(Type::Base(BaseTypeInstance::new(

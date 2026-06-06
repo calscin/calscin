@@ -1,7 +1,15 @@
 //! Builder utilities for types
 
-use calsc_diagnostics::{DiagnosticSource, result::CalscinResult};
-use calsc_typing::{base::instance::BaseTypeInstance, tree::Type};
+use calsc_diagnostics::{
+    DiagResult, DiagnosticSource,
+    diags::errors::{build_expected_size_specifiers_error, build_expected_type_parameters_error},
+    result::CalscinResult,
+};
+use calsc_typing::{
+    base::{BaseType, instance::BaseTypeInstance},
+    params::TypeParameterHaving,
+    tree::Type,
+};
 
 use crate::{HIR_CONTEXT, globalctx::key::GlobalContextKey};
 
@@ -81,4 +89,31 @@ pub fn make_char_type<K: DiagnosticSource>(origin: &K) -> Type {
     });
 
     Type::Base(BaseTypeInstance::new(base_type, vec![], vec![]))
+}
+
+pub fn safely_make_type_instance<K: DiagnosticSource>(
+    ty: BaseType,
+    size_specifiers: Vec<usize>,
+    type_parameters: Vec<Type>,
+    origin: &K,
+) -> DiagResult<BaseTypeInstance> {
+    if ty.kind.get_required_size_parameters() != size_specifiers.len() {
+        return Err(build_expected_size_specifiers_error(
+            &ty.kind.get_required_size_parameters(),
+            &size_specifiers.len(),
+            origin,
+        )
+        .into());
+    }
+
+    if ty.get_type_parameter_count() != type_parameters.len() {
+        return Err(build_expected_type_parameters_error(
+            &ty.get_type_parameter_count(),
+            &type_parameters.len(),
+            origin,
+        )
+        .into());
+    }
+
+    Ok(BaseTypeInstance::new(ty, size_specifiers, type_parameters))
 }

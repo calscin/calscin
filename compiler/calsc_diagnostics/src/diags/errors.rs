@@ -11,6 +11,8 @@ declare_diagnostic!(EXPECTED, 3);
 declare_diagnostic!(ALREADY_IN_SCOPE, 4);
 declare_diagnostic!(CANNOT_FIND, 5);
 declare_diagnostic!(FIELD_MISSING, 6);
+declare_diagnostic!(EXPECTED_SIZE_SPECS, 7);
+declare_diagnostic!(EXPECTED_TYPE_PARAMETERS, 8);
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
@@ -97,6 +99,36 @@ pub fn build_missing_field<E: Display, S: DiagnosticSource>(element: &E, source:
     source.make_diagnostic_simple(
         DiagnosticCode::new(Level::Error, FIELD_MISSING),
         format!("missing field {}", element),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_size_specifiers_error<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, EXPECTED_SIZE_SPECS),
+        format!("expected {} size specifiers but got {}", expected, got),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_type_parameters_error<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, EXPECTED_TYPE_PARAMETERS),
+        format!("expected {} type parameters but got {}", expected, got),
         None,
         vec![],
         vec![],

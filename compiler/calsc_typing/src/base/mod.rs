@@ -132,6 +132,10 @@ impl TypeParameterHaving for BaseType {
             param_ind: self.type_params[&name],
         }
     }
+
+    fn get_type_parameter_count(&self) -> usize {
+        self.type_params.len()
+    }
 }
 
 impl PartialEq for BaseType {

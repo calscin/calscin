@@ -16,6 +16,9 @@ pub trait TypeParameterHaving {
     /// Make sure to use [`has_type_parameter`][`TypeParameterHaving::has_type_parameter`] first.
     ///
     fn get_type_parameter_type(&self, name: HashedString) -> Type;
+
+    /// Gets the amount of type parameters the type contains
+    fn get_type_parameter_count(&self) -> usize;
 }
 
 /// Resolves a [`Type`] that is potentially a type parameter into a clean [`Type`] based on the given instance's type parameters.
