@@ -18,7 +18,7 @@ use crate::stage2::{
         lru::lower_ast_lru,
         ptrs::{lower_ast_pointer_dereference, lower_ast_pointer_reference},
     },
-    vars::lower_hir_variable_reference,
+    vars::lower_ast_variable_reference,
 };
 
 pub mod booleans;
@@ -50,7 +50,7 @@ pub fn lower_ast_value(
 
         ASTNodeKind::FunctionCall { .. } => lower_ast_function_call(node, None, local_ctx),
 
-        ASTNodeKind::ElementReference(_) => lower_hir_variable_reference(node, local_ctx),
+        ASTNodeKind::ElementReference(_) => lower_ast_variable_reference(node, local_ctx),
 
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
 

@@ -13,8 +13,7 @@ use calsc_hir::{
 
 use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
 
-#[deprecated = "will be changed to lower_ast_variable_reference"]
-pub fn lower_hir_variable_reference(
+pub fn lower_ast_variable_reference(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
