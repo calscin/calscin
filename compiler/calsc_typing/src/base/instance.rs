@@ -109,4 +109,12 @@ impl TransmutableType for BaseTypeInstance {
 
         self.type_parameters == into.type_parameters
     }
+
+    fn can_transmute_weakly(&self, into: Self) -> bool {
+        if !self.ty.can_transmute(into.ty) {
+            return false;
+        }
+
+        self.type_parameters == into.type_parameters
+    }
 }

@@ -48,4 +48,8 @@ pub trait MutableFieldHavingType {
 pub trait TransmutableType {
     /// Determines if the current type can be transmuted into the given type.
     fn can_transmute(&self, into: Self) -> bool;
+
+    /// Determines if the current type can be transmuted into the given type.
+    /// Determines that the self instance of type is weakly typed (infered) and can be further overriden.
+    fn can_transmute_weakly(&self, into: Self) -> bool;
 }

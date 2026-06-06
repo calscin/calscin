@@ -210,4 +210,32 @@ impl TransmutableType for Type {
             _ => false,
         }
     }
+
+    fn can_transmute_weakly(&self, into: Self) -> bool {
+        if !self.is_real() || into.is_real() {
+            return false;
+        }
+
+        match (self, into) {
+            (
+                Self::Array { size, inner },
+                Self::Array {
+                    size: size2,
+                    inner: inner2,
+                },
+            ) => *size == size2 && inner.can_transmute_weakly(*inner2),
+
+            (
+                Self::Reference { mutable, inner },
+                Self::Reference {
+                    mutable: into_mutable,
+                    inner: inner2,
+                },
+            ) => *mutable == into_mutable && inner.can_transmute_weakly(*inner2),
+
+            (Self::Base(base), Self::Base(into_base)) => base.can_transmute_weakly(into_base),
+
+            _ => false,
+        }
+    }
 }
