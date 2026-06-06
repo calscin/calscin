@@ -184,7 +184,7 @@ impl DeclBlockAffectedType for Type {
 
 impl TransmutableType for Type {
     fn can_transmute(&self, into: Self) -> bool {
-        if !self.is_real() || into.is_real() {
+        if self.is_real() != into.is_real() {
             return false;
         }
 
@@ -212,7 +212,7 @@ impl TransmutableType for Type {
     }
 
     fn can_transmute_weakly(&self, into: Self) -> bool {
-        if !self.is_real() || into.is_real() {
+        if self.is_real() != into.is_real() {
             return false;
         }
 

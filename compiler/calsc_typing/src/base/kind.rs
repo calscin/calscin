@@ -42,6 +42,20 @@ impl BaseTypeKind {
         }
     }
 
+    pub fn is_int(&self) -> bool {
+        match self {
+            Self::Integer { .. } => true,
+            _ => false,
+        }
+    }
+
+    pub fn is_float(&self) -> bool {
+        match self {
+            Self::Floating { .. } => true,
+            _ => false,
+        }
+    }
+
     pub fn is_numerical_lit(&self) -> bool {
         match self {
             Self::Integer { .. } | Self::Floating { .. } => true,

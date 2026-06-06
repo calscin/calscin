@@ -86,7 +86,11 @@ pub fn lower_ast_variable_declaration(
 
         if value.is_some() {
             let value = lower_ast_value(ASTNode::clone(&value.unwrap()), curr_ctx.clone())?;
-            v = Some(value.use_as(var_type.clone(), curr_ctx.clone())?.push());
+            v = Some(
+                value
+                    .use_as(var_type.clone(), value.clone(), None, curr_ctx.clone())?
+                    .push(),
+            );
         }
 
         let node = HIRNode::new(
@@ -114,9 +118,12 @@ pub fn lower_ast_variable_assign(
     if let ASTNodeKind::Assignment { variable, value } = node.kind.clone() {
         let variable = lower_ast_value(ASTNode::clone(&variable), curr_ctx.clone())?;
 
-        let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?
+        let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?;
+        let value = value
             .use_as(
                 variable.get_type(curr_ctx.clone())?.unwrap(),
+                value.clone(),
+                None,
                 curr_ctx.clone(),
             )?
             .push();

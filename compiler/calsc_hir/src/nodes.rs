@@ -158,11 +158,17 @@ pub struct HIRNode {
     pub kind: HIRNodeKind,
     pub start: FilePosition,
     pub end: FilePosition,
+    pub stronger_type: Option<Type>,
 }
 
 impl HIRNode {
     pub fn new(kind: HIRNodeKind, start: FilePosition, end: FilePosition) -> Self {
-        Self { kind, start, end }
+        Self {
+            kind,
+            start,
+            end,
+            stronger_type: None,
+        }
     }
 
     pub fn push(self) -> HIRArenaReference {
@@ -178,6 +184,10 @@ impl HIRNode {
     ///
     ///
     pub fn get_type(&self, local_func_key: Option<GlobalContextKey>) -> DiagResult<Option<Type>> {
+        if self.stronger_type.is_some() {
+            return Ok(self.stronger_type.clone());
+        }
+
         let ty = match self.kind.clone() {
             HIRNodeKind::IntLiteral(_, size, signed) => Some(make_int_type(signed, size, self)),
             HIRNodeKind::FloatLiteral(_, size, signed) => Some(make_float_type(signed, size, self)),

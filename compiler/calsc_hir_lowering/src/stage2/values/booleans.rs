@@ -18,8 +18,8 @@ pub fn lower_hir_inverse_condition(
     local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::InverseCondition(val) = node.kind.clone() {
-        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?
-            .use_as(make_bool_type(&node), local_ctx.clone())?;
+        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
+        let val = val.use_as(make_bool_type(&node), val.clone(), None, local_ctx.clone())?;
 
         let node = HIRNode::new(
             HIRNodeKind::InverseCondition(val.push()),

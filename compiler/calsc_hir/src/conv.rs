@@ -11,8 +11,10 @@ use calsc_typing::{
 };
 
 use crate::{
+    HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
+    refs::HIRArenaReference,
 };
 
 impl HIRNode {
@@ -24,6 +26,8 @@ impl HIRNode {
     pub fn use_as(
         &self,
         ty: Type,
+        curr_node: HIRArenaReference,
+        other_node: Option<HIRArenaReference>,
         local_func_key: Option<GlobalContextKey>,
     ) -> DiagResult<HIRNode> {
         if self.get_type(local_func_key.clone())?.is_none() {
@@ -40,26 +44,44 @@ impl HIRNode {
             return convert_structured_init_into(self.clone(), ty, local_func_key, self);
         }
 
-        if !self_type.can_transmute(ty.clone()) {
-            if self.is_weakly_typed() && !self_type.can_transmute_weakly(ty.clone()) {
-                return Err(build_expected_error(&ty, &self_type, self).into());
-            }
-        }
-
-        if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
-            return convert_numerical_literal_into(self.clone(), ty.as_base());
-        }
-
-        let node = HIRNode::new(
-            HIRNodeKind::CastNode {
-                original: self.clone().push(),
-                into: ty,
-            },
-            self.start.clone(),
-            self.end.clone(),
+        println!("{:#?}", self);
+        println!("Can transmute weakly {}", self.is_weakly_typed());
+        println!(
+            "Can transmute weakly {}",
+            self_type.can_transmute_weakly(ty.clone())
         );
 
-        Ok(node)
+        if self_type.can_transmute(ty.clone()) {
+            if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
+                return convert_numerical_literal_into(self.clone(), ty.as_base());
+            }
+
+            let node = HIRNode::new(
+                HIRNodeKind::CastNode {
+                    original: self.clone().push(),
+                    into: ty,
+                },
+                self.start.clone(),
+                self.end.clone(),
+            );
+
+            return Ok(node);
+        }
+
+        if self.is_weakly_typed() && self_type.can_transmute_weakly(ty.clone()) {
+            weakly_transmute(curr_node, ty);
+
+            return Ok(self.clone());
+        }
+
+        if other_node.is_some()
+            && other_node.as_ref().unwrap().is_weakly_typed()
+            && ty.can_transmute_weakly(self_type.clone())
+        {
+            weakly_transmute(other_node.unwrap(), self_type.clone());
+        }
+
+        return Err(build_expected_error(&self_type, &ty, self).into());
     }
 }
 
@@ -80,7 +102,12 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
             vals.insert(
                 field.clone(),
                 values[&field]
-                    .use_as(ty.get_field_type(field.clone()), local_func_key.clone())?
+                    .use_as(
+                        ty.get_field_type(field.clone()),
+                        values[&field].clone(),
+                        None,
+                        local_func_key.clone(),
+                    )?
                     .push(),
             );
         }
@@ -118,4 +145,32 @@ pub fn convert_numerical_literal_into(lit: HIRNode, ty: BaseTypeInstance) -> Dia
     }
 
     unsafe { unreachable_unchecked() }
+}
+
+pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
+    match &curr_node.kind {
+        HIRNodeKind::IntLiteral(_, _, _) => {
+            let base = ty.as_base();
+
+            if !base.ty.kind.is_int() {
+                panic!()
+            }
+
+            HIR_CONTEXT
+                .with_borrow_mut(|f| f.nodes.arena[curr_node.refer].stronger_type = Some(ty));
+        }
+
+        HIRNodeKind::FloatLiteral(_, _, _) => {
+            let base = ty.as_base();
+
+            if !base.ty.kind.is_float() {
+                panic!()
+            }
+
+            HIR_CONTEXT
+                .with_borrow_mut(|f| f.nodes.arena[curr_node.refer].stronger_type = Some(ty));
+        }
+
+        _ => panic!(),
+    }
 }

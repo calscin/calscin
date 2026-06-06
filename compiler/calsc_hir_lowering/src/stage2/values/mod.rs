@@ -84,8 +84,14 @@ pub fn lower_ast_range(
 
         let start_type = start_type.unwrap();
 
-        let end = lower_ast_value(ASTNode::clone(end), local_ctx.clone())?
-            .use_as(start_type.clone(), local_ctx.clone())?
+        let end = lower_ast_value(ASTNode::clone(end), local_ctx.clone())?;
+        let end = end
+            .use_as(
+                start_type.clone(),
+                end.clone(),
+                Some(start.clone()),
+                local_ctx.clone(),
+            )?
             .push();
 
         let mut incr = None;
@@ -147,8 +153,14 @@ pub fn lower_ast_math_expression(
 
         let left_expr_type = left_expr_type.unwrap();
 
-        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?
-            .use_as(left_expr_type.clone(), local_ctx)?
+        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?;
+        let right_expr = right_expr
+            .use_as(
+                left_expr_type.clone(),
+                right_expr.clone(),
+                Some(left_expr.clone()),
+                local_ctx,
+            )?
             .push();
 
         let node = HIRNode::new(
@@ -192,8 +204,14 @@ pub fn lower_ast_compare_expression(
 
         let left_expr_type = left_expr_type.unwrap();
 
-        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?
-            .use_as(left_expr_type.clone(), local_ctx)?
+        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?;
+        let right_expr = right_expr
+            .use_as(
+                left_expr_type.clone(),
+                right_expr.clone(),
+                Some(left_expr.clone()),
+                local_ctx,
+            )?
             .push();
 
         let node = HIRNode::new(

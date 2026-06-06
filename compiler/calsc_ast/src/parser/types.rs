@@ -109,7 +109,7 @@ pub(crate) fn parse_type_step(
         TokenKind::And => {
             *ind += 1; // &
 
-            SimpleASTType::Reference(false)
+            SimpleASTType::Reference(true)
         }
         TokenKind::BracketOpen => {
             *ind += 1; // [
