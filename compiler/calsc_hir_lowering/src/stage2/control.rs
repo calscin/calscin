@@ -178,3 +178,27 @@ pub fn lower_ast_while_loop(
         unsafe { unreachable_unchecked() }
     }
 }
+
+pub fn lower_ast_loop(
+    node: ASTNode,
+    local_ctx: Option<GlobalContextKey>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::Loop { body } = node.kind.clone() {
+        let body = lower_ast_body(
+            body.iter().map(|f| ASTNode::clone(f)).collect(),
+            local_ctx.clone(),
+            true,
+            &node,
+        )?;
+
+        let node = HIRNode::new(
+            HIRNodeKind::Loop { body },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
