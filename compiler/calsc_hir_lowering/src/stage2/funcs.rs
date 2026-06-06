@@ -12,7 +12,10 @@ use calsc_typing::base::BaseType;
 
 use crate::{
     stage1::types::lower_ast_type,
-    stage2::values::{lower_ast_value, lru::lower_ast_lru},
+    stage2::{
+        control::lower_ast_if_statement,
+        values::{lower_ast_value, lru::lower_ast_lru},
+    },
 };
 
 pub fn lower_ast_body_node(
@@ -22,6 +25,8 @@ pub fn lower_ast_body_node(
     match &node.kind {
         ASTNodeKind::FunctionCall { .. } => lower_ast_function_call(node, None, local_ctx),
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
+
+        ASTNodeKind::IfStatement { .. } => lower_ast_if_statement(node, local_ctx),
 
         _ => panic!(),
     }
@@ -70,7 +75,7 @@ pub fn lower_ast_body<K: DiagnosticSource>(
                 },
                 origin,
             )
-        });
+        })??;
     }
 
     Ok(hir_nodes)
