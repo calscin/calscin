@@ -6,10 +6,7 @@
 //! - Finshing / ending points
 //!
 
-use std::{
-    collections::{HashMap, HashSet},
-    hash::Hash,
-};
+use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
@@ -18,10 +15,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_typing::tree::Type;
-use calsc_utils::{
-    hash::HashedString,
-    pos::{self, FilePosition},
-};
+use calsc_utils::{hash::HashedString, pos::FilePosition};
 
 use crate::localctx::vars::LocalContextVariable;
 
@@ -71,8 +65,6 @@ impl LocalContext {
     pub fn start_branch(&mut self) -> usize {
         self.current_branch += 1;
 
-        println!("+ Starting branch {}", self.current_branch);
-
         self.current_branch
     }
 
@@ -92,11 +84,6 @@ impl LocalContext {
     ///
     #[inline(always)]
     pub fn end_branch<K: DiagnosticSource>(&mut self, branch: usize, origin: &K) {
-        println!(
-            "# Ending branch {} in branch {}",
-            branch, self.current_branch
-        );
-
         self.branch_ends.insert(branch, self.current_branch);
         self.branch_ends_positions
             .insert(branch, (origin.get_start_pos(), origin.get_end_pos()));
@@ -115,11 +102,6 @@ impl LocalContext {
         branch: usize,
         origin: &K,
     ) -> DiagResult<usize> {
-        println!(
-            "? Introduced variable {} in branch {}",
-            key, self.current_branch
-        );
-
         if self.hash_to_ind.contains_key(&key) {
             return Err(build_already_in_scope(&*key, origin).into());
         }

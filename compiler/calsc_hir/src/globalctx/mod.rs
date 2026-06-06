@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource,
+    DiagResult, DiagnosticSource,
     diags::errors::{
         build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
     },
