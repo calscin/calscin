@@ -276,13 +276,6 @@ impl HIRNode {
             _ => false,
         }
     }
-
-    pub fn represents_pointer_deref(&self) -> bool {
-        match &self.kind {
-            HIRNodeKind::PointerDereference(_) => true,
-            _ => false,
-        }
-    }
 }
 
 impl DiagnosticSource for HIRNode {

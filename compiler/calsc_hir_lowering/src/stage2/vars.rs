@@ -116,11 +116,18 @@ pub fn lower_ast_variable_assign(
             .into());
         }
 
-        let node = HIRNode::new(
-            HIRNodeKind::Assignment { variable, value },
-            node.start.clone(),
-            node.end.clone(),
-        );
+        let n;
+
+        if let HIRNodeKind::PointerDereference(inner) = variable.kind.clone() {
+            n = HIRNodeKind::PointerDerefAssign {
+                pointer: inner,
+                value,
+            }
+        } else {
+            n = HIRNodeKind::Assignment { variable, value }
+        }
+
+        let node = HIRNode::new(n, node.start.clone(), node.end.clone());
 
         Ok(node.push())
     } else {
