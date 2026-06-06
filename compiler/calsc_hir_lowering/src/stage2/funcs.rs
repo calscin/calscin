@@ -13,7 +13,7 @@ use calsc_typing::base::BaseType;
 use crate::{
     stage1::types::lower_ast_type,
     stage2::{
-        control::lower_ast_if_statement,
+        control::{lower_ast_for_loop, lower_ast_if_statement, lower_ast_while_loop},
         values::{lower_ast_value, lru::lower_ast_lru},
     },
 };
@@ -27,8 +27,10 @@ pub fn lower_ast_body_node(
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
 
         ASTNodeKind::IfStatement { .. } => lower_ast_if_statement(node, local_ctx),
+        ASTNodeKind::ForLoop { .. } => lower_ast_for_loop(node, local_ctx),
+        ASTNodeKind::WhileLoop { .. } => lower_ast_while_loop(node, local_ctx),
 
-        _ => panic!(),
+        _ => lower_ast_value(node, local_ctx),
     }
 }
 
