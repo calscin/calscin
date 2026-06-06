@@ -102,6 +102,11 @@ pub enum HIRNodeKind {
         value: HIRArenaReference,
     },
 
+    PointerDerefAssign {
+        pointer: HIRArenaReference,
+        value: HIRArenaReference,
+    },
+
     ForLoop {
         iterator_type: Type,
         iterator_name: HashedString,
@@ -265,7 +270,16 @@ impl HIRNode {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
             HIRNodeKind::FieldReference { val, name: _ } => val.represents_mutable_variable(),
+            HIRNodeKind::PointerDerefAssign { .. } => true,
+            HIRNodeKind::PointerDereference(_) => true, // TODO: watch this
 
+            _ => false,
+        }
+    }
+
+    pub fn represents_pointer_deref(&self) -> bool {
+        match &self.kind {
+            HIRNodeKind::PointerDereference(_) => true,
             _ => false,
         }
     }

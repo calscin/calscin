@@ -3,7 +3,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
@@ -11,7 +11,7 @@ use calsc_hir::{
     refs::HIRArenaReference,
 };
 
-use crate::stage1::types::lower_ast_type;
+use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
 
 #[deprecated = "will be changed to lower_ast_variable_reference"]
 pub fn lower_hir_variable_reference(
@@ -89,6 +89,35 @@ pub fn lower_ast_variable_declaration(
                 name,
                 variable_index: id,
             },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_variable_assign(
+    node: ASTNode,
+    curr_ctx: Option<GlobalContextKey>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::Assignment { variable, value } = node.kind.clone() {
+        let variable = lower_ast_value(ASTNode::clone(&variable), curr_ctx.clone())?;
+        let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?;
+
+        if !variable.represents_mutable_variable() {
+            return Err(build_expected_error(
+                &"mutable variable-like".to_string(),
+                &"".to_string(),
+                &*variable,
+            )
+            .into());
+        }
+
+        let node = HIRNode::new(
+            HIRNodeKind::Assignment { variable, value },
             node.start.clone(),
             node.end.clone(),
         );

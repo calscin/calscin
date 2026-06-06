@@ -17,6 +17,7 @@ use crate::{
             lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop,
         },
         values::{lower_ast_value, lru::lower_ast_lru},
+        vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
     },
 };
 
@@ -27,6 +28,9 @@ pub fn lower_ast_body_node(
     match &node.kind {
         ASTNodeKind::FunctionCall { .. } => lower_ast_function_call(node, None, local_ctx),
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
+
+        ASTNodeKind::VariableDeclaration { .. } => lower_ast_variable_declaration(node, local_ctx),
+        ASTNodeKind::Assignment { .. } => lower_ast_variable_assign(node, local_ctx),
 
         ASTNodeKind::IfStatement { .. } => lower_ast_if_statement(node, local_ctx),
         ASTNodeKind::ForLoop { .. } => lower_ast_for_loop(node, local_ctx),

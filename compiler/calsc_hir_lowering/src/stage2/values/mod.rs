@@ -56,7 +56,7 @@ pub fn lower_ast_value(
 
         ASTNodeKind::StructuredInit { .. } => lower_ast_structured_init(node, local_ctx),
 
-        _ => unsafe { unreachable_unchecked() },
+        kind => panic!("Reached {:#?}", kind),
     }
 }
 
