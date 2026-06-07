@@ -109,6 +109,12 @@ pub enum HIRNodeKind {
         value: HIRArenaReference,
     },
 
+    StructFieldAssign {
+        struct_val: HIRArenaReference,
+        field: HashedString,
+        value: HIRArenaReference,
+    },
+
     ForLoop {
         iterator_type: Type,
         iterator_name: HashedString,

@@ -39,7 +39,7 @@ pub fn lower_ast_function_decl_first_stage(
             ret_type = Some(lower_ast_type(v, &node, target.clone())?);
         }
 
-        let mut local_ctx = LocalContext::new(name.clone(), ret_type.clone());
+        let mut local_ctx = LocalContext::new(name.clone(), key.clone(), ret_type.clone());
 
         for argument in arguments {
             let ty = lower_ast_type(argument.0, &node, target.clone())?;

@@ -1,8 +1,5 @@
 use calsc_diagnostics::DiagResult;
-use calsc_hir::{
-    HIRContext,
-    nodes::{HIRNode, HIRNodeKind},
-};
+use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_typing::FieldHavingType;
 use remir::{
     builders::{build_const_float, build_const_int, build_const_string},
@@ -13,11 +10,11 @@ use remir::{
 use crate::{result::CalscinRemirResult, values::lower_hir_value};
 
 pub fn lower_hir_literal(
-    node: HIRNode,
-    ctx: &HIRContext,
+    node: HIRArenaReference,
+    ctx: &LocalContext,
     module: &mut Module,
 ) -> DiagResult<BaseSSAValue> {
-    match node.kind {
+    match node.kind.clone() {
         HIRNodeKind::IntLiteral(value, size, signed) => {
             let val = build_const_int(module, value, size, signed)
                 .convert(node.start.clone(), node.end.clone())?;
@@ -55,11 +52,7 @@ pub fn lower_hir_literal(
             let mut vals = vec![];
 
             for field in ty.get_fields() {
-                vals.push(lower_hir_value(
-                    HIRNode::clone(&values[&field]),
-                    ctx,
-                    module,
-                ))
+                vals.push(lower_hir_value(values[&field].clone(), ctx, module))
             }
 
             todo!()
