@@ -15,6 +15,7 @@ pub struct BaseStructContainer {
     pub name: HashedString,
 
     pub fields: HashMap<HashedString, Type>,
+    pub field_order: Vec<HashedString>,
 }
 
 impl BaseStructContainer {
@@ -23,6 +24,7 @@ impl BaseStructContainer {
         Self {
             name,
             fields: HashMap::new(),
+            field_order: vec![],
         }
     }
 }
@@ -45,13 +47,7 @@ impl FieldHavingType for BaseStructContainer {
     }
 
     fn get_fields(&self) -> Vec<HashedString> {
-        let mut fields = vec![];
-
-        for k in self.fields.keys() {
-            fields.push(k.clone())
-        }
-
-        fields
+        self.field_order.clone()
     }
 
     fn get_field_type(&self, name: HashedString) -> Type {
@@ -70,6 +66,7 @@ impl MutableFieldHavingType for BaseStructContainer {
             return Err(build_already_in_scope(&*name, source).into());
         }
 
+        self.field_order.push(name.clone());
         self.fields.insert(name, ty);
         Ok(())
     }

@@ -58,6 +58,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "calsc_remir_lowering"
+version = "0.1.0"
+dependencies = [
+ "calsc_diagnostics",
+ "calsc_hir",
+ "calsc_typing",
+ "calsc_utils",
+ "remir",
+]
+
+[[package]]
 name = "calsc_typing"
 version = "0.0.0"
 dependencies = [
@@ -105,6 +116,12 @@ dependencies = [
  "calsc_hir_lowering",
  "calsc_lexer",
 ]
+
+[[package]]
+name = "remir"
+version = "1.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d6c99dfcc940760d1148e4e7d3251527f86b9efeeae3704833e6fb302f076d45"
 
 [[package]]
 name = "typing"

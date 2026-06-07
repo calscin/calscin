@@ -276,7 +276,7 @@ impl HIRNode {
     pub fn represents_pointer_referencable(&self) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
-            HIRNodeKind::FieldReference { .. } => true,
+            HIRNodeKind::FieldReference { val, name: _ } => val.represents_pointer_referencable(),
             _ => false,
         }
     }
@@ -290,6 +290,20 @@ impl HIRNode {
             HIRNodeKind::PointerDereference(_) => true, // TODO: watch this
 
             _ => false,
+        }
+    }
+
+    /// Gets the root variable index of the node
+    pub fn get_root_variable_reference_index(&self) -> usize {
+        match &self.kind {
+            HIRNodeKind::VariableReference {
+                name: _,
+                variable_index,
+            } => *variable_index,
+
+            HIRNodeKind::FieldReference { val, name: _ } => val.get_root_variable_reference_index(),
+
+            _ => panic!(),
         }
     }
 
