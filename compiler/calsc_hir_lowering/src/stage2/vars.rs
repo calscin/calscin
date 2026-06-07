@@ -3,7 +3,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
+use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_expected_error};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
@@ -110,6 +110,30 @@ pub fn lower_ast_variable_declaration(
     }
 }
 
+pub fn introduce_variable_mutation(
+    node: HIRArenaReference,
+    curr_ctx: Option<GlobalContextKey>,
+) -> DiagPossible {
+    let ind = node.get_root_variable_reference_index();
+
+    HIR_CONTEXT.with_borrow_mut(|f| {
+        f.scope.mutate_entry(
+            curr_ctx.unwrap(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| {
+                        ff.local_context.as_mut().unwrap().variables[ind].introduce_mutation();
+                    },
+                    &*node,
+                )
+            },
+            &*node,
+        )
+    })??;
+
+    Ok(())
+}
+
 pub fn lower_ast_variable_assign(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
@@ -135,6 +159,8 @@ pub fn lower_ast_variable_assign(
             )
             .into());
         }
+
+        introduce_variable_mutation(variable.clone(), curr_ctx.clone())?;
 
         let n;
 
