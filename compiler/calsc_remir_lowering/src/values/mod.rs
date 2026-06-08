@@ -1,8 +1,9 @@
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{module::Module, values::BaseSSAValue};
 
 use crate::{
+    funcs::lower_hir_function_call,
     values::{
         bool::lower_hir_compare,
         consts::lower_hir_literal,
@@ -34,6 +35,16 @@ pub fn lower_hir_value(
 
         HIRNodeKind::MathExpression { .. } => lower_hir_math_operation(node, ctx, module),
         HIRNodeKind::CompareExpression { .. } => Ok(lower_hir_compare(node, ctx, module)?.into()),
+
+        HIRNodeKind::FunctionCall { .. } => {
+            let val = lower_hir_function_call(node.clone(), ctx, module)?;
+
+            if val.is_some() {
+                Ok(val.unwrap())
+            } else {
+                Err(build_unexpected_error(&"void returning function".to_string(), &*node).into())
+            }
+        }
 
         HIRNodeKind::VariableReference { .. } => {
             lower_hir_variable_reference_val(node, ctx, module)

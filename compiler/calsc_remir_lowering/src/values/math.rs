@@ -20,7 +20,7 @@ pub fn convert_math_operator(math: MathOperation) -> DiagResult<remir::misc::Mat
         MathOperation::Div => remir::misc::MathOperator::Div,
         MathOperation::Mod => remir::misc::MathOperator::Mod,
         MathOperation::Mul => remir::misc::MathOperator::Mul,
-        MathOperation::Nor => todo!(),
+        MathOperation::Nor => remir::misc::MathOperator::Nor,
         MathOperation::Or => remir::misc::MathOperator::Or,
         MathOperation::ShiftLeft => remir::misc::MathOperator::Shl,
         MathOperation::ShiftRight => remir::misc::MathOperator::Shr,

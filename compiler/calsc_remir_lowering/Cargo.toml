@@ -8,4 +8,4 @@ calsc_hir = { path = "../calsc_hir" }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
 calsc_utils = { path = "../calsc_utils" }
 calsc_typing = { path = "../calsc_typing" }
-remir = "1.0.0"
+remir = "1.0.1"

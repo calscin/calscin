@@ -70,15 +70,13 @@ pub fn lower_hir_compare(
             let right_expr_val = SSAFloatValue::try_from(right_expr_val)
                 .convert(node.start.clone(), node.end.clone())?;
 
-            //res = build_float_compare(
-            //    module,
-            //    left_expr_val,
-            //    right_expr_val,
-            //    convert_compare_operator(operator),
-            //)
-            //.convert(node.start.clone(), node.end.clone())?;
-
-            todo!()
+            res = build_float_compare(
+                module,
+                left_expr_val,
+                right_expr_val,
+                convert_compare_operator(operator),
+            )
+            .convert(node.start.clone(), node.end.clone())?;
         }
 
         Ok(res)
