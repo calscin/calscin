@@ -5,7 +5,7 @@ use remir::{module::Module, values::BaseSSAValue};
 use crate::{
     funcs::lower_hir_function_call,
     values::{
-        bool::lower_hir_compare,
+        bool::{lower_hir_compare, lower_hir_inverse_condition},
         consts::lower_hir_literal,
         math::lower_hir_math_operation,
         ptrs::{lower_hir_pointer_dereference, lower_hir_pointer_reference},
@@ -29,6 +29,10 @@ pub fn lower_hir_value(
         | HIRNodeKind::StringLiteral(_)
         | HIRNodeKind::BooleanLiteral(_)
         | HIRNodeKind::TypedStructuredInit { .. } => lower_hir_literal(node, ctx, module),
+
+        HIRNodeKind::InverseCondition(_) => {
+            Ok(lower_hir_inverse_condition(node, ctx, module)?.into())
+        }
 
         HIRNodeKind::PointerReference(_) => lower_hir_pointer_reference(node, ctx, module),
         HIRNodeKind::PointerDereference(_) => lower_hir_pointer_dereference(node, ctx, module),

@@ -4,9 +4,9 @@ use calsc_diagnostics::DiagResult;
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_utils::cmp::{CompareOperator, ComparePredicate};
 use remir::{
-    builders::{build_float_compare, build_int_compare},
+    builders::{build_float_compare, build_int_compare, build_int_not},
     module::Module,
-    values::{BaseSSAValue, ValueType, float::SSAFloatValue, int::SSAIntValue},
+    values::{ValueType, float::SSAFloatValue, int::SSAIntValue},
 };
 
 use crate::{result::CalscinRemirResult, values::lower_hir_value};
@@ -80,6 +80,23 @@ pub fn lower_hir_compare(
         }
 
         Ok(res)
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_hir_inverse_condition(
+    node: HIRArenaReference,
+    ctx: &LocalContext,
+    module: &mut Module,
+) -> DiagResult<SSAIntValue> {
+    if let HIRNodeKind::InverseCondition(inner) = node.kind.clone() {
+        let inner = lower_hir_value(inner, ctx, module)?;
+        let inner = SSAIntValue::try_from(inner).convert(node.start.clone(), node.end.clone())?;
+
+        let val = build_int_not(module, inner).convert(node.start.clone(), node.end.clone())?;
+
+        Ok(val.into())
     } else {
         unsafe { unreachable_unchecked() }
     }
