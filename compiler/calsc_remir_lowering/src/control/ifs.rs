@@ -2,36 +2,29 @@ use std::hint::unreachable_unchecked;
 
 use calsc_diagnostics::DiagPossible;
 use calsc_hir::{
-    ifs::IfStatementBranch,
-    localctx::LocalContext,
-    nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
+    ifs::IfStatementBranch, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference,
 };
-use rand::random;
+
 use remir::{
-    block::BlockReference,
+    block::{BlockReference, sync::VariableSynchronizer},
     builders::{build_conditional_branch, build_unconditional_branch},
     module::Module,
     values::int::SSAIntValue,
     writer::InstructionWriter,
 };
 
-use crate::{
-    body::lower_hir_body, generate_block_seed, result::CalscinRemirResult, values::lower_hir_value,
-};
+use crate::{body::lower_hir_body, result::CalscinRemirResult, values::lower_hir_value};
 
 pub fn lower_hir_if_statement_node_branches(
     branch: IfStatementBranch,
-    local_ctx: &LocalContext,
     module: &mut Module,
-    seed: String,
     node: &HIRArenaReference,
     branch_blocks: &mut Vec<BlockReference>,
 ) -> DiagPossible {
     match branch {
         IfStatementBranch::If { .. } => {
             let body_block = module
-                .create_block(format!("{}_if", seed))
+                .create_block("if".to_string())
                 .convert(node.start.clone(), node.end.clone())?;
 
             branch_blocks.push(body_block);
@@ -40,14 +33,12 @@ pub fn lower_hir_if_statement_node_branches(
         }
 
         IfStatementBranch::IfElse { .. } => {
-            let inner_seed = generate_block_seed();
-
             let cond_block = module
-                .create_block(format!("{}__{}_ifelse_cond", seed, inner_seed))
+                .create_block("ifelse_cond".to_string())
                 .convert(node.start.clone(), node.end.clone())?;
 
             let body_block = module
-                .create_block(format!("{}__{}_ifelse_body", seed, inner_seed))
+                .create_block("ifelse_body".to_string())
                 .convert(node.start.clone(), node.end.clone())?;
 
             branch_blocks.push(cond_block);
@@ -58,7 +49,7 @@ pub fn lower_hir_if_statement_node_branches(
 
         IfStatementBranch::Else { .. } => {
             let body_block = module
-                .create_block(format!("{}_else", seed))
+                .create_block("else_body".to_string())
                 .convert(node.start.clone(), node.end.clone())?;
 
             branch_blocks.push(body_block);
@@ -158,24 +149,34 @@ pub fn lower_hir_if_statement(
     module: &mut Module,
 ) -> DiagPossible {
     if let HIRNodeKind::IfStatement { branches } = node.kind.clone() {
-        let seed = generate_block_seed();
+        module.set_sync_point(module.pos_block.clone().unwrap());
 
-		let merge_block = 
+        let merge_block = module
+            .create_block("merge".to_string())
+            .convert(node.start.clone(), node.end.clone())?;
 
         let mut branch_blocks = vec![];
 
         for branch in branches.clone() {
-            lower_hir_if_statement_node_branches(
+            lower_hir_if_statement_node_branches(branch, module, &node, &mut branch_blocks)?;
+        }
+
+        branch_blocks.push(merge_block.clone());
+
+        let mut ind = 0;
+        for branch in branches {
+            lower_hir_if_statement_branch(
                 branch,
                 local_ctx,
                 module,
-                seed.clone(),
+                &mut ind,
                 &node,
-                &mut branch_blocks,
+                &merge_block,
+                &branch_blocks,
             )?;
         }
 
-        branch_blocks.push(value);
+        module.stop_sync_point();
 
         todo!()
     } else {
