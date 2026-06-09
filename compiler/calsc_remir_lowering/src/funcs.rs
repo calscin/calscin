@@ -3,7 +3,11 @@ use std::hint::unreachable_unchecked;
 use calsc_diagnostics::{
     DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest,
 };
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{
+    HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
+    refs::HIRArenaReference,
+};
+use calsc_typing::tree::Type;
 use remir::{
     builders::build_call, module::Module, values::BaseSSAValue, writer::InstructionWriter,
 };
@@ -44,6 +48,30 @@ pub fn lower_hir_function_call(
     } else {
         panic!()
     }
+}
+
+pub fn lower_hir_function_decl_none(
+    key: GlobalContextKey,
+    arguments: Vec<Type>,
+    return_type: Option<Type>,
+    module: &mut Module,
+) -> DiagPossible {
+    let mut mir_arguments = vec![];
+    let mir_return_type;
+
+    for argument in arguments {
+        mir_arguments.push(lower_type(argument)?);
+    }
+
+    if return_type.is_some() {
+        mir_return_type = Some(lower_type(return_type.unwrap())?);
+    } else {
+        mir_return_type = None;
+    }
+
+    let _ = module.create_function(format!("{}", key), mir_arguments, mir_return_type);
+
+    Ok(())
 }
 
 pub fn lower_hir_function_decl(

@@ -1,3 +1,10 @@
+use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
+use calsc_hir::HIRContext;
+use calsc_utils::pos::FilePosition;
+use remir::module::Module;
+
+use crate::funcs::{lower_hir_function_decl, lower_hir_function_decl_none};
+
 pub mod assigns;
 pub mod body;
 pub mod control;
@@ -7,3 +14,28 @@ pub mod result;
 pub mod types;
 pub mod values;
 pub mod vars;
+
+pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
+    let dummy_pos = PosDiagnosticSource::new(FilePosition::default(), FilePosition::default()); // This is okay since we are sure that as_function won't fail
+
+    for key in ctx.scope.key_to_ind.keys() {
+        let entry = ctx.scope.get_entry(key.clone(), &dummy_pos)?;
+
+        if entry.is_function() {
+            let func = entry.as_function(&dummy_pos)?;
+
+            if func.impl_node.is_none() {
+                lower_hir_function_decl_none(
+                    key.clone(),
+                    func.arguments.iter().map(|f| f.1.clone()).collect(),
+                    func.return_type.clone(),
+                    module,
+                )?;
+            } else {
+                lower_hir_function_decl(func.impl_node.clone().unwrap(), &ctx, module)?;
+            }
+        }
+    }
+
+    Ok(())
+}
