@@ -22,6 +22,7 @@ use crate::{globalctx::key::GlobalContextKey, localctx::vars::LocalContextVariab
 pub mod vars;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)] // For MIR
 pub struct LocalContext {
     pub name: HashedString,
 

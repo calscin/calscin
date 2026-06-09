@@ -1,6 +1,7 @@
 use calsc_typing::tree::Type;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)] // For MIR
 pub struct LocalContextVariable {
     pub introduced: usize,
 
