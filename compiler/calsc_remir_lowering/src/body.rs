@@ -4,7 +4,7 @@ use remir::module::Module;
 
 use crate::{
     assigns::lower_hir_pointer_deref_assign,
-    control::ifs::lower_hir_if_statement,
+    control::{fors::lower_hir_for_loop, ifs::lower_hir_if_statement},
     funcs::lower_hir_function_call,
     vars::{lower_hir_variable_assign, lower_hir_variable_declaration},
 };
@@ -29,6 +29,7 @@ pub fn lower_hir_body_node(
         HIRNodeKind::StructFieldAssign { .. } => lower_hir_variable_assign(node, ctx, module),
 
         HIRNodeKind::IfStatement { .. } => lower_hir_if_statement(node, ctx, module),
+        HIRNodeKind::ForLoop { .. } => lower_hir_for_loop(node, ctx, module),
 
         e => panic!("Unexpected {:#?}", e),
     }

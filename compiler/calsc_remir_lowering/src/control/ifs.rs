@@ -178,6 +178,8 @@ pub fn lower_hir_if_statement(
 
         module.stop_sync_point();
 
+        module.move_end(merge_block, module.pos_function.clone().unwrap());
+
         todo!()
     } else {
         unsafe { unreachable_unchecked() }
