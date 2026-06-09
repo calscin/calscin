@@ -26,11 +26,11 @@ impl<T> TrackedRefCell<T> {
         let origin = Backtrace::capture()
             .to_string()
             .lines()
-            .find(|f| !f.is_empty())
-            .unwrap()
-            .to_string();
+            .take(10)
+            .collect::<Vec<_>>()
+            .join("\n");
 
-        println!("+ Created immutable borrow at {}", origin);
+        println!("+ Created immutable borrow at:\n {}", origin);
 
         TrackedRef { origin, inner: re }
     }
@@ -39,11 +39,11 @@ impl<T> TrackedRefCell<T> {
         let origin = Backtrace::capture()
             .to_string()
             .lines()
-            .find(|f| !f.is_empty())
-            .unwrap()
-            .to_string();
+            .take(10)
+            .collect::<Vec<_>>()
+            .join("\n");
 
-        println!("+ Created mutable borrow at {}", origin);
+        println!("+ Created mutable borrow at:\n {}", origin);
 
         TrackedRefMut { origin, inner: re }
     }
@@ -81,13 +81,13 @@ impl<T> Deref for TrackedRef<'_, T> {
 
 impl<T> Drop for TrackedRef<'_, T> {
     fn drop(&mut self) {
-        println!("- Borrow at {} dropped", self.origin)
+        println!("- Borrow at dropped at: \n{}", self.origin)
     }
 }
 
 impl<T> Drop for TrackedRefMut<'_, T> {
     fn drop(&mut self) {
-        println!("- Mut borrow at {} dropped", self.origin)
+        println!("- Mut Borrow at dropped at: \n{}", self.origin)
     }
 }
 

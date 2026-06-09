@@ -17,6 +17,8 @@ pub fn introduce_reference_ast(
 ) -> DiagPossible {
     let ind = node.get_root_variable_reference_index();
 
+    let node = HIRNode::clone(&node);
+
     HIR_CONTEXT.with(|f| {
         f.borrow_mut().scope.mutate_entry(
             local_ctx.unwrap(),
@@ -25,10 +27,10 @@ pub fn introduce_reference_ast(
                     |ff| {
                         ff.local_context.as_mut().unwrap().variables[ind].introduce_reference();
                     },
-                    &*node,
+                    &node,
                 )
             },
-            &*node,
+            &node,
         )
     })??;
 

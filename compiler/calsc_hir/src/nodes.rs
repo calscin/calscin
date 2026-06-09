@@ -325,7 +325,7 @@ impl HIRNode {
                 name: _,
             } => val.get_root_variable_reference_index(),
 
-            _ => panic!(),
+            kind => panic!("Unexpected variable reference kind {:#?}", kind),
         }
     }
 
