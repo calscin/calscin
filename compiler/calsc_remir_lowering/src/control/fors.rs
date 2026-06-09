@@ -42,22 +42,24 @@ pub fn lower_hir_for_loop(
         // We then fill the header block and merge SSA variables in it using the Phi nodes helper.
         // We then set our current position to the merge block
 
-        // Creation of the iterator variable
-        let variable = BlockVariable::new_ssa(
-            String::clone(&iterator_name),
-            Some(iterated.start.clone().into()),
-        );
-
         let curr_pos = module.pos_block.clone().unwrap();
-        module.blocks[curr_pos.id].append_variable(variable); // Appends the variable
+
+        // Setting the sync point
+        module.set_sync_point(curr_pos.clone());
 
         // Create the merge block
         let merge_block = module
             .create_block("merge_block".to_string())
             .convert(node.start.clone(), node.end.clone())?;
 
-        // Setting the sync point
-        module.set_sync_point(curr_pos);
+        // Append the variable
+        // Creation of the iterator variable
+        let variable = BlockVariable::new_ssa(
+            String::clone(&iterator_name),
+            Some(iterated.start.clone().into()),
+        );
+
+        module.blocks[curr_pos.id].append_variable(variable); // Appends the variable
 
         // Creating the loop header block
         let header_block = module
