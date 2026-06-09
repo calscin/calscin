@@ -83,6 +83,7 @@ pub enum HIRNodeKind {
 
     FieldReference {
         val: HIRArenaReference,
+        field_ind: usize,
         name: HashedString,
     },
 
@@ -112,6 +113,7 @@ pub enum HIRNodeKind {
     StructFieldAssign {
         struct_val: HIRArenaReference,
         field: HashedString,
+        field_ind: usize,
         value: HIRArenaReference,
     },
 
@@ -282,7 +284,11 @@ impl HIRNode {
     pub fn represents_pointer_referencable(&self) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
-            HIRNodeKind::FieldReference { val, name: _ } => val.represents_pointer_referencable(),
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name: _,
+            } => val.represents_pointer_referencable(),
             _ => false,
         }
     }
@@ -291,7 +297,11 @@ impl HIRNode {
     pub fn represents_mutable_variable(&self) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
-            HIRNodeKind::FieldReference { val, name: _ } => val.represents_mutable_variable(),
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name: _,
+            } => val.represents_mutable_variable(),
             HIRNodeKind::PointerDerefAssign { .. } => true,
             HIRNodeKind::PointerDereference(_) => true, // TODO: watch this
 
@@ -307,7 +317,11 @@ impl HIRNode {
                 variable_index,
             } => *variable_index,
 
-            HIRNodeKind::FieldReference { val, name: _ } => val.get_root_variable_reference_index(),
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name: _,
+            } => val.get_root_variable_reference_index(),
 
             _ => panic!(),
         }

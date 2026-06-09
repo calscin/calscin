@@ -120,8 +120,7 @@ dependencies = [
 [[package]]
 name = "remir"
 version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4da6a2d5ae3f8936bc1366c0d8b805cb385cf94a2c79eb7a7466ec9dd645b93b"
+source = "git+https://github.com/Zffu/remir.git#91d3f82ae541d2f86f432542f263fcb56ff675c9"
 
 [[package]]
 name = "typing"

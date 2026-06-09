@@ -3,6 +3,7 @@ use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaRefere
 use remir::module::Module;
 
 use crate::{
+    control::ifs::lower_hir_if_statement,
     funcs::lower_hir_function_call,
     vars::{lower_hir_variable_assign, lower_hir_variable_declaration},
 };
@@ -22,6 +23,8 @@ pub fn lower_hir_body_node(
             lower_hir_variable_declaration(node, ctx, module)
         }
         HIRNodeKind::Assignment { .. } => lower_hir_variable_assign(node, ctx, module),
+
+        HIRNodeKind::IfStatement { .. } => lower_hir_if_statement(node, ctx, module),
 
         e => panic!("Unexpected {:#?}", e),
     }

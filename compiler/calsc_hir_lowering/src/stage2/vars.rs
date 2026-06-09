@@ -174,10 +174,16 @@ pub fn lower_ast_variable_assign(
             }
         }
 
-        if let HIRNodeKind::FieldReference { val, name } = variable.kind.clone() {
+        if let HIRNodeKind::FieldReference {
+            val,
+            field_ind,
+            name,
+        } = variable.kind.clone()
+        {
             n = HIRNodeKind::StructFieldAssign {
                 struct_val: val,
                 field: name,
+                field_ind,
                 value,
             }
         }
