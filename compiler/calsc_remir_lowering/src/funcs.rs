@@ -36,7 +36,11 @@ pub fn lower_hir_function_call(
         let mut lowered_arguments = vec![];
 
         for argument in arguments {
-            lowered_arguments.push(lower_hir_value(argument, local_ctx, module)?)
+            let v = lower_hir_value(argument, local_ctx, module)?;
+
+            println!("v{}", v.value_type);
+
+            lowered_arguments.push(v);
         }
 
         let val = build_call(
