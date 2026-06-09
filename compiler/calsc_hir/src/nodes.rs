@@ -325,6 +325,8 @@ impl HIRNode {
                 name: _,
             } => val.get_root_variable_reference_index(),
 
+            HIRNodeKind::PointerDereference(inner) => inner.get_root_variable_reference_index(),
+
             kind => panic!("Unexpected variable reference kind {:#?}", kind),
         }
     }
