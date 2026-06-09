@@ -105,6 +105,10 @@ impl FieldHavingType for BaseType {
         self.kind.get_fields()
     }
 
+    fn get_field_index(&self, name: HashedString) -> usize {
+        self.kind.get_field_index(name)
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         self.kind.get_field_type(name)
     }

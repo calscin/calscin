@@ -88,6 +88,10 @@ impl FieldHavingType for BaseTypeInstance {
         self.ty.get_fields()
     }
 
+    fn get_field_index(&self, name: HashedString) -> usize {
+        self.ty.get_field_index(name)
+    }
+
     fn get_field_type(&self, name: HashedString) -> Type {
         resolve_type_parameter_type(self.ty.get_field_type(name), self) // Resolves type parameters
     }

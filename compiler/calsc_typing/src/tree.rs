@@ -152,6 +152,15 @@ impl FieldHavingType for Type {
         }
     }
 
+    fn get_field_index(&self, name: HashedString) -> usize {
+        match self {
+            Self::Reference { mutable: _, inner } => inner.get_field_index(name),
+            Self::Base(instance) => instance.get_field_index(name),
+
+            _ => panic!(),
+        }
+    }
+
     fn has_field(&self, name: HashedString) -> bool {
         match self {
             Self::Array { .. } => false,

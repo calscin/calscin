@@ -18,6 +18,14 @@ pub trait FieldHavingType {
     /// Gets the list of fields inside of the type
     fn get_fields(&self) -> Vec<HashedString>;
 
+    /// Gets the index of the field.
+    ///
+    /// # Panic
+    /// This function will panic if the field doesn't exist.
+    /// Make sure to use [`has_field`][`FieldHavingType::has_field`] before using this function
+    ///
+    fn get_field_index(&self, name: HashedString) -> usize;
+
     /// Gets the field with the given name's type.
     ///
     /// # Panic
