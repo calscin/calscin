@@ -92,7 +92,7 @@ pub fn lower_hir_function_decl(
         key,
         arguments,
         body,
-        return_type,
+        return_type: _,
     } = node.kind.clone()
     {
         let local_context = context
@@ -103,20 +103,7 @@ pub fn lower_hir_function_decl(
             .clone()
             .unwrap();
 
-        let mut mir_arguments = vec![];
-        let mir_return_type;
-
-        for argument in arguments.clone() {
-            mir_arguments.push(lower_type(argument.0)?);
-        }
-
-        if return_type.is_some() {
-            mir_return_type = Some(lower_type(return_type.unwrap())?);
-        } else {
-            mir_return_type = None;
-        }
-
-        let function = module.create_function(format!("{}", key), mir_arguments, mir_return_type);
+        let function = module.get_function_by_name(format!("{}", key)).unwrap();
         module.move_function(function.clone());
 
         let entry_block = module
