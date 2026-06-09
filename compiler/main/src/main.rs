@@ -5,6 +5,7 @@ use calsc_diagnostics::result::CalscinResult;
 use calsc_hir::HIR_CONTEXT;
 use calsc_hir_lowering::{stage1::lower_hir_stage_1, stage2::lower_hir_stage_2};
 use calsc_lexer::lexer_tokenize;
+use calsc_remir_lowering::{lower_hir_context, print_context_as_mir};
 
 fn main() {
     let args: Vec<String> = env::args().collect();
@@ -24,5 +25,6 @@ fn main() {
     lower_hir_stage_1(context.clone()).unwrap_cleanly();
     lower_hir_stage_2(context).unwrap_cleanly();
 
-    HIR_CONTEXT.with_borrow(|f| print!("{:#?}", f));
+    let borrow = HIR_CONTEXT.with(|f| f.borrow().clone());
+    print_context_as_mir(borrow).unwrap_cleanly();
 }

@@ -103,8 +103,8 @@ pub fn lower_ast_for_loop(
         let iterator_type = lower_ast_type(iterator_type, &node, None)?;
         let iterated = lower_ast_value(ASTNode::clone(&iterated), local_ctx.clone())?;
 
-        let variable_index = HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope.mutate_entry(
+        let variable_index = HIR_CONTEXT.with(|f| {
+            f.borrow_mut().scope.mutate_entry(
                 local_ctx.clone().unwrap(),
                 |entry| {
                     entry.mutate_function(

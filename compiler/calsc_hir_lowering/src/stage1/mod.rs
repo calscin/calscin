@@ -29,7 +29,7 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
         if !first {
             first = true;
 
-            HIR_CONTEXT.with_borrow_mut(|f| apply_prelude(&mut f.scope, &*node))?;
+            HIR_CONTEXT.with(|f| apply_prelude(&mut f.borrow_mut().scope, &*node))?;
         }
 
         match node.kind {

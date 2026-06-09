@@ -51,8 +51,9 @@ pub fn lower_ast_body<K: DiagnosticSource>(
 ) -> DiagResult<Vec<HIRArenaReference>> {
     let mut hir_nodes = vec![];
 
-    let previous_branch = HIR_CONTEXT.with_borrow(|f| {
-        Ok(f.scope
+    let previous_branch = HIR_CONTEXT.with(|f| {
+        Ok(f.borrow()
+            .scope
             .get_entry(local_ctx.clone().unwrap(), origin)?
             .as_function(origin)?
             .local_context
@@ -62,11 +63,11 @@ pub fn lower_ast_body<K: DiagnosticSource>(
     })?;
 
     let mut branch = 0;
-    let mut last = &nodes[0];
+    let mut last = None;
 
     if introduce_branch {
-        branch = HIR_CONTEXT.with_borrow_mut(|f| {
-            Ok(f.scope.mutate_entry(
+        branch = HIR_CONTEXT.with(|f| {
+            Ok(f.borrow_mut().scope.mutate_entry(
                 local_ctx.clone().unwrap(),
                 |entry| {
                     entry.mutate_function(
@@ -80,18 +81,21 @@ pub fn lower_ast_body<K: DiagnosticSource>(
     }
 
     for node in &nodes {
-        last = &node;
+        last = Some(node.clone());
         hir_nodes.push(lower_ast_body_node(node.clone(), local_ctx.clone())?);
     }
 
     if introduce_branch {
-        HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope.mutate_entry(
+        HIR_CONTEXT.with(|f| {
+            f.borrow_mut().scope.mutate_entry(
                 local_ctx.unwrap(),
                 |entry| {
                     entry.mutate_function(
                         |ff| {
-                            ff.local_context.as_mut().unwrap().end_branch(branch, last);
+                            ff.local_context
+                                .as_mut()
+                                .unwrap()
+                                .end_branch(branch, &last.unwrap());
                             ff.local_context.as_mut().unwrap().current_branch = previous_branch;
                         },
                         origin,
@@ -127,8 +131,12 @@ pub fn lower_ast_function_call(
             )?);
         }
 
-        let is_function =
-            HIR_CONTEXT.with_borrow(|f| Ok(f.scope.get_entry(key.clone(), &node)?.is_function()));
+        let is_function = HIR_CONTEXT.with(|f| {
+            Ok(f.borrow()
+                .scope
+                .get_entry(key.clone(), &node)?
+                .is_function())
+        });
 
         if !is_function? {
             return Err(build_expected_error(&"function", &"?? TODO", &node).into());
@@ -234,8 +242,8 @@ pub fn lower_ast_function_decl(
 
         let r = n.push();
 
-        HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope.mutate_entry(
+        HIR_CONTEXT.with(|f| {
+            f.borrow_mut().scope.mutate_entry(
                 key.clone(),
                 |entry| entry.mutate_function(|ff| ff.impl_node = Some(r.clone()), &node),
                 &node,

@@ -2,7 +2,7 @@
 
 use std::cell::RefCell;
 
-use calsc_utils::alloc::arena::ArenaAllocator;
+use calsc_utils::{alloc::arena::ArenaAllocator, refcell::TrackedRefCell};
 
 use crate::{globalctx::GlobalContext, nodes::HIRNode, refs::HIRArenaReference};
 
@@ -17,10 +17,11 @@ pub mod refs;
 pub mod types;
 
 thread_local! {
-    pub static HIR_CONTEXT: RefCell<HIRContext> = RefCell::new(HIRContext::new());
+    pub static HIR_CONTEXT: TrackedRefCell<HIRContext> = TrackedRefCell::new(HIRContext::new());
 }
 
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)] // For MIR
 pub struct HIRContext {
     pub nodes: ArenaAllocator<HIRNode, HIRArenaReference>,
     pub scope: GlobalContext,
@@ -32,5 +33,11 @@ impl HIRContext {
             nodes: ArenaAllocator::new(),
             scope: GlobalContext::new(),
         }
+    }
+}
+
+impl Default for HIRContext {
+    fn default() -> Self {
+        HIRContext::new()
     }
 }

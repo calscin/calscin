@@ -238,8 +238,9 @@ impl HIRNode {
                 if local_func_key.is_none() {
                     None
                 } else {
-                    Some(HIR_CONTEXT.with_borrow(|f| {
-                        f.scope
+                    Some(HIR_CONTEXT.with(|f| {
+                        f.borrow()
+                            .scope
                             .get_entry(local_func_key.unwrap(), self)
                             .unwrap()
                             .as_function(self)
@@ -255,8 +256,9 @@ impl HIRNode {
             }
 
             HIRNodeKind::FunctionCall { func, arguments: _ } => {
-                let ty = HIR_CONTEXT.with_borrow(|f| {
-                    Ok(f.scope
+                let ty = HIR_CONTEXT.with(|f| {
+                    Ok(f.borrow()
+                        .scope
                         .get_entry(func, self)?
                         .as_function(self)?
                         .return_type

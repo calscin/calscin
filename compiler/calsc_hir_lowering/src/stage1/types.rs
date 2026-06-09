@@ -44,8 +44,9 @@ pub fn lower_ast_struct_declaration(node: ASTNode) -> DiagPossible {
             )?; // We can clone base_type to pass it to lower_ast_type since the base_type here wont be modified by lower_ast_type
         }
 
-        let _ = HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope
+        let _ = HIR_CONTEXT.with(|f| {
+            f.borrow_mut()
+                .scope
                 .append(key, GlobalContextValue::Type(base_type), &node)
         })?;
 
@@ -137,10 +138,12 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
 ) -> DiagResult<Type> {
     let key = GlobalContextKey::new(name);
 
-    let ty = HIR_CONTEXT.with_borrow(|f| {
-        f.scope
-            .get_entry(key, origin)?
-            .craft_type(origin, size_specifiers, type_parameters)
+    let ty = HIR_CONTEXT.with(|f| {
+        f.borrow().scope.get_entry(key, origin)?.craft_type(
+            origin,
+            size_specifiers,
+            type_parameters,
+        )
     })?;
 
     Ok(ty)

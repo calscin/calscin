@@ -17,8 +17,8 @@ pub fn introduce_reference_ast(
 ) -> DiagPossible {
     let ind = node.get_root_variable_reference_index();
 
-    HIR_CONTEXT.with_borrow_mut(|f| {
-        f.scope.mutate_entry(
+    HIR_CONTEXT.with(|f| {
+        f.borrow_mut().scope.mutate_entry(
             local_ctx.unwrap(),
             |entry| {
                 entry.mutate_function(

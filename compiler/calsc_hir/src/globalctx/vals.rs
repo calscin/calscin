@@ -13,6 +13,7 @@ use crate::{funcs::HIRFunction, types::safely_make_type_instance};
 /// An entry / value inside of the global context.
 /// This shouldn't be clonable due to the inner data modification not being able to be synced
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)] // For MIR
 pub enum GlobalContextValue {
     /// Represents a type-based entry
     Type(BaseType),

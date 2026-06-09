@@ -29,7 +29,7 @@ impl Deref for HIRArenaReference {
     type Target = HIRNode;
 
     fn deref(&self) -> &Self::Target {
-        HIR_CONTEXT.with_borrow(|f| f.nodes.get_static(self.clone()))
+        HIR_CONTEXT.with(|f| f.borrow().nodes.get_static(self.clone()))
     }
 }
 
@@ -39,7 +39,7 @@ impl Debug for HIRArenaReference {
         write!(
             f,
             "{:#?}",
-            HIR_CONTEXT.with_borrow(|f| f.nodes.get_static(self.clone()))
+            HIR_CONTEXT.with(|f| f.borrow().nodes.get_static(self.clone()))
         )
     }
 }

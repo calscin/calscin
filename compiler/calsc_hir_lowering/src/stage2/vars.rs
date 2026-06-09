@@ -18,8 +18,9 @@ pub fn lower_ast_variable_reference(
     curr_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::ElementReference(val) = &node.kind {
-        let res = HIR_CONTEXT.with_borrow(|f| {
-            f.scope
+        let res = HIR_CONTEXT.with(|f| {
+            f.borrow()
+                .scope
                 .get_entry(curr_ctx.unwrap(), &node)
                 .unwrap()
                 .as_function(&node)
@@ -60,8 +61,8 @@ pub fn lower_ast_variable_declaration(
     {
         let var_type = lower_ast_type(var_type, &node, None)?;
 
-        let id = HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope.mutate_entry(
+        let id = HIR_CONTEXT.with(|f| {
+            f.borrow_mut().scope.mutate_entry(
                 curr_ctx.clone().unwrap(),
                 |entry| {
                     entry.mutate_function(
@@ -116,8 +117,8 @@ pub fn introduce_variable_mutation(
 ) -> DiagPossible {
     let ind = node.get_root_variable_reference_index();
 
-    HIR_CONTEXT.with_borrow_mut(|f| {
-        f.scope.mutate_entry(
+    HIR_CONTEXT.with(|f| {
+        f.borrow_mut().scope.mutate_entry(
             curr_ctx.unwrap(),
             |entry| {
                 entry.mutate_function(

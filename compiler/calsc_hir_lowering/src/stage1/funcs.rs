@@ -59,8 +59,8 @@ pub fn lower_ast_function_decl_first_stage(
 
             let typed = TypedFunction::new((*name).clone(), argument_types, ret_type.clone());
 
-            HIR_CONTEXT.with_borrow_mut(|f| {
-                f.scope.mutate_entry(
+            HIR_CONTEXT.with(|f| {
+                f.borrow_mut().scope.mutate_entry(
                     k,
                     |e| e.mutate_type(|typ| typ.add_function(name, typed, &node), &node),
                     &node,
@@ -70,8 +70,9 @@ pub fn lower_ast_function_decl_first_stage(
 
         let func = HIRFunction::new_stage_1(key.clone(), local_ctx, target, ret_type, args);
 
-        let _ = HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope
+        let _ = HIR_CONTEXT.with(|f| {
+            f.borrow_mut()
+                .scope
                 .append(key, GlobalContextValue::Function(func), &node)
         })?;
 
@@ -106,8 +107,9 @@ pub fn lower_ast_extern_function(node: ASTNode) -> DiagPossible {
 
         let func = HIRFunction::new_extern(key.clone(), None, ret_type, args, triple_dot_position);
 
-        let _ = HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope
+        let _ = HIR_CONTEXT.with(|f| {
+            f.borrow_mut()
+                .scope
                 .append(key, GlobalContextValue::Function(func), &node)
         })?;
 

@@ -150,7 +150,7 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             }
 
             HIR_CONTEXT
-                .with_borrow_mut(|f| f.nodes.arena[curr_node.refer].stronger_type = Some(ty));
+                .with(|f| f.borrow_mut().nodes.arena[curr_node.refer].stronger_type = Some(ty));
         }
 
         HIRNodeKind::FloatLiteral(_, _, _) => {
@@ -161,7 +161,7 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             }
 
             HIR_CONTEXT
-                .with_borrow_mut(|f| f.nodes.arena[curr_node.refer].stronger_type = Some(ty));
+                .with(|f| f.borrow_mut().nodes.arena[curr_node.refer].stronger_type = Some(ty));
         }
 
         HIRNodeKind::MathExpression {

@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
 use calsc_hir::HIRContext;
 use calsc_utils::pos::FilePosition;
@@ -37,5 +39,14 @@ pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
         }
     }
 
+    Ok(())
+}
+
+pub fn print_context_as_mir(ctx: HIRContext) -> DiagPossible {
+    let mut module = Module::new("sample_mod".to_string());
+
+    lower_hir_context(ctx, &mut module)?;
+
+    module.save_to_file(PathBuf::from("test.remir")).unwrap();
     Ok(())
 }
