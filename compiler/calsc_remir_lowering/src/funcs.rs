@@ -10,7 +10,8 @@ use calsc_hir::{
 use calsc_typing::tree::Type;
 use calsc_utils::hash;
 use remir::{
-    builders::{build_call, build_ret},
+    block::vars::BlockVariable,
+    builders::{build_argument_grab, build_call, build_ret},
     module::Module,
     values::BaseSSAValue,
     writer::InstructionWriter,
@@ -101,7 +102,7 @@ pub fn lower_hir_function_decl(
         let mut mir_arguments = vec![];
         let mir_return_type;
 
-        for argument in arguments {
+        for argument in arguments.clone() {
             mir_arguments.push(lower_type(argument.0)?);
         }
 
@@ -118,7 +119,23 @@ pub fn lower_hir_function_decl(
             .create_block(format!("{}::entry", key))
             .convert(node.start.clone(), node.end.clone())?;
 
-        module.move_end(entry_block, function);
+        module.move_end(entry_block.clone(), function);
+
+        // Load arguments
+        {
+            let mut argument_ind = 0;
+            for argument in &arguments {
+                let val = build_argument_grab(module, argument_ind)
+                    .convert(node.start.clone(), node.end.clone())?;
+
+                let argument_variable =
+                    BlockVariable::new_ssa(String::clone(&argument.1), Some(val));
+
+                module.blocks[entry_block.id].append_variable(argument_variable);
+
+                argument_ind += 1;
+            }
+        }
 
         lower_hir_body(body, &local_context, module)
     } else {

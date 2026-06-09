@@ -180,7 +180,7 @@ pub fn lower_hir_if_statement(
 
         module.move_end(merge_block, module.pos_function.clone().unwrap());
 
-        todo!()
+        Ok(())
     } else {
         unsafe { unreachable_unchecked() }
     }
