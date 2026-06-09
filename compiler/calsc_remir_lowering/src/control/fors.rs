@@ -5,7 +5,8 @@ use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaRefere
 use remir::{
     block::{Block, sync::VariableSynchronizer, vars::BlockVariable},
     builders::{
-        build_conditional_branch, build_int_compare, build_math_op_int, build_unconditional_branch,
+        build_alloca, build_conditional_branch, build_const_int, build_int_compare,
+        build_math_op_int, build_unconditional_branch,
     },
     misc::{CompareOperator, MathOperator},
     module::Module,
@@ -13,7 +14,9 @@ use remir::{
     writer::InstructionWriter,
 };
 
-use crate::{body::lower_hir_body, range::lower_hir_range, result::CalscinRemirResult};
+use crate::{
+    body::lower_hir_body, range::lower_hir_range, result::CalscinRemirResult, types::lower_type,
+};
 
 pub fn lower_hir_for_loop(
     node: HIRArenaReference,
@@ -21,7 +24,7 @@ pub fn lower_hir_for_loop(
     module: &mut Module,
 ) -> DiagPossible {
     if let HIRNodeKind::ForLoop {
-        iterator_type: _,
+        iterator_type,
         iterator_name,
         iterator_variable_index: _,
         iterated,
@@ -29,6 +32,7 @@ pub fn lower_hir_for_loop(
     } = node.kind.clone()
     {
         let iterated = lower_hir_range(iterated, local_ctx, module)?;
+        let iterator_type = lower_type(iterator_type)?;
 
         // We use the following technique to lower a for loop:
         // - A loop header block that contains the Phi code for the iterator index and condition
@@ -54,10 +58,16 @@ pub fn lower_hir_for_loop(
 
         // Append the variable
         // Creation of the iterator variable
-        let variable = BlockVariable::new_ssa(
-            String::clone(&iterator_name),
-            Some(iterated.start.clone().into()),
-        );
+        let variable_ptr_size =
+            build_const_int(module, 0, 64, false).convert(node.start.clone(), node.end.clone())?;
+        let variable_pointer = build_alloca(module, variable_ptr_size, Some(iterator_type))
+            .convert(node.start.clone(), node.end.clone())?;
+
+        let mut variable =
+            BlockVariable::new_pointer(String::clone(&iterator_name), variable_pointer);
+        variable
+            .write(module, iterated.start.clone().into())
+            .convert(node.start.clone(), node.end.clone())?;
 
         module.blocks[curr_pos.id].append_variable(variable); // Appends the variable
 
@@ -65,6 +75,10 @@ pub fn lower_hir_for_loop(
         let header_block = module
             .create_block("for_header".to_string())
             .convert(node.start.clone(), node.end.clone())?;
+
+        build_unconditional_branch(module, header_block.clone()); // Jump to the header block from the original block
+
+        module.set_sync_point(header_block.clone());
 
         // Creating the body block
         let body_block = module
@@ -122,21 +136,6 @@ pub fn lower_hir_for_loop(
 
         // Filling the header block
         module.move_end(header_block.clone(), module.pos_function.clone().unwrap());
-
-        // Resolve SSA
-        {
-            // Tricky hack to avoid double borrowing of module
-            // This is normally safe as the block reference doesn't escape this block and isn't stored
-            let block = unsafe {
-                std::mem::transmute::<&mut Block, &'static mut Block>(
-                    &mut module.blocks[header_block.id],
-                )
-            };
-
-            block
-                .resolve_variables(module)
-                .convert(node.start.clone(), node.end.clone())?;
-        }
 
         // Write condition and branch
         {

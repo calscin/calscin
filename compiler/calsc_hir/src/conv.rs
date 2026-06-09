@@ -173,6 +173,19 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             weakly_transmute(right_expr.clone(), ty);
         }
 
+        HIRNodeKind::Range {
+            start,
+            end,
+            increment,
+        } => {
+            weakly_transmute(start.clone(), ty.clone());
+            weakly_transmute(end.clone(), ty.clone());
+
+            if increment.is_some() {
+                weakly_transmute(increment.as_ref().unwrap().clone(), ty);
+            }
+        }
+
         kind => panic!("Unexpected {:#?}", kind),
     }
 }

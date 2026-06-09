@@ -58,7 +58,9 @@ pub fn print_context_as_mir(ctx: HIRContext) -> DiagPossible {
 
     lower_hir_context(ctx, &mut module)?;
 
-    module.save_to_file(PathBuf::from("test.ll"));
+    //lazy_pass(&mut module).unwrap();
+
+    module.save_to_file(PathBuf::from("test.remir"));
 
     let mut bridge = LLVMBridge::new();
     build_llvm(&mut bridge, &mut module).unwrap();

@@ -208,6 +208,12 @@ impl HIRNode {
             HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
             HIRNodeKind::InverseCondition(_) => Some(make_bool_type(self)),
 
+            HIRNodeKind::Range {
+                start,
+                end: _,
+                increment: _,
+            } => start.get_type(local_func_key)?,
+
             HIRNodeKind::PointerReference(val) => Some(Type::Reference {
                 mutable: true, // Mutable by default, will change
                 inner: Box::new(val.get_type(local_func_key)?.unwrap()),
@@ -340,6 +346,16 @@ impl HIRNode {
                 right_expr,
                 operator: _,
             } => left_expr.is_weakly_typed() && right_expr.is_weakly_typed(),
+
+            HIRNodeKind::Range {
+                start,
+                end,
+                increment,
+            } => {
+                start.is_weakly_typed()
+                    && end.is_weakly_typed()
+                    && (increment.is_none() || increment.as_ref().unwrap().is_weakly_typed())
+            }
 
             _ => false,
         }
