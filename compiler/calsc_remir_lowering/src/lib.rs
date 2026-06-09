@@ -4,6 +4,7 @@ use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
 use calsc_hir::HIRContext;
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
+use remir_llvm::{LLVMBridge, build_llvm};
 
 use crate::funcs::{lower_hir_function_decl, lower_hir_function_decl_none};
 
@@ -57,6 +58,14 @@ pub fn print_context_as_mir(ctx: HIRContext) -> DiagPossible {
 
     lower_hir_context(ctx, &mut module)?;
 
-    module.save_to_file(PathBuf::from("test.remir")).unwrap();
+    module.save_to_file(PathBuf::from("test.ll"));
+
+    let mut bridge = LLVMBridge::new();
+    build_llvm(&mut bridge, &mut module).unwrap();
+
+    bridge.modules["sample_mod"]
+        .print_to_file("test.ll")
+        .unwrap();
+
     Ok(())
 }
