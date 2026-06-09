@@ -13,9 +13,7 @@ use remir::{
     writer::InstructionWriter,
 };
 
-use crate::{
-    body::lower_hir_body, range::lower_hir_range, result::CalscinRemirResult, types::lower_type,
-};
+use crate::{body::lower_hir_body, range::lower_hir_range, result::CalscinRemirResult};
 
 pub fn lower_hir_for_loop(
     node: HIRArenaReference,

@@ -1,9 +1,7 @@
 use std::{
     backtrace::Backtrace,
     cell::{Ref, RefCell, RefMut},
-    collections::{HashMap, HashSet},
     ops::{Deref, DerefMut},
-    thread::LocalKey,
 };
 
 /// A variant of [`RefCell`] that tracks active borrows

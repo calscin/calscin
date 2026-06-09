@@ -8,8 +8,12 @@ use calsc_hir::{
     refs::HIRArenaReference,
 };
 use calsc_typing::tree::Type;
+use calsc_utils::hash;
 use remir::{
-    builders::build_call, module::Module, values::BaseSSAValue, writer::InstructionWriter,
+    builders::{build_call, build_ret},
+    module::Module,
+    values::BaseSSAValue,
+    writer::InstructionWriter,
 };
 
 use crate::{
@@ -117,6 +121,28 @@ pub fn lower_hir_function_decl(
         module.move_end(entry_block, function);
 
         lower_hir_body(body, &local_context, module)
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_hir_function_return(
+    node: HIRArenaReference,
+    local_ctx: &LocalContext,
+    module: &mut Module,
+) -> DiagPossible {
+    if let HIRNodeKind::ReturnStatement { val } = node.kind.clone() {
+        let mir_val;
+
+        if val.is_some() {
+            mir_val = Some(lower_hir_value(val.unwrap(), local_ctx, module)?);
+        } else {
+            mir_val = None;
+        }
+
+        build_ret(module, mir_val);
+
+        Ok(())
     } else {
         unsafe { unreachable_unchecked() }
     }
