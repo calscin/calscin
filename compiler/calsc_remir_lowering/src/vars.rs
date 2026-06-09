@@ -1,11 +1,7 @@
 use std::{hint::unreachable_unchecked, mem::transmute};
 
 use calsc_diagnostics::{DiagPossible, DiagResult};
-use calsc_hir::{
-    localctx::LocalContext,
-    nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
-};
+use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     block::vars::BlockVariable,
     builders::{build_alloca, build_const_int},
@@ -76,13 +72,13 @@ pub fn lower_hir_variable_declaration(
         var_type,
         value,
         name,
-        variable_index: _,
+        variable_index,
     } = node.kind.clone()
     {
         let mut variable: BlockVariable;
         let var_type = lower_type(var_type).unwrap();
 
-        if mutable {
+        if mutable || ctx.variables[variable_index].reference_count > 0 {
             // Uses a stack variable for mutable variables.
             // TODO: allow to customize this in the future
 

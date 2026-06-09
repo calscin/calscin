@@ -17,7 +17,7 @@ pub mod refs;
 pub mod types;
 
 thread_local! {
-    pub static HIR_CONTEXT: TrackedRefCell<HIRContext> = TrackedRefCell::new(HIRContext::new());
+    pub static HIR_CONTEXT: RefCell<HIRContext> = RefCell::new(HIRContext::new());
 }
 
 #[cfg_attr(feature = "debug", derive(Debug))]
