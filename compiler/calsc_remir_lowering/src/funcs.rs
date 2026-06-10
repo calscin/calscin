@@ -12,7 +12,7 @@ use remir::{
     block::vars::BlockVariable,
     builders::{build_argument_grab, build_call, build_ret},
     module::Module,
-    values::BaseSSAValue,
+    values::{BaseSSAValue, ValueType},
     writer::InstructionWriter,
 };
 
@@ -60,10 +60,11 @@ pub fn lower_hir_function_decl_none(
     key: GlobalContextKey,
     arguments: Vec<Type>,
     return_type: Option<Type>,
+    is_main_function: bool,
     module: &mut Module,
 ) -> DiagPossible {
     let mut mir_arguments = vec![];
-    let mir_return_type;
+    let mut mir_return_type;
 
     for argument in arguments {
         mir_arguments.push(lower_type(argument)?);
@@ -73,6 +74,15 @@ pub fn lower_hir_function_decl_none(
         mir_return_type = Some(lower_type(return_type.unwrap())?);
     } else {
         mir_return_type = None;
+    }
+
+    if is_main_function {
+        mir_arguments = vec![
+            ValueType::Int(true, 64),
+            ValueType::new_pointer(ValueType::new_any_pointer()),
+        ];
+
+        mir_return_type = Some(ValueType::Int(true, 32));
     }
 
     let _ = module.create_function(format!("{}", key), mir_arguments, mir_return_type);
