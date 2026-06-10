@@ -20,6 +20,7 @@ declare_diagnostic!(EXPECTED_SIZE_SPECS, 7);
 declare_diagnostic!(EXPECTED_TYPE_PARAMETERS, 8);
 declare_diagnostic!(VARIABLE_UNALIVE, 9);
 declare_diagnostic!(REMIR_ERROR, 10);
+declare_diagnostic!(EXPECTED_RETURN, 11);
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
@@ -179,6 +180,21 @@ pub fn build_remir_error<E: Debug>(
     source.make_diagnostic_simple(
         DiagnosticCode::new(Level::Error, REMIR_ERROR),
         format!("ReMIR error happened here: {:#?}", error),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_return_error<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, UNEXPECTED_TOKEN),
+        format!("expected return type {} but got {}", expected, got),
         None,
         vec![],
         vec![],

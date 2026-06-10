@@ -138,6 +138,7 @@ pub enum HIRNodeKind {
         arguments: Vec<(Type, HashedString)>,
         body: Vec<HIRArenaReference>,
         return_type: Option<Type>,
+        append_terminator: bool,
     },
 
     ReturnStatement {

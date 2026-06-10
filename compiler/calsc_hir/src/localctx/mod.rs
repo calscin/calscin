@@ -235,6 +235,10 @@ impl LocalContext {
     ///
     ///
     pub fn meets_ending_point_requirement(&self) -> bool {
+        if self.return_type.is_none() {
+            return true;
+        }
+
         if !self.is_code_in_branch_alive(self.current_branch) {
             return true;
         }

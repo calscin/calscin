@@ -1,7 +1,10 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagResult, DiagnosticSource, diags::errors::build_expected_error};
+use calsc_diagnostics::{
+    DiagResult, DiagnosticSource,
+    diags::errors::{build_expected_error, build_expected_return_error},
+};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
@@ -227,12 +230,35 @@ pub fn lower_ast_function_decl(
             &node,
         )?;
 
+        let meets_ending_point = HIR_CONTEXT.with(|f| {
+            Ok(f.borrow()
+                .scope
+                .get_entry(key.clone(), &node)?
+                .as_function(&node)?
+                .local_context
+                .as_ref()
+                .unwrap()
+                .meets_ending_point_requirement())
+        })?;
+
+        if !meets_ending_point {
+            return Err(build_expected_return_error(
+                ret_type.as_ref().unwrap(),
+                &"void".to_string(),
+                &node,
+            )
+            .into());
+        }
+
+        let is_void = ret_type.is_none();
+
         let n = HIRNode::new(
             HIRNodeKind::FunctionDeclaration {
                 key: key.clone(),
                 arguments: hir_arguments,
                 body,
                 return_type: ret_type,
+                append_terminator: key == GlobalContextKey::new("main".into()) && is_void,
             },
             node.start.clone(),
             node.end.clone(),

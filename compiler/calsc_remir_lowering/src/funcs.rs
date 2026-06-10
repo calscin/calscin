@@ -90,6 +90,7 @@ pub fn lower_hir_function_decl(
         arguments,
         body,
         return_type: _,
+        append_terminator,
     } = node.kind.clone()
     {
         let local_context = context
@@ -125,7 +126,9 @@ pub fn lower_hir_function_decl(
             }
         }
 
-        lower_hir_body(body, &local_context, module)
+        lower_hir_body(body, &local_context, module)?;
+
+        Ok(())
     } else {
         unsafe { unreachable_unchecked() }
     }
