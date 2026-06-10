@@ -5,7 +5,7 @@ pub mod commands;
 
 #[derive(Parser)]
 pub struct CliParser {
-    #[command(subcommand)]
+    #[command(subcommand, name = "calscin")]
     pub command: CLICommand,
 }
 
