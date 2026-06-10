@@ -73,7 +73,7 @@ pub fn test_complex_type_parsing() {
         ASTType::Reference(
             true,
             Box::new(ASTType::Array(
-                32,
+                Some(32),
                 Box::new(ASTType::Generic(
                     "s".into(),
                     Some(32),
