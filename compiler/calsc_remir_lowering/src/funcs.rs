@@ -10,7 +10,7 @@ use calsc_hir::{
 use calsc_typing::tree::Type;
 use remir::{
     block::vars::BlockVariable,
-    builders::{build_argument_grab, build_call, build_ret},
+    builders::{build_argument_grab, build_call, build_const_int, build_ret},
     module::Module,
     values::{BaseSSAValue, ValueType},
     writer::InstructionWriter,
@@ -137,6 +137,12 @@ pub fn lower_hir_function_decl(
         }
 
         lower_hir_body(body, &local_context, module)?;
+
+        if append_terminator {
+            let return_type = build_const_int(module, 0, 32, true).unwrap();
+
+            build_ret(module, Some(return_type.into()));
+        }
 
         Ok(())
     } else {
