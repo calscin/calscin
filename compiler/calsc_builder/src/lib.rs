@@ -11,7 +11,7 @@ use calsc_hir_lowering::{stage1::lower_hir_stage_1, stage2::lower_hir_stage_2};
 use calsc_lexer::lexer_tokenize;
 use calsc_remir_lowering::build_context_to_object_file;
 
-pub fn build_file(path: PathBuf, out: PathBuf) {
+pub fn build_file(path: PathBuf, out: PathBuf, pie: bool) {
     let module_name = path.file_name().unwrap().to_str().unwrap().to_string();
 
     let contents = match fs::read_to_string(path.clone()) {
@@ -48,7 +48,7 @@ pub fn build_file(path: PathBuf, out: PathBuf) {
 
     // MIR
 
-    let _ = build_context_to_object_file(hir, module_name, out);
+    let _ = build_context_to_object_file(hir, module_name, out, pie);
     dump_and_stop_if_errors();
 }
 
@@ -59,5 +59,10 @@ pub fn link_files(files: Vec<PathBuf>, out: PathBuf, linker: String) {
         command.arg(file.to_str().unwrap());
     }
 
-    command.arg(format!("-o {}", out.to_str().unwrap()));
+    let output = command
+        .arg(format!("-o{}", out.to_str().unwrap()))
+        .output()
+        .unwrap();
+
+    println!("{}", String::from_utf8_lossy(&output.stderr));
 }

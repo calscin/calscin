@@ -19,10 +19,17 @@ pub enum CLICommand {
 
         #[arg(
             short = 'l',
-            default_value = "ld",
+            default_value = "clang",
             help = "the linker used to assemble the object files"
         )]
         linker: String,
+
+        #[arg(
+            long,
+            default_value_t = true,
+            help = "should the compiler use PIE or not"
+        )]
+        use_pie: bool,
     },
 
     #[command(about = "Checks for errors without building the code")]

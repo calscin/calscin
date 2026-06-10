@@ -76,6 +76,7 @@ pub fn build_context_to_object_file(
     ctx: HIRContext,
     module_name: String,
     path: PathBuf,
+    pie: bool,
 ) -> DiagPossible {
     let mut module = Module::new(module_name);
 
@@ -88,5 +89,6 @@ pub fn build_context_to_object_file(
         &mut module,
         remir::OptimizationLevel::Default,
         path,
+        pie,
     )
 }

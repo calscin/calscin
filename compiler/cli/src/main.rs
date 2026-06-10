@@ -16,7 +16,12 @@ fn main() {
     let cli = CliParser::parse();
 
     match cli.command {
-        CLICommand::Build { input, out, linker } => build_command(input, out, linker),
+        CLICommand::Build {
+            input,
+            out,
+            linker,
+            use_pie,
+        } => build_command(input, out, linker, use_pie),
 
         _ => todo!(),
     }
