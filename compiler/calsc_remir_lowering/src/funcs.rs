@@ -38,8 +38,6 @@ pub fn lower_hir_function_call(
         for argument in arguments {
             let v = lower_hir_value(argument, local_ctx, module)?;
 
-            println!("v{}", v.value_type);
-
             lowered_arguments.push(v);
         }
 

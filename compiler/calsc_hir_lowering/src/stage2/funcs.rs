@@ -204,8 +204,6 @@ pub fn lower_ast_function_decl(
             key = GlobalContextKey::new(name.clone());
         }
 
-        println!("Key: {}", key);
-
         let mut hir_arguments = vec![];
         let ret_type;
 
