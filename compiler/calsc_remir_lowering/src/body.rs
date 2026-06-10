@@ -3,7 +3,6 @@ use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaRefere
 use remir::module::Module;
 
 use crate::{
-    assigns::lower_hir_pointer_deref_assign,
     control::{fors::lower_hir_for_loop, ifs::lower_hir_if_statement, loops::lower_hir_while_loop},
     funcs::{lower_hir_function_call, lower_hir_function_return},
     values::lower_hir_value,
@@ -26,8 +25,6 @@ pub fn lower_hir_body_node(
         }
 
         HIRNodeKind::Assignment { .. } => lower_hir_variable_assign(node, ctx, module),
-        HIRNodeKind::PointerDerefAssign { .. } => lower_hir_pointer_deref_assign(node, ctx, module),
-        HIRNodeKind::StructFieldAssign { .. } => lower_hir_variable_assign(node, ctx, module),
 
         HIRNodeKind::IfStatement { .. } => lower_hir_if_statement(node, ctx, module),
         HIRNodeKind::ForLoop { .. } => lower_hir_for_loop(node, ctx, module),

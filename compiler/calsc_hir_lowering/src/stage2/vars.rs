@@ -165,31 +165,10 @@ pub fn lower_ast_variable_assign(
 
         introduce_variable_mutation(variable.clone(), curr_ctx.clone())?;
 
-        let mut n = HIRNodeKind::Assignment {
+        let n = HIRNodeKind::Assignment {
             variable: variable.clone(),
             value: value.clone(),
         };
-
-        if let HIRNodeKind::PointerDereference(inner) = variable.kind.clone() {
-            n = HIRNodeKind::PointerDerefAssign {
-                pointer: inner,
-                value: value.clone(),
-            }
-        }
-
-        if let HIRNodeKind::FieldReference {
-            val,
-            field_ind,
-            name,
-        } = variable.kind.clone()
-        {
-            n = HIRNodeKind::StructFieldAssign {
-                struct_val: val,
-                field: name,
-                field_ind,
-                value,
-            }
-        }
 
         let node = HIRNode::new(n, node.start.clone(), node.end.clone());
 

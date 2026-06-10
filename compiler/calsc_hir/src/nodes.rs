@@ -111,18 +111,6 @@ pub enum HIRNodeKind {
         value: HIRArenaReference,
     },
 
-    PointerDerefAssign {
-        pointer: HIRArenaReference,
-        value: HIRArenaReference,
-    },
-
-    StructFieldAssign {
-        struct_val: HIRArenaReference,
-        field: HashedString,
-        field_ind: usize,
-        value: HIRArenaReference,
-    },
-
     ForLoop {
         iterator_type: Type,
         iterator_name: HashedString,
@@ -323,7 +311,6 @@ impl HIRNode {
                 field_ind: _,
                 name: _,
             } => val.represents_mutable_variable(),
-            HIRNodeKind::PointerDerefAssign { .. } => true,
             HIRNodeKind::PointerDereference(_) => true, // TODO: watch this
 
             _ => false,
