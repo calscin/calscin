@@ -87,6 +87,12 @@ pub enum HIRNodeKind {
         name: HashedString,
     },
 
+    IndexUsage {
+        val: HIRArenaReference,
+        index: HIRArenaReference,
+        output_type: Type,
+    },
+
     FunctionReference {
         entry: GlobalContextKey,
     },
@@ -274,6 +280,12 @@ impl HIRNode {
 
                 ty?
             }
+
+            HIRNodeKind::IndexUsage {
+                val: _,
+                index: _,
+                output_type,
+            } => Some(output_type),
 
             _ => None,
         };

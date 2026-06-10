@@ -38,6 +38,10 @@ impl HIRNode {
             return Err(build_unexpected_error(&"void".to_string(), self).into());
         }
 
+        if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
+            return convert_numerical_literal_into(self.clone(), ty.as_base());
+        }
+
         let self_type = unsafe { self.get_type(local_func_key.clone())?.unwrap_unchecked() };
 
         if self_type == ty {
@@ -45,10 +49,6 @@ impl HIRNode {
         }
 
         if self_type.can_transmute(ty.clone()) {
-            if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
-                return convert_numerical_literal_into(self.clone(), ty.as_base());
-            }
-
             let node = HIRNode::new(
                 HIRNodeKind::CastNode {
                     original: self.clone().push(),

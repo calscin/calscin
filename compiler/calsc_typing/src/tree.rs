@@ -266,6 +266,7 @@ impl IterableType for Type {
     fn get_iterator_output_type(&self) -> Type {
         match self {
             Self::Array { size: _, inner } => *inner.clone(),
+            Self::Reference { mutable: _, inner } => inner.get_iterator_output_type(),
             _ => panic!(),
         }
     }
@@ -278,6 +279,8 @@ impl IterableType for Type {
                 vec![],
             )),
 
+            Self::Reference { mutable: _, inner } => inner.get_iterator_type(),
+
             _ => panic!(),
         }
     }
@@ -285,6 +288,7 @@ impl IterableType for Type {
     fn is_iterable(&self, ty: Type) -> bool {
         match self {
             Self::Array { .. } => ty == self.get_iterator_type(),
+            Self::Reference { mutable: _, inner } => inner.is_iterable(ty),
             _ => false,
         }
     }

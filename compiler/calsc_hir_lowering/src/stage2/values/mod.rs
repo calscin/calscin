@@ -14,6 +14,7 @@ use crate::stage2::{
     funcs::lower_ast_function_call,
     values::{
         booleans::lower_hir_inverse_condition,
+        index::lower_ast_index_usage,
         lits::lower_ast_literal,
         lru::lower_ast_lru,
         ptrs::{lower_ast_pointer_dereference, lower_ast_pointer_reference},
@@ -22,6 +23,7 @@ use crate::stage2::{
 };
 
 pub mod booleans;
+pub mod index;
 pub mod lits;
 pub mod lru;
 pub mod ptrs;
@@ -55,6 +57,8 @@ pub fn lower_ast_value(
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
 
         ASTNodeKind::StructuredInit { .. } => lower_ast_structured_init(node, local_ctx),
+
+        ASTNodeKind::IndexUsage { .. } => lower_ast_index_usage(node, local_ctx),
 
         kind => panic!("Reached {:#?}", kind),
     }
