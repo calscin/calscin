@@ -9,7 +9,10 @@ use remir::{
     values::BaseSSAValue,
 };
 
-use crate::{result::CalscinRemirResult, types::lower_type, values::lower_hir_value};
+use crate::{
+    result::CalscinRemirResult, types::lower_type, values::lower_hir_value,
+    writes::lower_hir_writable,
+};
 
 pub fn lower_hir_variable_reference<'a>(
     node: HIRArenaReference,
@@ -51,12 +54,9 @@ pub fn lower_hir_variable_assign(
     module: &mut Module,
 ) -> DiagPossible {
     if let HIRNodeKind::Assignment { variable, value } = node.kind.clone() {
-        let variable = lower_hir_variable_reference(variable, ctx, module)?;
         let value = lower_hir_value(value, ctx, module)?;
 
-        variable
-            .write(module, value)
-            .convert(node.start.clone(), node.end.clone())
+        lower_hir_writable(variable, ctx, module, value)
     } else {
         unsafe { unreachable_unchecked() }
     }
