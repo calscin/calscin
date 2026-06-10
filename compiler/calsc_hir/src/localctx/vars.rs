@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use calsc_typing::tree::Type;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
@@ -13,7 +15,7 @@ pub struct LocalContextVariable {
 
     pub has_default: bool,
 
-    pub introduced_values: Vec<usize>,
+    pub introduced_values: HashSet<usize>,
 }
 
 impl LocalContextVariable {
@@ -25,7 +27,7 @@ impl LocalContextVariable {
             usage_count: 0,
             mutation_count: 0,
             reference_count: 0,
-            introduced_values: vec![],
+            introduced_values: HashSet::new(),
         }
     }
 

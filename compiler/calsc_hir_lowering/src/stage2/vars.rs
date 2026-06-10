@@ -126,6 +126,11 @@ pub fn introduce_variable_mutation(
                 entry.mutate_function(
                     |ff| {
                         ff.local_context.as_mut().unwrap().variables[ind].introduce_mutation();
+                        let current_branch = ff.local_context.as_ref().unwrap().current_branch;
+
+                        ff.local_context.as_mut().unwrap().variables[ind]
+                            .introduced_values
+                            .insert(current_branch);
                     },
                     &node,
                 )

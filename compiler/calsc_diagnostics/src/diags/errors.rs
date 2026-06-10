@@ -29,6 +29,7 @@ declare_diagnostic!(RESTRICTED_ARGUMENT_TYPES, 12);
 declare_diagnostic!(RESTRICTED_RETURN_TYPE, 13);
 declare_diagnostic!(COMPILE_TIME_SIZE, 14);
 declare_diagnostic!(NOT_ITERABLE, 15);
+declare_diagnostic!(NOT_INITIALIZED, 16);
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
@@ -282,4 +283,18 @@ pub fn build_not_iterable<T: Display, S: DiagnosticSource>(
             vec![],
         )
     }
+}
+
+pub fn build_not_initialized<V: Display, S: DiagnosticSource>(
+    variable: &V,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, NOT_INITIALIZED),
+        format!("the variable {} was not initialized", variable),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
 }
