@@ -11,6 +11,7 @@ use remir::{
 
 use crate::{
     result::CalscinRemirResult, values::lower_hir_value, vars::lower_hir_variable_reference,
+    writes::lower_hir_writable,
 };
 
 pub fn convert_math_operator(math: MathOperation) -> DiagResult<remir::misc::MathOperator> {
@@ -85,10 +86,7 @@ pub fn lower_hir_math_operation(
         }
 
         if operator.assigns {
-            let var = lower_hir_variable_reference(left_expr, ctx, module)?;
-
-            var.write(module, res.clone())
-                .convert(node.start.clone(), node.end.clone())?;
+            lower_hir_writable(left_expr, ctx, module, res.clone())?;
         }
 
         Ok(res)
