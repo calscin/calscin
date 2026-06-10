@@ -6,6 +6,7 @@ use calsc_utils::pos::FilePosition;
 
 use crate::{
     Diagnostic, DiagnosticCode, DiagnosticSource, Level, PosDiagnosticSource, declare_diagnostic,
+    fmt::fmt_list,
     span::{Span, SpanKind},
 };
 
@@ -20,6 +21,9 @@ declare_diagnostic!(EXPECTED_SIZE_SPECS, 7);
 declare_diagnostic!(EXPECTED_TYPE_PARAMETERS, 8);
 declare_diagnostic!(VARIABLE_UNALIVE, 9);
 declare_diagnostic!(REMIR_ERROR, 10);
+declare_diagnostic!(EXPECTED_RETURN, 11);
+declare_diagnostic!(RESTRICTED_ARGUMENT_TYPES, 12);
+declare_diagnostic!(RESTRICTED_RETURN_TYPE, 13);
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
@@ -183,5 +187,54 @@ pub fn build_remir_error<E: Debug>(
         vec![],
         vec![],
         vec![],
+    )
+}
+
+pub fn build_expected_return_error<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, UNEXPECTED_TOKEN),
+        format!("expected return type {} but got {}", expected, got),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_restricted_arument_type<R: Display, S: DiagnosticSource>(
+    restricted: &Vec<R>,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, RESTRICTED_ARGUMENT_TYPES),
+        format!(
+            "argument types are restricted to {} for this function",
+            fmt_list(restricted)
+        ),
+        None,
+        vec![],
+        vec!["invalid argument types".to_string()],
+        vec![format!("change argument types to {}", fmt_list(restricted))],
+    )
+}
+
+pub fn build_restricted_return_type<R: Display, S: DiagnosticSource>(
+    restricted: &R,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, RESTRICTED_RETURN_TYPE),
+        format!(
+            "return type is restricted to {} for this function",
+            restricted
+        ),
+        None,
+        vec![],
+        vec!["invalid return type".to_string()],
+        vec![format!("change return type to {}", restricted)],
     )
 }

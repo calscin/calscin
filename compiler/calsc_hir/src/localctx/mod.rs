@@ -44,11 +44,19 @@ pub struct LocalContext {
 
     pub return_type: Option<Type>,
 
+    pub is_main_function: bool,
+
     pub current_branch: usize,
+    pub branch_count: usize,
 }
 
 impl LocalContext {
-    pub fn new(name: HashedString, key: GlobalContextKey, return_type: Option<Type>) -> Self {
+    pub fn new(
+        name: HashedString,
+        key: GlobalContextKey,
+        return_type: Option<Type>,
+        is_main_function: bool,
+    ) -> Self {
         Self {
             name,
             local_key: key,
@@ -60,6 +68,8 @@ impl LocalContext {
             variables: vec![],
             return_type,
             current_branch: 0,
+            branch_count: 0,
+            is_main_function,
         }
     }
 
@@ -68,6 +78,7 @@ impl LocalContext {
     #[inline(always)]
     pub fn start_branch(&mut self) -> usize {
         self.current_branch += 1;
+        self.branch_count += 1;
 
         self.current_branch
     }
@@ -235,13 +246,17 @@ impl LocalContext {
     ///
     ///
     pub fn meets_ending_point_requirement(&self) -> bool {
+        if self.return_type.is_none() {
+            return true;
+        }
+
         if !self.is_code_in_branch_alive(self.current_branch) {
             return true;
         }
 
-        // If every branch before the current branch are stopped, then the codez is okay as well
+        // If every branch before the current branch are stopped, then the code is okay as well
 
-        if !self.contain_unreal_branches {
+        if !self.contain_unreal_branches && self.branch_count >= 1 {
             for i in 0..self.current_branch {
                 if self.is_code_in_branch_alive(i) {
                     return false;
