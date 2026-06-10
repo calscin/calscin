@@ -1,9 +1,20 @@
+use std::hint::unreachable_unchecked;
+
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
-use remir::{module::Module, values::BaseSSAValue};
+use calsc_hir::{
+    localctx::LocalContext,
+    nodes::{HIRNode, HIRNodeKind},
+    refs::HIRArenaReference,
+};
+use remir::{
+    builders::{build_extract_value, build_load, build_struct_gep},
+    module::Module,
+    values::{BaseSSAValue, ValueType, ptr::SSAPointerValue, structs::SSAStructValue},
+};
 
 use crate::{
     funcs::lower_hir_function_call,
+    result::CalscinRemirResult,
     values::{
         bool::{lower_hir_compare, lower_hir_inverse_condition},
         consts::lower_hir_literal,
@@ -54,6 +65,46 @@ pub fn lower_hir_value(
             lower_hir_variable_reference_val(node, ctx, module)
         }
 
-        _ => panic!("Unexpected kind"),
+        HIRNodeKind::FieldReference { .. } => lower_hir_field_reference(node, ctx, module),
+
+        e => panic!("Unexpected kind {:#?}", e),
+    }
+}
+
+pub fn lower_hir_field_reference(
+    node: HIRArenaReference,
+    ctx: &LocalContext,
+    module: &mut Module,
+) -> DiagResult<BaseSSAValue> {
+    if let HIRNodeKind::FieldReference {
+        val,
+        field_ind,
+        name: _,
+    } = node.kind.clone()
+    {
+        let val = lower_hir_value(val, ctx, module)?;
+
+        let field_val;
+
+        if let ValueType::Pointer(_) = &val.value_type {
+            let val: SSAPointerValue = val
+                .try_into()
+                .convert(node.start.clone(), node.end.clone())?;
+            let ptr = build_struct_gep(module, val, field_ind)
+                .convert(node.start.clone(), node.end.clone())?;
+
+            field_val = build_load(module, ptr).convert(node.start.clone(), node.end.clone())?;
+        } else {
+            let val: SSAStructValue = val
+                .try_into()
+                .convert(node.start.clone(), node.end.clone())?;
+
+            field_val = build_extract_value(module, val, field_ind)
+                .convert(node.start.clone(), node.end.clone())?;
+        }
+
+        Ok(field_val)
+    } else {
+        unsafe { unreachable_unchecked() }
     }
 }
