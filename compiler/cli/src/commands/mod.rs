@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use clap::Subcommand;
 
+pub mod build;
+
 #[derive(Subcommand)]
 pub enum CLICommand {
     #[command(

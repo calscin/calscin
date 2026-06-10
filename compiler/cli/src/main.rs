@@ -1,6 +1,6 @@
 use std::{thread, time::Duration};
 
-use crate::commands::CLICommand;
+use crate::commands::{CLICommand, build::build_command};
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 
@@ -14,4 +14,10 @@ pub struct CliParser {
 
 fn main() {
     let cli = CliParser::parse();
+
+    match cli.command {
+        CLICommand::Build { input, out, linker } => build_command(input, out, linker),
+
+        _ => todo!(),
+    }
 }

@@ -1,6 +1,6 @@
 [workspace]
 members = [
-	"compiler/calsc_ast",
+	"compiler/calsc_ast", "compiler/calsc_builder",
 	"compiler/calsc_diagnostics",
 	"compiler/calsc_hir",
 	"compiler/calsc_hir_lowering",

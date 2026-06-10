@@ -90,6 +90,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "calsc_builder"
+version = "0.1.0"
+dependencies = [
+ "calsc_ast",
+ "calsc_diagnostics",
+ "calsc_hir",
+ "calsc_hir_lowering",
+ "calsc_lexer",
+ "calsc_remir_lowering",
+]
+
+[[package]]
 name = "calsc_diagnostics"
 version = "0.0.0"
 dependencies = [
