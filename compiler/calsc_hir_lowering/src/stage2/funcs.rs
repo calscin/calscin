@@ -3,7 +3,9 @@ use std::hint::unreachable_unchecked;
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_expected_error, build_expected_return_error},
+    diags::errors::{
+        build_expected_error, build_expected_return_error, build_restricted_return_type,
+    },
 };
 use calsc_hir::{
     HIR_CONTEXT,
@@ -167,11 +169,32 @@ pub fn lower_ast_return_statement(
     if let ASTNodeKind::ReturnStatement { val } = node.kind.clone() {
         let v;
 
+        let expected_return_type = HIR_CONTEXT.with_borrow(|f| {
+            Some(
+                f.scope
+                    .get_entry(local_ctx.clone().unwrap(), &node)
+                    .ok()?
+                    .as_function(&node)
+                    .ok()?
+                    .local_context
+                    .as_ref()
+                    .unwrap()
+                    .return_type
+                    .clone(),
+            )
+        }?);
+
+        if val.is_some() && expected_return_type.is_none() {
+            return Err(build_restricted_return_type(&"void", &node).into());
+        }
+
         if val.is_some() {
-            v = Some(lower_ast_value(
-                ASTNode::clone(&val.unwrap()),
-                local_ctx.clone(),
-            )?);
+            let val = lower_ast_value(ASTNode::clone(&val.unwrap()), local_ctx.clone())?;
+            let val = val
+                .use_as(expected_return_type.unwrap(), val.clone(), None, local_ctx)?
+                .push();
+
+            v = Some(val);
         } else {
             v = None;
         }
