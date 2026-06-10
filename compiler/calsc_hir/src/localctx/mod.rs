@@ -44,11 +44,18 @@ pub struct LocalContext {
 
     pub return_type: Option<Type>,
 
+    pub is_main_function: bool,
+
     pub current_branch: usize,
 }
 
 impl LocalContext {
-    pub fn new(name: HashedString, key: GlobalContextKey, return_type: Option<Type>) -> Self {
+    pub fn new(
+        name: HashedString,
+        key: GlobalContextKey,
+        return_type: Option<Type>,
+        is_main_function: bool,
+    ) -> Self {
         Self {
             name,
             local_key: key,
@@ -60,6 +67,7 @@ impl LocalContext {
             variables: vec![],
             return_type,
             current_branch: 0,
+            is_main_function,
         }
     }
 

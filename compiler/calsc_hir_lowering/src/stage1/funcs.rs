@@ -32,6 +32,8 @@ pub fn lower_ast_function_decl_first_stage(
             key = GlobalContextKey::new_typed(name.clone(), target.clone().unwrap());
         }
 
+        let is_main_function = key == GlobalContextKey::new("main".into());
+
         let mut args = vec![];
         let mut ret_type = None;
 
@@ -39,7 +41,12 @@ pub fn lower_ast_function_decl_first_stage(
             ret_type = Some(lower_ast_type(v, &node, target.clone())?);
         }
 
-        let mut local_ctx = LocalContext::new(name.clone(), key.clone(), ret_type.clone());
+        let mut local_ctx = LocalContext::new(
+            name.clone(),
+            key.clone(),
+            ret_type.clone(),
+            is_main_function,
+        );
 
         for argument in arguments {
             let ty = lower_ast_type(argument.0, &node, target.clone())?;
