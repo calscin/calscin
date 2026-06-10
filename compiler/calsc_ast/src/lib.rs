@@ -39,3 +39,9 @@ impl ASTContext {
         }
     }
 }
+
+impl Default for ASTContext {
+    fn default() -> Self {
+        ASTContext::new()
+    }
+}

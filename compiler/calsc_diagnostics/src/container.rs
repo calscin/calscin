@@ -42,3 +42,11 @@ pub fn dump_diagnostics() {
 pub fn clear_diagnostics() {
     DIAGNOSTIC_CONTAINER.with_borrow_mut(|f| f.clear());
 }
+
+pub fn dump_and_stop_if_errors() {
+    dump_diagnostics();
+
+    if has_errors() {
+        std::process::exit(1);
+    }
+}
