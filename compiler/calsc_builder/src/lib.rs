@@ -34,7 +34,7 @@ pub fn build_file(path: PathBuf, out: PathBuf) {
     let _ = parse_ast_whole(&lexer);
     dump_and_stop_if_errors();
 
-    let ast = AST_CONTEXT.take();
+    let ast = AST_CONTEXT.with_borrow(|f| f.clone());
 
     // HIR
 
@@ -44,7 +44,7 @@ pub fn build_file(path: PathBuf, out: PathBuf) {
     let _ = lower_hir_stage_2(ast);
     dump_and_stop_if_errors();
 
-    let hir = HIR_CONTEXT.take();
+    let hir = HIR_CONTEXT.with_borrow(|f| f.clone());
 
     // MIR
 

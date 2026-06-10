@@ -27,7 +27,7 @@ pub fn build_command(input: Vec<PathBuf>, out: PathBuf, linker: String) {
 
     progress_bar.finish_with_message("Linking");
 
-    link_files(object_files, out, linker);
+    link_files(object_files.clone(), out, linker);
 
     progress_bar.finish_with_message("Cleaning up");
 
