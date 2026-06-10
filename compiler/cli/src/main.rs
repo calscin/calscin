@@ -1,6 +1,6 @@
 use std::{thread, time::Duration};
 
-use crate::commands::{CLICommand, build::build_command};
+use crate::commands::{CLICommand, build::build_command, check::check_command};
 use clap::Parser;
 use indicatif::{ProgressBar, ProgressStyle};
 
@@ -23,6 +23,6 @@ fn main() {
             use_pie,
         } => build_command(input, out, linker, use_pie),
 
-        _ => todo!(),
+        CLICommand::Check { input, simple } => check_command(input, simple),
     }
 }

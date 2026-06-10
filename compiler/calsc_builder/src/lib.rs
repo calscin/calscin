@@ -66,3 +66,37 @@ pub fn link_files(files: Vec<PathBuf>, out: PathBuf, linker: String) {
 
     println!("{}", String::from_utf8_lossy(&output.stderr));
 }
+
+pub fn check_file(path: PathBuf, ast_only: bool) {
+    let contents = match fs::read_to_string(path.clone()) {
+        Ok(v) => v,
+        Err(e) => {
+            println!("File error! {}", e);
+            process::exit(1);
+        }
+    };
+
+    // Lexer
+
+    let lexer = lexer_tokenize(&contents, path.to_str().unwrap().to_string());
+    dump_and_stop_if_errors();
+
+    let lexer = lexer.unwrap();
+
+    // AST
+
+    let _ = parse_ast_whole(&lexer);
+    dump_and_stop_if_errors();
+
+    let ast = AST_CONTEXT.with_borrow(|f| f.clone());
+
+    // HIR
+
+    if !ast_only {
+        let _ = lower_hir_stage_1(ast.clone());
+        dump_and_stop_if_errors();
+
+        let _ = lower_hir_stage_2(ast);
+        dump_and_stop_if_errors();
+    }
+}
