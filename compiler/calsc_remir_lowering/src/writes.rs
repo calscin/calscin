@@ -32,6 +32,10 @@ pub fn lower_hir_writable(
             lower_hir_field_writable(node, local_ctx, module, val)
         }
 
+        HIRNodeKind::PointerDereference(_) => {
+            lower_hir_pointer_writable(node, local_ctx, module, val)
+        }
+
         _ => panic!(),
     }
 }
@@ -67,6 +71,24 @@ pub fn lower_hir_field_writable(
             build_insert_value(module, val, field_ind, write_into)
                 .convert(node.start.clone(), node.end.clone())
         }
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_hir_pointer_writable(
+    node: HIRArenaReference,
+    local_ctx: &LocalContext,
+    module: &mut Module,
+    write_into: BaseSSAValue,
+) -> DiagPossible {
+    if let HIRNodeKind::PointerDereference(inner) = node.kind.clone() {
+        let inner = lower_hir_value(inner, local_ctx, module)?;
+        let inner: SSAPointerValue = inner
+            .try_into()
+            .convert(node.start.clone(), node.end.clone())?;
+
+        build_store(module, inner, write_into).convert(node.start.clone(), node.end.clone())
     } else {
         unsafe { unreachable_unchecked() }
     }
