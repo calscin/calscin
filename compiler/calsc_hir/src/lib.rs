@@ -2,7 +2,7 @@
 
 use std::cell::RefCell;
 
-use calsc_utils::{alloc::arena::ArenaAllocator, refcell::TrackedRefCell};
+use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{globalctx::GlobalContext, nodes::HIRNode, refs::HIRArenaReference};
 

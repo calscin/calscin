@@ -11,7 +11,8 @@ pub enum ImportKind {
     Items(Vec<HashedString>),
 }
 
-#[derive(Clone, PartialEq, Debug)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone, PartialEq)]
 pub enum ImportModule {
     /// The standart library
     Std,

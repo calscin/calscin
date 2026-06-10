@@ -54,6 +54,6 @@ pub fn lower_hir_value(
             lower_hir_variable_reference_val(node, ctx, module)
         }
 
-        kind => panic!("Unexpected {:#?}", kind),
+        _ => panic!("Unexpected kind"),
     }
 }

@@ -4,7 +4,7 @@ use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
 use calsc_hir::HIRContext;
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
-use remir_llvm::{LLVMBridge, build_llvm};
+use remir_llvm::{LLVMBridge, build_llvm, compile_llvm};
 
 use crate::funcs::{lower_hir_function_decl, lower_hir_function_decl_none};
 
@@ -60,7 +60,7 @@ pub fn print_context_as_mir(ctx: HIRContext) -> DiagPossible {
 
     //lazy_pass(&mut module).unwrap();
 
-    module.save_to_file(PathBuf::from("test.remir"));
+    module.save_to_file(PathBuf::from("test.remir")).unwrap();
 
     let mut bridge = LLVMBridge::new();
     build_llvm(&mut bridge, &mut module).unwrap();
@@ -70,4 +70,25 @@ pub fn print_context_as_mir(ctx: HIRContext) -> DiagPossible {
         .unwrap();
 
     Ok(())
+}
+
+pub fn build_context_to_object_file(
+    ctx: HIRContext,
+    module_name: String,
+    path: PathBuf,
+    pie: bool,
+) -> DiagPossible {
+    let mut module = Module::new(module_name);
+
+    lower_hir_context(ctx, &mut module)?;
+
+    let mut bridge = LLVMBridge::new();
+
+    compile_llvm(
+        &mut bridge,
+        &mut module,
+        remir::OptimizationLevel::Default,
+        path,
+        pie,
+    )
 }

@@ -3,7 +3,7 @@ use std::hint::unreachable_unchecked;
 use calsc_diagnostics::DiagPossible;
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
-    block::{Block, sync::VariableSynchronizer},
+    block::sync::VariableSynchronizer,
     builders::{build_conditional_branch, build_unconditional_branch},
     module::Module,
     values::int::SSAIntValue,
@@ -58,21 +58,6 @@ pub fn lower_hir_while_loop(
 
         // Filling the header block
         module.move_end(header_block.clone(), module.pos_function.clone().unwrap());
-
-        // Resolve SSA
-        {
-            // Tricky hack to avoid double borrowing of module
-            // This is normally safe as the block reference doesn't escape this block and isn't stored
-            let block = unsafe {
-                std::mem::transmute::<&mut Block, &'static mut Block>(
-                    &mut module.blocks[header_block.id],
-                )
-            };
-
-            block
-                .resolve_variables(module)
-                .convert(node.start.clone(), node.end.clone())?;
-        }
 
         // Write condition and branch
         {
