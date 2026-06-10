@@ -8,6 +8,7 @@ members = [
 	"compiler/calsc_remir_lowering",
 	"compiler/calsc_typing",
 	"compiler/calsc_utils",
+	"compiler/cli",
 	"tests/ast",
 	"tests/hir",
 	"tests/lexer",
