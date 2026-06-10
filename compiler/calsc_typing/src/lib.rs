@@ -6,6 +6,7 @@ use crate::tree::Type;
 pub mod base;
 pub mod fmt;
 pub mod func;
+pub mod iter;
 pub mod params;
 pub mod tree;
 
