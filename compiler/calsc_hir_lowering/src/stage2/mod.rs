@@ -26,6 +26,7 @@ pub fn lower_hir_stage_2(ast_context: ASTContext) -> DiagPossible {
                 let _ = lower_ast_function_decl(ASTNode::clone(&node), None)?;
             }
 
+            ASTNodeKind::ExternFunctionDeclaration { .. } => continue,
             ASTNodeKind::StructDeclaration { .. } => continue,
 
             kind => panic!("Unexpected {:#?}", kind),

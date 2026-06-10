@@ -3,7 +3,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
+use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_expected_error};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
@@ -18,8 +18,9 @@ pub fn lower_ast_variable_reference(
     curr_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::ElementReference(val) = &node.kind {
-        let res = HIR_CONTEXT.with_borrow(|f| {
-            f.scope
+        let res = HIR_CONTEXT.with(|f| {
+            f.borrow()
+                .scope
                 .get_entry(curr_ctx.unwrap(), &node)
                 .unwrap()
                 .as_function(&node)
@@ -60,8 +61,8 @@ pub fn lower_ast_variable_declaration(
     {
         let var_type = lower_ast_type(var_type, &node, None)?;
 
-        let id = HIR_CONTEXT.with_borrow_mut(|f| {
-            f.scope.mutate_entry(
+        let id = HIR_CONTEXT.with(|f| {
+            f.borrow_mut().scope.mutate_entry(
                 curr_ctx.clone().unwrap(),
                 |entry| {
                     entry.mutate_function(
@@ -110,6 +111,32 @@ pub fn lower_ast_variable_declaration(
     }
 }
 
+pub fn introduce_variable_mutation(
+    node: HIRArenaReference,
+    curr_ctx: Option<GlobalContextKey>,
+) -> DiagPossible {
+    let ind = node.get_root_variable_reference_index();
+
+    let node = HIRNode::clone(&node);
+
+    HIR_CONTEXT.with(|f| {
+        f.borrow_mut().scope.mutate_entry(
+            curr_ctx.unwrap(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| {
+                        ff.local_context.as_mut().unwrap().variables[ind].introduce_mutation();
+                    },
+                    &node,
+                )
+            },
+            &node,
+        )
+    })??;
+
+    Ok(())
+}
+
 pub fn lower_ast_variable_assign(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
@@ -136,15 +163,32 @@ pub fn lower_ast_variable_assign(
             .into());
         }
 
-        let n;
+        introduce_variable_mutation(variable.clone(), curr_ctx.clone())?;
+
+        let mut n = HIRNodeKind::Assignment {
+            variable: variable.clone(),
+            value: value.clone(),
+        };
 
         if let HIRNodeKind::PointerDereference(inner) = variable.kind.clone() {
             n = HIRNodeKind::PointerDerefAssign {
                 pointer: inner,
+                value: value.clone(),
+            }
+        }
+
+        if let HIRNodeKind::FieldReference {
+            val,
+            field_ind,
+            name,
+        } = variable.kind.clone()
+        {
+            n = HIRNodeKind::StructFieldAssign {
+                struct_val: val,
+                field: name,
+                field_ind,
                 value,
             }
-        } else {
-            n = HIRNodeKind::Assignment { variable, value }
         }
 
         let node = HIRNode::new(n, node.start.clone(), node.end.clone());

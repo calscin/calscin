@@ -21,8 +21,9 @@ pub mod key;
 pub mod vals;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)] // For MIR
 pub struct GlobalContext {
-    key_to_ind: HashMap<GlobalContextKey, usize>,
+    pub key_to_ind: HashMap<GlobalContextKey, usize>,
     pub values: Vec<GlobalContextValue>,
 }
 

@@ -63,9 +63,12 @@ pub fn lower_ast_lru(
                     return Err(build_cannot_find_element_no_closest(&name, &node).into());
                 }
 
+                let field_ind = left_ty.get_field_index(name.clone());
+
                 let node = HIRNode::new(
                     HIRNodeKind::FieldReference {
                         val: left_expr,
+                        field_ind,
                         name: name.clone(),
                     },
                     node.start.clone(),

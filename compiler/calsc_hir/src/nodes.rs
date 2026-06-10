@@ -83,6 +83,7 @@ pub enum HIRNodeKind {
 
     FieldReference {
         val: HIRArenaReference,
+        field_ind: usize,
         name: HashedString,
     },
 
@@ -106,6 +107,13 @@ pub enum HIRNodeKind {
 
     PointerDerefAssign {
         pointer: HIRArenaReference,
+        value: HIRArenaReference,
+    },
+
+    StructFieldAssign {
+        struct_val: HIRArenaReference,
+        field: HashedString,
+        field_ind: usize,
         value: HIRArenaReference,
     },
 
@@ -200,6 +208,12 @@ impl HIRNode {
             HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
             HIRNodeKind::InverseCondition(_) => Some(make_bool_type(self)),
 
+            HIRNodeKind::Range {
+                start,
+                end: _,
+                increment: _,
+            } => start.get_type(local_func_key)?,
+
             HIRNodeKind::PointerReference(val) => Some(Type::Reference {
                 mutable: true, // Mutable by default, will change
                 inner: Box::new(val.get_type(local_func_key)?.unwrap()),
@@ -230,8 +244,9 @@ impl HIRNode {
                 if local_func_key.is_none() {
                     None
                 } else {
-                    Some(HIR_CONTEXT.with_borrow(|f| {
-                        f.scope
+                    Some(HIR_CONTEXT.with(|f| {
+                        f.borrow()
+                            .scope
                             .get_entry(local_func_key.unwrap(), self)
                             .unwrap()
                             .as_function(self)
@@ -247,8 +262,9 @@ impl HIRNode {
             }
 
             HIRNodeKind::FunctionCall { func, arguments: _ } => {
-                let ty = HIR_CONTEXT.with_borrow(|f| {
-                    Ok(f.scope
+                let ty = HIR_CONTEXT.with(|f| {
+                    Ok(f.borrow()
+                        .scope
                         .get_entry(func, self)?
                         .as_function(self)?
                         .return_type
@@ -276,7 +292,11 @@ impl HIRNode {
     pub fn represents_pointer_referencable(&self) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
-            HIRNodeKind::FieldReference { .. } => true,
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name: _,
+            } => val.represents_pointer_referencable(),
             _ => false,
         }
     }
@@ -285,11 +305,35 @@ impl HIRNode {
     pub fn represents_mutable_variable(&self) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
-            HIRNodeKind::FieldReference { val, name: _ } => val.represents_mutable_variable(),
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name: _,
+            } => val.represents_mutable_variable(),
             HIRNodeKind::PointerDerefAssign { .. } => true,
             HIRNodeKind::PointerDereference(_) => true, // TODO: watch this
 
             _ => false,
+        }
+    }
+
+    /// Gets the root variable index of the node
+    pub fn get_root_variable_reference_index(&self) -> usize {
+        match &self.kind {
+            HIRNodeKind::VariableReference {
+                name: _,
+                variable_index,
+            } => *variable_index,
+
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name: _,
+            } => val.get_root_variable_reference_index(),
+
+            HIRNodeKind::PointerDereference(inner) => inner.get_root_variable_reference_index(),
+
+            kind => panic!("Unexpected variable reference kind {:#?}", kind),
         }
     }
 
@@ -302,6 +346,16 @@ impl HIRNode {
                 right_expr,
                 operator: _,
             } => left_expr.is_weakly_typed() && right_expr.is_weakly_typed(),
+
+            HIRNodeKind::Range {
+                start,
+                end,
+                increment,
+            } => {
+                start.is_weakly_typed()
+                    && end.is_weakly_typed()
+                    && (increment.is_none() || increment.as_ref().unwrap().is_weakly_typed())
+            }
 
             _ => false,
         }

@@ -38,7 +38,7 @@ pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
 
                 MathOperation::Or
             } else {
-                MathOperation::Add
+                MathOperation::Sub
             }
         }
 

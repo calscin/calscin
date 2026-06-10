@@ -14,7 +14,8 @@ use crate::{FieldHavingType, MutableFieldHavingType, tree::Type};
 pub struct BaseStructContainer {
     pub name: HashedString,
 
-    pub fields: HashMap<HashedString, Type>,
+    pub fields: HashMap<HashedString, (Type, usize)>,
+    pub field_order: Vec<HashedString>,
 }
 
 impl BaseStructContainer {
@@ -23,6 +24,7 @@ impl BaseStructContainer {
         Self {
             name,
             fields: HashMap::new(),
+            field_order: vec![],
         }
     }
 }
@@ -45,17 +47,15 @@ impl FieldHavingType for BaseStructContainer {
     }
 
     fn get_fields(&self) -> Vec<HashedString> {
-        let mut fields = vec![];
+        self.field_order.clone()
+    }
 
-        for k in self.fields.keys() {
-            fields.push(k.clone())
-        }
-
-        fields
+    fn get_field_index(&self, name: HashedString) -> usize {
+        self.fields[&name].1
     }
 
     fn get_field_type(&self, name: HashedString) -> Type {
-        self.fields[&name].clone()
+        self.fields[&name].0.clone()
     }
 }
 
@@ -70,7 +70,8 @@ impl MutableFieldHavingType for BaseStructContainer {
             return Err(build_already_in_scope(&*name, source).into());
         }
 
-        self.fields.insert(name, ty);
+        self.field_order.push(name.clone());
+        self.fields.insert(name, (ty, self.fields.len()));
         Ok(())
     }
 }

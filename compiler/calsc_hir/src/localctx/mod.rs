@@ -17,13 +17,16 @@ use calsc_diagnostics::{
 use calsc_typing::tree::Type;
 use calsc_utils::{hash::HashedString, pos::FilePosition};
 
-use crate::localctx::vars::LocalContextVariable;
+use crate::{globalctx::key::GlobalContextKey, localctx::vars::LocalContextVariable};
 
 pub mod vars;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)] // For MIR
 pub struct LocalContext {
     pub name: HashedString,
+
+    pub local_key: GlobalContextKey,
 
     /// Main hashmap to convert a string into an actual variable vector index
     pub hash_to_ind: HashMap<HashedString, usize>,
@@ -45,9 +48,10 @@ pub struct LocalContext {
 }
 
 impl LocalContext {
-    pub fn new(name: HashedString, return_type: Option<Type>) -> Self {
+    pub fn new(name: HashedString, key: GlobalContextKey, return_type: Option<Type>) -> Self {
         Self {
             name,
+            local_key: key,
             hash_to_ind: HashMap::new(),
             branch_ends: HashMap::new(),
             branch_ends_positions: HashMap::new(),

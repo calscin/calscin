@@ -6,6 +6,7 @@ pub mod fs;
 pub mod hash;
 pub mod math;
 pub mod pos;
+pub mod refcell;
 pub mod str;
 
 /// Stores either a value of type [`A`] or a value of type [`B`]

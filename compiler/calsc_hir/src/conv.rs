@@ -30,6 +30,10 @@ impl HIRNode {
         other_node: Option<HIRArenaReference>,
         local_func_key: Option<GlobalContextKey>,
     ) -> DiagResult<HIRNode> {
+        if let HIRNodeKind::StructuredInit { .. } = self.kind.clone() {
+            return convert_structured_init_into(self.clone(), ty, local_func_key, self);
+        }
+
         if self.get_type(local_func_key.clone())?.is_none() {
             return Err(build_unexpected_error(&"void".to_string(), self).into());
         }
@@ -38,10 +42,6 @@ impl HIRNode {
 
         if self_type == ty {
             return Ok(self.clone());
-        }
-
-        if let HIRNodeKind::StructuredInit { .. } = self.kind.clone() {
-            return convert_structured_init_into(self.clone(), ty, local_func_key, self);
         }
 
         if self_type.can_transmute(ty.clone()) {
@@ -150,7 +150,7 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             }
 
             HIR_CONTEXT
-                .with_borrow_mut(|f| f.nodes.arena[curr_node.refer].stronger_type = Some(ty));
+                .with(|f| f.borrow_mut().nodes.arena[curr_node.refer].stronger_type = Some(ty));
         }
 
         HIRNodeKind::FloatLiteral(_, _, _) => {
@@ -161,7 +161,7 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             }
 
             HIR_CONTEXT
-                .with_borrow_mut(|f| f.nodes.arena[curr_node.refer].stronger_type = Some(ty));
+                .with(|f| f.borrow_mut().nodes.arena[curr_node.refer].stronger_type = Some(ty));
         }
 
         HIRNodeKind::MathExpression {
@@ -171,6 +171,19 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
         } => {
             weakly_transmute(left_expr.clone(), ty.clone());
             weakly_transmute(right_expr.clone(), ty);
+        }
+
+        HIRNodeKind::Range {
+            start,
+            end,
+            increment,
+        } => {
+            weakly_transmute(start.clone(), ty.clone());
+            weakly_transmute(end.clone(), ty.clone());
+
+            if increment.is_some() {
+                weakly_transmute(increment.as_ref().unwrap().clone(), ty);
+            }
         }
 
         kind => panic!("Unexpected {:#?}", kind),

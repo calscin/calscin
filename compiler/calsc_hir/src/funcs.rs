@@ -19,6 +19,7 @@ use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext, refs::HIRA
 ///
 /// This system allows for recursion and out of order function calling.
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)] // For MIR
 pub struct HIRFunction {
     /// Represents the key related to the function
     pub name: GlobalContextKey,

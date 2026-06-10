@@ -1,14 +1,41 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
+use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_expected_error};
 use calsc_hir::{
+    HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
 };
 
 use crate::stage2::values::lower_ast_value;
+
+pub fn introduce_reference_ast(
+    node: HIRArenaReference,
+    local_ctx: Option<GlobalContextKey>,
+) -> DiagPossible {
+    let ind = node.get_root_variable_reference_index();
+
+    let node = HIRNode::clone(&node);
+
+    HIR_CONTEXT.with(|f| {
+        f.borrow_mut().scope.mutate_entry(
+            local_ctx.unwrap(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| {
+                        ff.local_context.as_mut().unwrap().variables[ind].introduce_reference();
+                    },
+                    &node,
+                )
+            },
+            &node,
+        )
+    })??;
+
+    Ok(())
+}
 
 pub fn lower_ast_pointer_reference(
     node: ASTNode,
@@ -25,6 +52,8 @@ pub fn lower_ast_pointer_reference(
             )
             .into());
         }
+
+        introduce_reference_ast(val.clone(), local_ctx.clone())?;
 
         let node = HIRNode::new(
             HIRNodeKind::PointerReference(val),
