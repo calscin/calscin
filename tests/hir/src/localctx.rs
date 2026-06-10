@@ -135,7 +135,15 @@ fn test_ending_point_unreal_branches() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None, false);
+    let mut ctx = LocalContext::new(
+        "test".into(),
+        key,
+        Some(Type::TypeParameter {
+            name: "T".into(),
+            param_ind: 0,
+        }),
+        false,
+    );
 
     ctx.contain_unreal_branches = true;
 
@@ -163,7 +171,15 @@ fn test_ending_point_real_branches() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None, false);
+    let mut ctx = LocalContext::new(
+        "test".into(),
+        key,
+        Some(Type::TypeParameter {
+            name: "T".into(),
+            param_ind: 0,
+        }),
+        false,
+    );
 
     let branch1 = ctx.start_branch();
 

@@ -47,6 +47,7 @@ pub struct LocalContext {
     pub is_main_function: bool,
 
     pub current_branch: usize,
+    pub branch_count: usize,
 }
 
 impl LocalContext {
@@ -67,6 +68,7 @@ impl LocalContext {
             variables: vec![],
             return_type,
             current_branch: 0,
+            branch_count: 0,
             is_main_function,
         }
     }
@@ -76,6 +78,7 @@ impl LocalContext {
     #[inline(always)]
     pub fn start_branch(&mut self) -> usize {
         self.current_branch += 1;
+        self.branch_count += 1;
 
         self.current_branch
     }
@@ -253,7 +256,7 @@ impl LocalContext {
 
         // If every branch before the current branch are stopped, then the code is okay as well
 
-        if !self.contain_unreal_branches && self.current_branch >= 1 {
+        if !self.contain_unreal_branches && self.branch_count >= 1 {
             for i in 0..self.current_branch {
                 if self.is_code_in_branch_alive(i) {
                     return false;
