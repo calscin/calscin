@@ -9,10 +9,7 @@ use remir::{
     values::{BaseSSAValue, float::SSAFloatValue, int::SSAIntValue},
 };
 
-use crate::{
-    result::CalscinRemirResult, values::lower_hir_value, vars::lower_hir_variable_reference,
-    writes::lower_hir_writable,
-};
+use crate::{result::CalscinRemirResult, values::lower_hir_value, writes::lower_hir_writable};
 
 pub fn convert_math_operator(math: MathOperation) -> DiagResult<remir::misc::MathOperator> {
     Ok(match math {
