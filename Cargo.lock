@@ -430,12 +430,12 @@ checksum = "cab834c73d247e67f4fae452806d17d3c7501756d98c8808d7c9c7aa7d18f973"
 [[package]]
 name = "remir"
 version = "1.0.1"
-source = "git+https://github.com/Zffu/remir.git#44fa97f89aea61a8c666ffb892442beddcfc3d96"
+source = "git+https://github.com/Zffu/remir.git#ec639bc0d1279bec6da1115c87ee421792a3194b"
 
 [[package]]
 name = "remir_llvm"
 version = "1.0.1"
-source = "git+https://github.com/Zffu/remir.git#44fa97f89aea61a8c666ffb892442beddcfc3d96"
+source = "git+https://github.com/Zffu/remir.git#ec639bc0d1279bec6da1115c87ee421792a3194b"
 dependencies = [
  "inkwell",
  "remir",
