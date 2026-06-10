@@ -114,13 +114,17 @@ pub(crate) fn parse_type_step(
         TokenKind::BracketOpen => {
             *ind += 1; // [
 
-            let size = tokens[*ind].expects_int_lit()?;
-            *ind += 1; // int literal
+            let mut size = None;
+
+            if tokens[*ind].is_int_lit() {
+                size = Some(tokens[*ind].expects_int_lit()? as usize);
+                *ind += 1; // int literal
+            }
 
             tokens[*ind].expects(TokenKind::BracketClose)?;
             *ind += 1; // ]
 
-            SimpleASTType::Array(size as usize)
+            SimpleASTType::Array(size)
         }
 
         TokenKind::Keyword(_) => {

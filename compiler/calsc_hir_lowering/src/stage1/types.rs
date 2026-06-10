@@ -5,7 +5,8 @@ use calsc_ast::{
     types::ASTType,
 };
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource, diags::errors::build_expected_error,
+    DiagPossible, DiagResult, DiagnosticSource,
+    diags::errors::{build_compile_time_size, build_expected_error},
 };
 use calsc_hir::{
     HIR_CONTEXT,
@@ -65,7 +66,7 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
         if b.is_some() || !c.is_empty() {
             return Err(build_expected_error(
                 &"type name",
-                &lower_ast_type(ty, origin, inst)?,
+                &lower_ast_type(ty, origin, inst, false)?,
                 origin,
             )
             .into());
@@ -82,25 +83,32 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
         }
     }
 
-    return Err(
-        build_expected_error(&"type name", &lower_ast_type(ty, origin, inst)?, origin).into(),
-    );
+    return Err(build_expected_error(
+        &"type name",
+        &lower_ast_type(ty, origin, inst, false)?,
+        origin,
+    )
+    .into());
 }
 
 pub fn lower_ast_type<K: DiagnosticSource>(
     ty: ASTType,
     origin: &K,
     inst: Option<BaseType>,
+    allow_compile_time_uncertain_types: bool,
 ) -> DiagResult<Type> {
-    match ty {
-        ASTType::Array(size, b) => Ok(Type::Array {
-            size,
-            inner: Box::new(lower_ast_type(*b, origin, inst)?),
-        }),
+    match ty.clone() {
+        ASTType::Array(size, b) => {
+            if size.is_none() && !allow_compile_time_uncertain_types {
+                return Err(build_compile_time_size(&ty, origin).into());
+            }
+
+            todo!()
+        }
 
         ASTType::Reference(mutable, b) => Ok(Type::Reference {
             mutable,
-            inner: Box::new(lower_ast_type(*b, origin, inst)?),
+            inner: Box::new(lower_ast_type(*b, origin, inst, true)?),
         }),
 
         ASTType::Generic(a, b, c) => {
@@ -120,7 +128,7 @@ pub fn lower_ast_type<K: DiagnosticSource>(
             }
 
             for param in c {
-                type_params.push(lower_ast_type(param, origin, inst.clone())?);
+                type_params.push(lower_ast_type(param, origin, inst.clone(), false)?);
             }
 
             let ty = lower_ast_generic_base(a, size_specifiers, type_params, origin)?;

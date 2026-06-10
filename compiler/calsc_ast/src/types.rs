@@ -24,7 +24,7 @@ pub enum ASTType {
     /// `s32[56]` would be `Array(56, Generic(s32))`
     ///
     /// `s32&[56]` would be `Array(56, Reference(Generic(s32)))`
-    Array(usize, Box<ASTType>),
+    Array(Option<usize>, Box<ASTType>),
 
     /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`. The second parameter represents the size specifier
     /// The third parameter represents any type parameters
@@ -41,7 +41,7 @@ pub enum ASTType {
 #[cfg_attr(feature = "debug", derive(Debug))]
 pub enum SimpleASTType {
     Reference(bool),
-    Array(usize),
+    Array(Option<usize>),
     Generic(HashedString, Option<usize>, Vec<ASTType>),
 }
 
