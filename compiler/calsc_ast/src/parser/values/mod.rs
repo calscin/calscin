@@ -12,6 +12,7 @@ use crate::{
         func::parse_function_call,
         lru::parse_ast_struct_lru,
         values::{
+            arrays::parse_ast_index_usage,
             conditions::{parse_ast_compare_expression, parse_ast_inverse_condition},
             lits::parse_ast_literal,
             math::parse_ast_math_expression,
@@ -24,6 +25,7 @@ use crate::{
     refs::ASTArenaReference,
 };
 
+pub mod arrays;
 pub mod conditions;
 pub mod lits;
 pub mod math;
@@ -162,6 +164,8 @@ pub fn parse_ast_post(
         TokenKind::AngelBracketOpen | TokenKind::AngelBracketClose => {
             parse_ast_compare_expression(tokens, ind, first_node, start)
         }
+
+        TokenKind::BracketOpen => parse_ast_index_usage(tokens, ind, first_node, start),
 
         _ => Ok(first_node),
     }

@@ -143,6 +143,11 @@ pub enum ASTNodeKind {
         right_expr: ASTArenaReference,
     },
 
+    IndexUsage {
+        val: ASTArenaReference,
+        index: ASTArenaReference,
+    },
+
     StructDeclaration {
         name: HashedString,
         type_params: Vec<HashedString>,
