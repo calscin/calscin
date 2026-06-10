@@ -346,7 +346,7 @@ impl Token {
         if let TokenKind::IntLiteral(v) = &self.kind {
             Ok(*v)
         } else {
-            Err(build_expected_error(&"string literal".to_string(), &self.kind, self).into())
+            Err(build_expected_error(&"int literal".to_string(), &self.kind, self).into())
         }
     }
 

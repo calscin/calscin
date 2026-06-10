@@ -88,7 +88,14 @@ pub fn lower_ast_function_decl_first_stage(
             })???;
         }
 
-        let func = HIRFunction::new_stage_1(key.clone(), local_ctx, target, ret_type, args);
+        let func = HIRFunction::new_stage_1(
+            key.clone(),
+            local_ctx,
+            target,
+            ret_type,
+            args,
+            is_main_function,
+        );
 
         let _ = HIR_CONTEXT.with(|f| {
             f.borrow_mut()
@@ -125,7 +132,14 @@ pub fn lower_ast_extern_function(node: ASTNode) -> DiagPossible {
             args.push((argument.1, ty));
         }
 
-        let func = HIRFunction::new_extern(key.clone(), None, ret_type, args, triple_dot_position);
+        let func = HIRFunction::new_extern(
+            key.clone(),
+            None,
+            ret_type,
+            args,
+            triple_dot_position,
+            false,
+        );
 
         let _ = HIR_CONTEXT.with(|f| {
             f.borrow_mut()

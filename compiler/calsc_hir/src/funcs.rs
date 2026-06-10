@@ -44,6 +44,8 @@ pub struct HIRFunction {
 
     /// The triple dot position for extern functions
     pub triple_dot_position: Option<usize>,
+
+    pub is_main_function: bool,
 }
 
 impl HIRFunction {
@@ -53,6 +55,7 @@ impl HIRFunction {
         return_type: Option<Type>,
         arguments: Vec<(HashedString, Type)>,
         triple_dot_position: Option<usize>,
+        is_main_function: bool,
     ) -> Self {
         Self {
             name,
@@ -62,6 +65,7 @@ impl HIRFunction {
             arguments,
             impl_node: None,
             triple_dot_position,
+            is_main_function,
         }
     }
 
@@ -71,6 +75,7 @@ impl HIRFunction {
         origin_type: Option<BaseType>,
         return_type: Option<Type>,
         arguments: Vec<(HashedString, Type)>,
+        is_main_function: bool,
     ) -> Self {
         Self {
             name,
@@ -80,6 +85,7 @@ impl HIRFunction {
             arguments,
             impl_node: None,
             triple_dot_position: None,
+            is_main_function,
         }
     }
 
