@@ -243,9 +243,9 @@ impl LocalContext {
             return true;
         }
 
-        // If every branch before the current branch are stopped, then the codez is okay as well
+        // If every branch before the current branch are stopped, then the code is okay as well
 
-        if !self.contain_unreal_branches {
+        if !self.contain_unreal_branches && self.current_branch >= 1 {
             for i in 0..self.current_branch {
                 if self.is_code_in_branch_alive(i) {
                     return false;
