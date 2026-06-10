@@ -111,7 +111,15 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
                 return Err(build_compile_time_size(&ty, origin).into());
             }
 
-            todo!()
+            Ok(Type::Array {
+                size,
+                inner: Box::new(lower_ast_type_complex(
+                    *b,
+                    origin,
+                    inst,
+                    allow_compile_time_uncertain_types,
+                )?),
+            })
         }
 
         ASTType::Reference(mutable, b) => Ok(Type::Reference {

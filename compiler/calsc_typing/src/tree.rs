@@ -26,7 +26,10 @@ pub enum Type {
     Reference { mutable: bool, inner: Box<Type> },
 
     /// Represents an array of a given size
-    Array { size: usize, inner: Box<Type> },
+    Array {
+        size: Option<usize>,
+        inner: Box<Type>,
+    },
 }
 
 impl Type {

@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::fmt::{Debug, Display};
 
 use crate::{
     base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
@@ -55,7 +55,15 @@ impl Display for BaseType {
 impl Display for Type {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Array { size, inner } => write!(f, "{}[{}]", *inner, size),
+            Self::Array { size, inner } => {
+                write!(f, "{}[", inner)?;
+
+                if size.is_some() {
+                    write!(f, "{}", size.unwrap())?;
+                }
+
+                write!(f, "]")
+            }
             Self::TypeParameter { name, param_ind: _ } => write!(f, "{}", name),
             Self::Reference { mutable, inner } => {
                 if *mutable {
