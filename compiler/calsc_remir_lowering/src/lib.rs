@@ -17,6 +17,7 @@ pub mod result;
 pub mod types;
 pub mod values;
 pub mod vars;
+pub mod writes;
 
 pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
     let dummy_pos = PosDiagnosticSource::new(FilePosition::default(), FilePosition::default()); // This is okay since we are sure that as_function won't fail
