@@ -191,13 +191,33 @@ pub fn lower_ast_return_statement(
         if val.is_some() {
             let val = lower_ast_value(ASTNode::clone(&val.unwrap()), local_ctx.clone())?;
             let val = val
-                .use_as(expected_return_type.unwrap(), val.clone(), None, local_ctx)?
+                .use_as(
+                    expected_return_type.unwrap(),
+                    val.clone(),
+                    None,
+                    local_ctx.clone(),
+                )?
                 .push();
 
             v = Some(val);
         } else {
             v = None;
         }
+
+        HIR_CONTEXT.with(|f| {
+            f.borrow_mut().scope.mutate_entry(
+                local_ctx.clone().unwrap(),
+                |entry| {
+                    entry.mutate_function(
+                        |ff| {
+                            ff.local_context.as_mut().unwrap().introduce_ending_point();
+                        },
+                        &node,
+                    )
+                },
+                &node,
+            )
+        })??;
 
         let node = HIRNode::new(
             HIRNodeKind::ReturnStatement { val: v },
