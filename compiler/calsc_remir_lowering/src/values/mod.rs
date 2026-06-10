@@ -54,6 +54,10 @@ pub fn lower_hir_value(
             lower_hir_variable_reference_val(node, ctx, module)
         }
 
+        #[cfg(feature = "debug")]
         kind => panic!("Unexpected {:#?}", kind),
+
+        #[cfg(not(feature = "debug"))]
+        _ => panic!("Unexpected kind"),
     }
 }

@@ -186,6 +186,10 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             }
         }
 
+        #[cfg(feature = "debug")]
         kind => panic!("Unexpected {:#?}", kind),
+
+        #[cfg(not(feature = "debug"))]
+        _ => panic!("Unexpected kind"),
     }
 }

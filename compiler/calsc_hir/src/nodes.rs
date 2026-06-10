@@ -333,7 +333,11 @@ impl HIRNode {
 
             HIRNodeKind::PointerDereference(inner) => inner.get_root_variable_reference_index(),
 
+            #[cfg(feature = "debug")]
             kind => panic!("Unexpected variable reference kind {:#?}", kind),
+
+            #[cfg(not(feature = "debug"))]
+            _ => panic!("Unexpected variable reference kind"),
         }
     }
 
