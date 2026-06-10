@@ -1,5 +1,8 @@
 //! Declarations related to types in the Calscin AST.
 
+use std::fmt::Display;
+
+use calsc_diagnostics::fmt::fmt_list;
 use calsc_utils::hash::HashedString;
 
 /// The AST representation of type. Works on a tree-like structure where nodes can have an "inner" child node that is deeper.
@@ -50,6 +53,46 @@ impl SimpleASTType {
         match self {
             Self::Generic(_, _, _) => true,
             _ => false,
+        }
+    }
+}
+
+impl Display for ASTType {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Generic(name, size_params, type_params) => {
+                write!(f, "{}", name)?;
+
+                if size_params.is_some() {
+                    write!(f, ".{}", size_params.as_ref().unwrap())?;
+                }
+
+                if !type_params.is_empty() {
+                    write!(f, "<{}>", fmt_list(type_params))?;
+                }
+
+                Ok(())
+            }
+
+            Self::Array(size, inner) => {
+                write!(f, "{}[", inner);
+
+                if size.is_some() {
+                    write!(f, "{}", size.unwrap())?;
+                }
+
+                write!(f, "]")
+            }
+
+            Self::Reference(mutable, inner) => {
+                write!(f, "{}&", inner)?;
+
+                if *mutable {
+                    write!(f, "mut")?;
+                }
+
+                Ok(())
+            }
         }
     }
 }

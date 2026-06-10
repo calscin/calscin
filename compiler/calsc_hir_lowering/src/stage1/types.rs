@@ -66,7 +66,7 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
         if b.is_some() || !c.is_empty() {
             return Err(build_expected_error(
                 &"type name",
-                &lower_ast_type(ty, origin, inst, false)?,
+                &lower_ast_type_complex(ty, origin, inst, false)?,
                 origin,
             )
             .into());
@@ -85,13 +85,21 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
 
     return Err(build_expected_error(
         &"type name",
-        &lower_ast_type(ty, origin, inst, false)?,
+        &lower_ast_type_complex(ty, origin, inst, false)?,
         origin,
     )
     .into());
 }
 
 pub fn lower_ast_type<K: DiagnosticSource>(
+    ty: ASTType,
+    origin: &K,
+    inst: Option<BaseType>,
+) -> DiagResult<Type> {
+    lower_ast_type_complex(ty, origin, inst, false)
+}
+
+pub fn lower_ast_type_complex<K: DiagnosticSource>(
     ty: ASTType,
     origin: &K,
     inst: Option<BaseType>,
@@ -108,7 +116,7 @@ pub fn lower_ast_type<K: DiagnosticSource>(
 
         ASTType::Reference(mutable, b) => Ok(Type::Reference {
             mutable,
-            inner: Box::new(lower_ast_type(*b, origin, inst, true)?),
+            inner: Box::new(lower_ast_type_complex(*b, origin, inst, true)?),
         }),
 
         ASTType::Generic(a, b, c) => {
@@ -128,7 +136,7 @@ pub fn lower_ast_type<K: DiagnosticSource>(
             }
 
             for param in c {
-                type_params.push(lower_ast_type(param, origin, inst.clone(), false)?);
+                type_params.push(lower_ast_type_complex(param, origin, inst.clone(), false)?);
             }
 
             let ty = lower_ast_generic_base(a, size_specifiers, type_params, origin)?;
