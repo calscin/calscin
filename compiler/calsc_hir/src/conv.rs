@@ -30,6 +30,10 @@ impl HIRNode {
         other_node: Option<HIRArenaReference>,
         local_func_key: Option<GlobalContextKey>,
     ) -> DiagResult<HIRNode> {
+        if let HIRNodeKind::StructuredInit { .. } = self.kind.clone() {
+            return convert_structured_init_into(self.clone(), ty, local_func_key, self);
+        }
+
         if self.get_type(local_func_key.clone())?.is_none() {
             return Err(build_unexpected_error(&"void".to_string(), self).into());
         }
@@ -38,10 +42,6 @@ impl HIRNode {
 
         if self_type == ty {
             return Ok(self.clone());
-        }
-
-        if let HIRNodeKind::StructuredInit { .. } = self.kind.clone() {
-            return convert_structured_init_into(self.clone(), ty, local_func_key, self);
         }
 
         if self_type.can_transmute(ty.clone()) {

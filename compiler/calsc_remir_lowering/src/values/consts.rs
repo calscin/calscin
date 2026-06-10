@@ -2,12 +2,12 @@ use calsc_diagnostics::DiagResult;
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_typing::FieldHavingType;
 use remir::{
-    builders::{build_const_float, build_const_int, build_const_string},
+    builders::{build_const_float, build_const_int, build_const_string, build_const_struct},
     module::Module,
     values::BaseSSAValue,
 };
 
-use crate::{result::CalscinRemirResult, values::lower_hir_value};
+use crate::{result::CalscinRemirResult, types::lower_type, values::lower_hir_value};
 
 pub fn lower_hir_literal(
     node: HIRArenaReference,
@@ -78,12 +78,16 @@ pub fn lower_hir_literal(
 
         HIRNodeKind::TypedStructuredInit { ty, values } => {
             let mut vals = vec![];
+            let mir_ty = lower_type(ty.clone())?;
 
             for field in ty.get_fields() {
-                vals.push(lower_hir_value(values[&field].clone(), ctx, module))
+                vals.push(lower_hir_value(values[&field].clone(), ctx, module)?)
             }
 
-            todo!()
+            let val = build_const_struct(module, mir_ty, vals)
+                .convert(node.start.clone(), node.end.clone())?;
+
+            Ok(val.into())
         }
 
         _ => panic!(),
