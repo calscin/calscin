@@ -18,7 +18,7 @@ fn test_alive_branch_simple() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None);
+    let mut ctx = LocalContext::new("test".into(), key, None, false);
 
     let branch = ctx.start_branch();
 
@@ -33,7 +33,7 @@ fn test_alive_variable() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None);
+    let mut ctx = LocalContext::new("test".into(), key, None, false);
 
     let sample_type = Type::Base(BaseTypeInstance::new(
         BaseType::new(BaseTypeKind::Boolean),
@@ -59,7 +59,7 @@ fn test_alive_variable_next_branch() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None);
+    let mut ctx = LocalContext::new("test".into(), key, None, false);
 
     let sample_type = Type::Base(BaseTypeInstance::new(
         BaseType::new(BaseTypeKind::Boolean),
@@ -90,7 +90,7 @@ fn test_variable_gather() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None);
+    let mut ctx = LocalContext::new("test".into(), key, None, false);
 
     let sample_type = Type::Base(BaseTypeInstance::new(
         BaseType::new(BaseTypeKind::Boolean),
@@ -114,7 +114,7 @@ pub fn test_ending_point() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None);
+    let mut ctx = LocalContext::new("test".into(), key, None, false);
 
     let branch = ctx.start_branch();
 
@@ -135,7 +135,7 @@ fn test_ending_point_unreal_branches() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None);
+    let mut ctx = LocalContext::new("test".into(), key, None, false);
 
     ctx.contain_unreal_branches = true;
 
@@ -163,7 +163,7 @@ fn test_ending_point_real_branches() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, None);
+    let mut ctx = LocalContext::new("test".into(), key, None, false);
 
     let branch1 = ctx.start_branch();
 

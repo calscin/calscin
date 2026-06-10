@@ -1,7 +1,10 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{
+    DiagPossible,
+    diags::errors::{build_restricted_arument_type, build_restricted_return_type},
+};
 use calsc_hir::{
     HIR_CONTEXT,
     funcs::HIRFunction,
@@ -53,6 +56,16 @@ pub fn lower_ast_function_decl_first_stage(
 
             local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node)?;
             args.push((argument.1, ty));
+        }
+
+        if is_main_function {
+            if !args.is_empty() {
+                return Err(build_restricted_arument_type(&vec!["void".to_string()], &node).into());
+            }
+
+            if ret_type.is_some() {
+                return Err(build_restricted_return_type(&"void".to_string(), &node).into());
+            }
         }
 
         if target.is_some() {
