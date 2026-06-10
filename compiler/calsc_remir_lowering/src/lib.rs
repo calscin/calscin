@@ -1,6 +1,6 @@
 use std::path::PathBuf;
 
-use calsc_diagnostics::{DiagPossible, DiagResult, PosDiagnosticSource};
+use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
 use calsc_hir::HIRContext;
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
@@ -60,7 +60,7 @@ pub fn print_context_as_mir(ctx: HIRContext) -> DiagPossible {
 
     //lazy_pass(&mut module).unwrap();
 
-    module.save_to_file(PathBuf::from("test.remir"));
+    module.save_to_file(PathBuf::from("test.remir")).unwrap();
 
     let mut bridge = LLVMBridge::new();
     build_llvm(&mut bridge, &mut module).unwrap();

@@ -1,4 +1,4 @@
-use std::{hint::unreachable_unchecked, iter};
+use std::hint::unreachable_unchecked;
 
 use calsc_ast::{
     ifs::IfStatementBranch,

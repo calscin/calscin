@@ -3,7 +3,7 @@ use std::hint::unreachable_unchecked;
 use calsc_diagnostics::DiagPossible;
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
-    block::{Block, sync::VariableSynchronizer},
+    block::sync::VariableSynchronizer,
     builders::{build_conditional_branch, build_unconditional_branch},
     module::Module,
     values::int::SSAIntValue,

@@ -1,8 +1,5 @@
-use std::{thread, time::Duration};
-
 use crate::commands::{CLICommand, build::build_command, check::check_command};
 use clap::Parser;
-use indicatif::{ProgressBar, ProgressStyle};
 
 pub mod commands;
 

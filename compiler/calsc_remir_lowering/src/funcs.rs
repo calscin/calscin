@@ -8,7 +8,6 @@ use calsc_hir::{
     refs::HIRArenaReference,
 };
 use calsc_typing::tree::Type;
-use calsc_utils::hash;
 use remir::{
     block::vars::BlockVariable,
     builders::{build_argument_grab, build_call, build_ret},
