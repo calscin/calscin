@@ -32,6 +32,7 @@ pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
                 key.clone(),
                 func.arguments.iter().map(|f| f.1.clone()).collect(),
                 func.return_type.clone(),
+                func.local_context.as_ref().unwrap().is_main_function,
                 module,
             )?;
         }
