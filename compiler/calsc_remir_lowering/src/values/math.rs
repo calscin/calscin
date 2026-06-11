@@ -9,9 +9,7 @@ use remir::{
     values::{BaseSSAValue, float::SSAFloatValue, int::SSAIntValue},
 };
 
-use crate::{
-    result::CalscinRemirResult, values::lower_hir_value, vars::lower_hir_variable_reference,
-};
+use crate::{result::CalscinRemirResult, values::lower_hir_value, writes::lower_hir_writable};
 
 pub fn convert_math_operator(math: MathOperation) -> DiagResult<remir::misc::MathOperator> {
     Ok(match math {
@@ -40,7 +38,7 @@ pub fn lower_hir_math_operation(
         operator,
     } = node.kind.clone()
     {
-        let ty = node.get_type(Some(ctx.local_key.clone()))?.unwrap();
+        let ty = left_expr.get_type(Some(ctx.local_key.clone()))?.unwrap();
         let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module)?;
         let right_expr_val = lower_hir_value(right_expr, ctx, module)?;
 
@@ -85,10 +83,7 @@ pub fn lower_hir_math_operation(
         }
 
         if operator.assigns {
-            let var = lower_hir_variable_reference(left_expr, ctx, module)?;
-
-            var.write(module, res.clone())
-                .convert(node.start.clone(), node.end.clone())?;
+            lower_hir_writable(left_expr, ctx, module, res.clone())?;
         }
 
         Ok(res)

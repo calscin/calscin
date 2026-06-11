@@ -12,6 +12,7 @@ use crate::{
         func::parse_function_call,
         lru::parse_ast_struct_lru,
         values::{
+            arrays::{parse_ast_array_init, parse_ast_index_usage},
             conditions::{parse_ast_compare_expression, parse_ast_inverse_condition},
             lits::parse_ast_literal,
             math::parse_ast_math_expression,
@@ -24,6 +25,7 @@ use crate::{
     refs::ASTArenaReference,
 };
 
+pub mod arrays;
 pub mod conditions;
 pub mod lits;
 pub mod math;
@@ -86,7 +88,13 @@ pub fn parse_ast_value(
         TokenKind::Bang => parse_ast_inverse_condition(tokens, ind)?,
         TokenKind::BraceOpen => parse_ast_structured_init(tokens, ind)?,
 
-        TokenKind::BracketOpen => parse_ast_range(tokens, ind)?,
+        TokenKind::BracketOpen => {
+            if tokens[*ind + 2].kind == TokenKind::Dot {
+                parse_ast_range(tokens, ind)?
+            } else {
+                parse_ast_array_init(tokens, ind)?
+            }
+        }
 
         TokenKind::Keyword(_) => {
             if tokens[*ind + 1].kind == TokenKind::ParenOpen {
@@ -122,7 +130,10 @@ pub fn parse_ast_post(
     start: FilePosition,
     invoked_from_body: bool,
 ) -> DiagResult<ASTArenaReference> {
-    match tokens[*ind].kind {
+    let mut modified_node = true;
+    let start_two = start.clone();
+
+    let node = match tokens[*ind].kind {
         TokenKind::Plus
         | TokenKind::Minus
         | TokenKind::Star
@@ -133,36 +144,49 @@ pub fn parse_ast_post(
 
         TokenKind::Dot => {
             if tokens[*ind + 1].kind != TokenKind::Dot {
-                return parse_ast_struct_lru(tokens, ind, first_node, start);
+                parse_ast_struct_lru(tokens, ind, first_node, start)?
             } else {
-                return Ok(first_node);
+                modified_node = false;
+                first_node
             }
         }
 
         TokenKind::Bang => {
             if tokens[*ind].kind == TokenKind::Equal {
-                return parse_ast_compare_expression(tokens, ind, first_node, start);
+                parse_ast_compare_expression(tokens, ind, first_node, start)?
             } else {
-                return parse_ast_math_expression(tokens, ind, first_node, start);
+                parse_ast_math_expression(tokens, ind, first_node, start)?
             }
         }
 
         TokenKind::Equal => {
             if tokens[*ind + 1].kind == TokenKind::Equal {
-                return parse_ast_compare_expression(tokens, ind, first_node, start);
+                parse_ast_compare_expression(tokens, ind, first_node, start)?
             } else {
                 if invoked_from_body {
-                    return parse_ast_assign(tokens, ind, first_node, start);
+                    parse_ast_assign(tokens, ind, first_node, start)?
                 } else {
-                    return Ok(first_node);
+                    modified_node = false;
+                    first_node
                 }
             }
         }
 
         TokenKind::AngelBracketOpen | TokenKind::AngelBracketClose => {
-            parse_ast_compare_expression(tokens, ind, first_node, start)
+            parse_ast_compare_expression(tokens, ind, first_node, start)?
         }
 
-        _ => Ok(first_node),
+        TokenKind::BracketOpen => parse_ast_index_usage(tokens, ind, first_node, start)?,
+
+        _ => {
+            modified_node = false;
+            first_node
+        }
+    };
+
+    if modified_node {
+        parse_ast_post(tokens, ind, node, start_two, invoked_from_body)
+    } else {
+        Ok(node)
     }
 }

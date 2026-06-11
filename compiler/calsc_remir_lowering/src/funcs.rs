@@ -1,7 +1,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest,
+    DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest, fmt::fmt_list,
 };
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
@@ -10,7 +10,7 @@ use calsc_hir::{
 use calsc_typing::tree::Type;
 use remir::{
     block::vars::BlockVariable,
-    builders::{build_argument_grab, build_call, build_ret},
+    builders::{build_argument_grab, build_call, build_const_int, build_ret},
     module::Module,
     values::{BaseSSAValue, ValueType},
     writer::InstructionWriter,
@@ -39,6 +39,13 @@ pub fn lower_hir_function_call(
 
             lowered_arguments.push(v);
         }
+
+        println!(
+            "{}",
+            fmt_list(&module.functions[reference_label.id].arguments),
+        );
+
+        println!("vs {}", fmt_list(&lowered_arguments));
 
         let val = build_call(
             module,
@@ -137,6 +144,12 @@ pub fn lower_hir_function_decl(
         }
 
         lower_hir_body(body, &local_context, module)?;
+
+        if append_terminator {
+            let return_type = build_const_int(module, 0, 32, true).unwrap();
+
+            build_ret(module, Some(return_type.into()));
+        }
 
         Ok(())
     } else {

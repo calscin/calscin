@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_typing::tree::Type;
+use calsc_typing::{FieldHavingType, tree::Type};
 use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
@@ -87,6 +87,12 @@ pub enum HIRNodeKind {
         name: HashedString,
     },
 
+    IndexUsage {
+        val: HIRArenaReference,
+        index: HIRArenaReference,
+        output_type: Type,
+    },
+
     FunctionReference {
         entry: GlobalContextKey,
     },
@@ -100,20 +106,12 @@ pub enum HIRNodeKind {
         values: HashMap<HashedString, HIRArenaReference>,
     },
 
+    ArrayInit {
+        vals: Vec<HIRArenaReference>,
+    },
+
     Assignment {
         variable: HIRArenaReference,
-        value: HIRArenaReference,
-    },
-
-    PointerDerefAssign {
-        pointer: HIRArenaReference,
-        value: HIRArenaReference,
-    },
-
-    StructFieldAssign {
-        struct_val: HIRArenaReference,
-        field: HashedString,
-        field_ind: usize,
         value: HIRArenaReference,
     },
 
@@ -236,6 +234,20 @@ impl HIRNode {
                 }
             }
 
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name,
+            } => {
+                let ty = val.get_type(local_func_key)?.unwrap();
+
+                if ty.has_field(name.clone()) {
+                    Some(ty.get_field_type(name))
+                } else {
+                    None
+                }
+            }
+
             HIRNodeKind::CompareExpression { .. } => Some(make_bool_type(self)),
 
             HIRNodeKind::VariableReference {
@@ -275,6 +287,17 @@ impl HIRNode {
                 ty?
             }
 
+            HIRNodeKind::IndexUsage {
+                val: _,
+                index: _,
+                output_type,
+            } => Some(output_type),
+
+            HIRNodeKind::ArrayInit { vals } => Some(Type::Array {
+                size: Some(vals.len()),
+                inner: Box::new(vals[0].get_type(local_func_key)?.unwrap()),
+            }),
+
             _ => None,
         };
 
@@ -298,6 +321,13 @@ impl HIRNode {
                 field_ind: _,
                 name: _,
             } => val.represents_pointer_referencable(),
+
+            HIRNodeKind::IndexUsage {
+                val,
+                index: _,
+                output_type: _,
+            } => val.represents_pointer_referencable(),
+
             _ => false,
         }
     }
@@ -311,8 +341,12 @@ impl HIRNode {
                 field_ind: _,
                 name: _,
             } => val.represents_mutable_variable(),
-            HIRNodeKind::PointerDerefAssign { .. } => true,
-            HIRNodeKind::PointerDereference(_) => true, // TODO: watch this
+            HIRNodeKind::PointerDereference(inner) => inner.represents_mutable_variable(),
+            HIRNodeKind::IndexUsage {
+                val,
+                index: _,
+                output_type: _,
+            } => val.represents_mutable_variable(),
 
             _ => false,
         }
@@ -333,6 +367,12 @@ impl HIRNode {
             } => val.get_root_variable_reference_index(),
 
             HIRNodeKind::PointerDereference(inner) => inner.get_root_variable_reference_index(),
+
+            HIRNodeKind::IndexUsage {
+                val,
+                index: _,
+                output_type: _,
+            } => val.get_root_variable_reference_index(),
 
             #[cfg(feature = "debug")]
             kind => panic!("Unexpected variable reference kind {:#?}", kind),
@@ -360,6 +400,16 @@ impl HIRNode {
                 start.is_weakly_typed()
                     && end.is_weakly_typed()
                     && (increment.is_none() || increment.as_ref().unwrap().is_weakly_typed())
+            }
+
+            HIRNodeKind::ArrayInit { vals } => {
+                for val in vals {
+                    if !val.is_weakly_typed() {
+                        return false;
+                    }
+                }
+
+                true
             }
 
             _ => false,

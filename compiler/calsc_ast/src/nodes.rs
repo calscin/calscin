@@ -74,6 +74,8 @@ pub enum ASTNodeKind {
         values: HashMap<HashedString, ASTArenaReference>,
     },
 
+    ArrayInit(Vec<ASTArenaReference>),
+
     /// Refers to an element
     ElementReference(HashedString),
 
@@ -141,6 +143,11 @@ pub enum ASTNodeKind {
     StructLRUsage {
         left_expr: ASTArenaReference,
         right_expr: ASTArenaReference,
+    },
+
+    IndexUsage {
+        val: ASTArenaReference,
+        index: ASTArenaReference,
     },
 
     StructDeclaration {

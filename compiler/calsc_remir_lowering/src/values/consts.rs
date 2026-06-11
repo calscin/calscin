@@ -1,8 +1,13 @@
+use std::hint::unreachable_unchecked;
+
 use calsc_diagnostics::DiagResult;
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_typing::FieldHavingType;
 use remir::{
-    builders::{build_const_float, build_const_int, build_const_string, build_const_struct},
+    builders::{
+        build_const_array, build_const_float, build_const_int, build_const_string,
+        build_const_struct,
+    },
     module::Module,
     values::BaseSSAValue,
 };
@@ -91,5 +96,26 @@ pub fn lower_hir_literal(
         }
 
         _ => panic!(),
+    }
+}
+
+pub fn lower_hir_array_const(
+    node: HIRArenaReference,
+    ctx: &LocalContext,
+    module: &mut Module,
+) -> DiagResult<BaseSSAValue> {
+    if let HIRNodeKind::ArrayInit { vals } = node.kind.clone() {
+        let mut mir_vals = vec![]; // This cannot use iter.map due to the ? operator
+
+        for val in vals {
+            mir_vals.push(lower_hir_value(val, ctx, module)?);
+        }
+
+        let val =
+            build_const_array(module, mir_vals).convert(node.start.clone(), node.end.clone())?;
+
+        Ok(val.into())
+    } else {
+        unsafe { unreachable_unchecked() }
     }
 }

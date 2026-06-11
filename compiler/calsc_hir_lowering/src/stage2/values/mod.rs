@@ -14,6 +14,7 @@ use crate::stage2::{
     funcs::lower_ast_function_call,
     values::{
         booleans::lower_hir_inverse_condition,
+        index::lower_ast_index_usage,
         lits::lower_ast_literal,
         lru::lower_ast_lru,
         ptrs::{lower_ast_pointer_dereference, lower_ast_pointer_reference},
@@ -22,6 +23,7 @@ use crate::stage2::{
 };
 
 pub mod booleans;
+pub mod index;
 pub mod lits;
 pub mod lru;
 pub mod ptrs;
@@ -55,6 +57,10 @@ pub fn lower_ast_value(
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
 
         ASTNodeKind::StructuredInit { .. } => lower_ast_structured_init(node, local_ctx),
+
+        ASTNodeKind::IndexUsage { .. } => lower_ast_index_usage(node, local_ctx),
+
+        ASTNodeKind::ArrayInit(_) => lower_ast_array_init(node, local_ctx),
 
         kind => panic!("Reached {:#?}", kind),
     }
@@ -243,6 +249,46 @@ pub fn lower_ast_structured_init(
 
         let node = HIRNode::new(
             HIRNodeKind::StructuredInit { values: hir_values },
+            node.start.clone(),
+            node.end.clone(),
+        );
+
+        Ok(node.push())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_ast_array_init(
+    node: ASTNode,
+    local_ctx: Option<GlobalContextKey>,
+) -> DiagResult<HIRArenaReference> {
+    if let ASTNodeKind::ArrayInit(vals) = node.kind.clone() {
+        let mut hir_vals = vec![];
+
+        let first_val = lower_ast_value(ASTNode::clone(&vals[0]), local_ctx.clone())?;
+        let first_val_type = first_val.get_type(local_ctx.clone())?.unwrap(); // Unwrap is safe because of lower_ast_value
+
+        hir_vals.push(first_val.clone());
+
+        for i in 1..vals.len() {
+            let val = lower_ast_value(ASTNode::clone(&vals[i]), local_ctx.clone())?;
+
+            // TODO: watch if using the other node parameter here actually impacts negatively
+            let val = val
+                .use_as(
+                    first_val_type.clone(),
+                    val.clone(),
+                    Some(first_val.clone()),
+                    local_ctx.clone(),
+                )?
+                .push();
+
+            hir_vals.push(val);
+        }
+
+        let node = HIRNode::new(
+            HIRNodeKind::ArrayInit { vals: hir_vals },
             node.start.clone(),
             node.end.clone(),
         );

@@ -1,9 +1,10 @@
 use std::path::PathBuf;
 
-use clap::Subcommand;
+use clap::{ArgGroup, Subcommand};
 
 pub mod build;
 pub mod check;
+pub mod ir;
 
 #[derive(Subcommand)]
 pub enum CLICommand {
@@ -31,6 +32,18 @@ pub enum CLICommand {
             help = "should the compiler use PIE or not"
         )]
         use_pie: bool,
+    },
+
+    #[command(about = "Builds the given Calscin files into IR files", group(ArgGroup::new("ir").args(["remir", "llvm"]).required(true)))]
+    IR {
+        #[arg(required = true)]
+        input: Vec<PathBuf>,
+
+        #[arg(long, conflicts_with = "llvm")]
+        remir: bool,
+
+        #[arg(long)]
+        llvm: bool,
     },
 
     #[command(about = "Checks for errors without building the code")]

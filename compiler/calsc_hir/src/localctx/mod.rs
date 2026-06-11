@@ -11,7 +11,8 @@ use std::collections::HashMap;
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
-        build_already_in_scope, build_cannot_find_element_no_closest, build_variable_unalive,
+        build_already_in_scope, build_cannot_find_element_no_closest, build_not_initialized,
+        build_variable_unalive,
     },
 };
 use calsc_typing::tree::Type;
@@ -160,6 +161,12 @@ impl LocalContext {
         self.introduce_variable_in_branch(key, t, has_default, self.current_branch + 1, origin)
     }
 
+    pub fn introduce_variable_assign(&mut self, key: HashedString) {
+        self.variables[self.hash_to_ind[&key]]
+            .introduced_values
+            .insert(self.current_branch);
+    }
+
     /// Checks if the given branch is currently alive or not.
     #[inline(always)]
     pub fn is_branch_alive(&self, branch: usize) -> bool {
@@ -210,11 +217,31 @@ impl LocalContext {
                     .into());
                 }
 
+                if !self.has_variable_value(ind) {
+                    return Err(build_not_initialized(&*name, origin).into());
+                }
+
                 //self.variables[ind].introduce_usage();
 
                 Ok(ind)
             }
         }
+    }
+
+    pub fn has_variable_value(&self, ind: usize) -> bool {
+        let var = &self.variables[ind];
+
+        if var.has_default {
+            return true;
+        }
+
+        for branch in var.introduced_values.iter() {
+            if self.is_branch_alive(*branch) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     #[inline(always)]

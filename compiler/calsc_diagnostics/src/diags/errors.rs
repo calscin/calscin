@@ -24,6 +24,9 @@ declare_diagnostic!(REMIR_ERROR, 10);
 declare_diagnostic!(EXPECTED_RETURN, 11);
 declare_diagnostic!(RESTRICTED_ARGUMENT_TYPES, 12);
 declare_diagnostic!(RESTRICTED_RETURN_TYPE, 13);
+declare_diagnostic!(COMPILE_TIME_SIZE, 14);
+declare_diagnostic!(NOT_ITERABLE, 15);
+declare_diagnostic!(NOT_INITIALIZED, 16);
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
@@ -236,5 +239,59 @@ pub fn build_restricted_return_type<R: Display, S: DiagnosticSource>(
         vec![],
         vec!["invalid return type".to_string()],
         vec![format!("change return type to {}", restricted)],
+    )
+}
+
+pub fn build_compile_time_size<T: Display, S: DiagnosticSource>(ty: &T, source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, COMPILE_TIME_SIZE),
+        format!("the type {} requires a size at compile time", ty),
+        None,
+        vec![],
+        vec![format!(
+            "the type {} does not have a constant comp time size",
+            ty
+        )],
+        vec!["change the type to a type that has a constant size".to_string()],
+    )
+}
+
+pub fn build_not_iterable<T: Display, S: DiagnosticSource>(
+    it_ty: Option<&T>,
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    if it_ty.is_some() {
+        source.make_diagnostic_simple(
+            DiagnosticCode::new(Level::Error, NOT_ITERABLE),
+            format!("the type {} is not iterable on type {}", it_ty.unwrap(), ty),
+            None,
+            vec![],
+            vec![],
+            vec![],
+        )
+    } else {
+        source.make_diagnostic_simple(
+            DiagnosticCode::new(Level::Error, NOT_ITERABLE),
+            format!("the type {} is not iterable", ty),
+            None,
+            vec![],
+            vec![],
+            vec![],
+        )
+    }
+}
+
+pub fn build_not_initialized<V: Display, S: DiagnosticSource>(
+    variable: &V,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, NOT_INITIALIZED),
+        format!("the variable {} was not initialized", variable),
+        None,
+        vec![],
+        vec![],
+        vec![],
     )
 }

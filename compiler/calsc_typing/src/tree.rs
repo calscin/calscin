@@ -4,8 +4,9 @@ use calsc_utils::hash::HashedString;
 
 use crate::{
     FieldHavingType, TransmutableType,
-    base::instance::BaseTypeInstance,
+    base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
     func::{DeclBlockAffectedType, TypeSignature},
+    iter::IterableType,
 };
 
 /// The actual type used for typing in Calscin. Allows for nested references and arrays with base types
@@ -25,7 +26,10 @@ pub enum Type {
     Reference { mutable: bool, inner: Box<Type> },
 
     /// Represents an array of a given size
-    Array { size: usize, inner: Box<Type> },
+    Array {
+        size: Option<usize>,
+        inner: Box<Type>,
+    },
 }
 
 impl Type {
@@ -244,6 +248,47 @@ impl TransmutableType for Type {
 
             (Self::Base(base), Self::Base(into_base)) => base.can_transmute_weakly(into_base),
 
+            _ => false,
+        }
+    }
+}
+
+impl IterableType for Type {
+    fn is_iterable_at_all(&self) -> bool {
+        match self {
+            Self::Base(_) => false,
+            Self::TypeParameter { .. } => false,
+            Self::Reference { mutable: _, inner } => inner.is_iterable_at_all(),
+            Self::Array { .. } => true,
+        }
+    }
+
+    fn get_iterator_output_type(&self) -> Type {
+        match self {
+            Self::Array { size: _, inner } => *inner.clone(),
+            Self::Reference { mutable: _, inner } => inner.get_iterator_output_type(),
+            _ => panic!(),
+        }
+    }
+
+    fn get_iterator_type(&self) -> Type {
+        match self {
+            Self::Array { .. } => Type::Base(BaseTypeInstance::new(
+                BaseType::new(BaseTypeKind::Integer { signed: false }),
+                vec![128],
+                vec![],
+            )),
+
+            Self::Reference { mutable: _, inner } => inner.get_iterator_type(),
+
+            _ => panic!(),
+        }
+    }
+
+    fn is_iterable(&self, ty: Type) -> bool {
+        match self {
+            Self::Array { .. } => ty == self.get_iterator_type(),
+            Self::Reference { mutable: _, inner } => inner.is_iterable(ty),
             _ => false,
         }
     }
