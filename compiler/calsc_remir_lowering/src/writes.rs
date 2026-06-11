@@ -1,11 +1,13 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_diagnostics::DiagPossible;
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
-    builders::{build_insert_value, build_store, build_struct_gep},
+    builders::{build_gep, build_insert_value, build_store, build_struct_gep},
     module::Module,
-    values::{BaseSSAValue, ValueType, ptr::SSAPointerValue, structs::SSAStructValue},
+    values::{
+        BaseSSAValue, ValueType, int::SSAIntValue, ptr::SSAPointerValue, structs::SSAStructValue,
+    },
 };
 
 use crate::{
@@ -35,6 +37,8 @@ pub fn lower_hir_writable(
         HIRNodeKind::PointerDereference(_) => {
             lower_hir_pointer_writable(node, local_ctx, module, val)
         }
+
+        HIRNodeKind::IndexUsage { .. } => lower_hir_index_writable(node, local_ctx, module, val),
 
         _ => panic!(),
     }
@@ -89,6 +93,36 @@ pub fn lower_hir_pointer_writable(
             .convert(node.start.clone(), node.end.clone())?;
 
         build_store(module, inner, write_into).convert(node.start.clone(), node.end.clone())
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_hir_index_writable(
+    node: HIRArenaReference,
+    local_ctx: &LocalContext,
+    module: &mut Module,
+    write_into: BaseSSAValue,
+) -> DiagPossible {
+    if let HIRNodeKind::IndexUsage {
+        val,
+        index,
+        output_type: _,
+    } = node.kind.clone()
+    {
+        let val = lower_hir_value(val, local_ctx, module)?;
+        let val: SSAPointerValue = val
+            .try_into()
+            .convert(node.start.clone(), node.end.clone())?;
+
+        let index = lower_hir_value(index, local_ctx, module)?;
+        let index: SSAIntValue = index
+            .try_into()
+            .convert(node.start.clone(), node.end.clone())?;
+
+        let ptr = build_gep(module, val, index).convert(node.start.clone(), node.end.clone())?;
+
+        build_store(module, ptr, write_into).convert(node.start.clone(), node.end.clone())
     } else {
         unsafe { unreachable_unchecked() }
     }

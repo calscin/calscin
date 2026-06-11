@@ -9,7 +9,7 @@ use calsc_hir::{
 use remir::{
     builders::{build_gep, build_struct_gep},
     module::Module,
-    values::{ValueType, ptr::SSAPointerValue},
+    values::{ValueType, int::SSAIntValue, ptr::SSAPointerValue},
 };
 
 use crate::{
@@ -46,6 +46,8 @@ pub fn lower_hir_readable_pointer(
         HIRNodeKind::PointerDereference(_) => {
             lower_hir_readable_pointer_deref(node, local_ctx, module)
         }
+
+        HIRNodeKind::IndexUsage { .. } => lower_hir_readable_index_usage(node, local_ctx, module),
 
         _ => panic!(),
     }
@@ -99,6 +101,35 @@ pub fn lower_hir_readable_pointer_deref(
             .convert(node.start.clone(), node.end.clone())?;
 
         Ok(inner)
+    } else {
+        unsafe { unreachable_unchecked() }
+    }
+}
+
+pub fn lower_hir_readable_index_usage(
+    node: HIRArenaReference,
+    local_ctx: &LocalContext,
+    module: &mut Module,
+) -> DiagResult<SSAPointerValue> {
+    if let HIRNodeKind::IndexUsage {
+        val,
+        index,
+        output_type: _,
+    } = node.kind.clone()
+    {
+        let val = lower_hir_value(val, local_ctx, module)?;
+        let val: SSAPointerValue = val
+            .try_into()
+            .convert(node.start.clone(), node.end.clone())?;
+
+        let index = lower_hir_value(index, local_ctx, module)?;
+        let index: SSAIntValue = index
+            .try_into()
+            .convert(node.start.clone(), node.end.clone())?;
+
+        let ptr = build_gep(module, val, index).convert(node.start.clone(), node.end.clone())?;
+
+        Ok(ptr)
     } else {
         unsafe { unreachable_unchecked() }
     }
