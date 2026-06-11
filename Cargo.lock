@@ -135,6 +135,7 @@ version = "0.0.0"
 dependencies = [
  "calsc_diagnostics",
  "calsc_utils",
+ "unescape",
 ]
 
 [[package]]
@@ -443,12 +444,12 @@ checksum = "cab834c73d247e67f4fae452806d17d3c7501756d98c8808d7c9c7aa7d18f973"
 [[package]]
 name = "remir"
 version = "1.0.1"
-source = "git+https://github.com/Zffu/remir.git#68107d6d7ac5eb6dddcc833e01fbfd0bd5913af6"
+source = "git+https://github.com/Zffu/remir.git#8e7b5f0225c2a1f93c0461a92792095e35abc603"
 
 [[package]]
 name = "remir_llvm"
 version = "1.0.1"
-source = "git+https://github.com/Zffu/remir.git#68107d6d7ac5eb6dddcc833e01fbfd0bd5913af6"
+source = "git+https://github.com/Zffu/remir.git#8e7b5f0225c2a1f93c0461a92792095e35abc603"
 dependencies = [
  "inkwell",
  "remir",
@@ -522,6 +523,12 @@ dependencies = [
  "calsc_diagnostics",
  "calsc_typing",
 ]
+
+[[package]]
+name = "unescape"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "ccb97dac3243214f8d8507998906ca3e2e0b900bf9bf4870477f125b82e68f6e"
 
 [[package]]
 name = "unicode-ident"

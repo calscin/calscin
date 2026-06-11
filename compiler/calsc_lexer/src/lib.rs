@@ -7,6 +7,7 @@ use std::path::PathBuf;
 
 use calsc_diagnostics::{DiagResult, PosDiagnosticSource, diags::errors::build_cannot_parse_error};
 use calsc_utils::{fnvhash, pos::FilePosition};
+use unescape::unescape;
 
 use crate::toks::{Token, TokenKind};
 use calsc_utils::hash::hash_fnv_1a;
@@ -304,7 +305,18 @@ pub fn parse_string_token(
         .into());
     }
 
-    let slice = content[start..end].to_string();
+    let slice = unescape(&content[start..end]);
+
+    let slice = match slice {
+        Some(v) => v,
+        None => {
+            return Err(build_cannot_parse_error(
+                &"string literal".to_string(),
+                &PosDiagnosticSource::new(start_pos.clone(), end_pos.clone()),
+            )
+            .into());
+        }
+    };
 
     *ind += 1;
 

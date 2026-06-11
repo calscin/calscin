@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 calsc_utils = { path = "../calsc_utils" }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
+unescape = "0.1"
 
 [features]
 debug = []
