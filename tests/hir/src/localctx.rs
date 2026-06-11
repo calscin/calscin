@@ -104,6 +104,8 @@ fn test_variable_gather() {
         .introduce_variable("test".into(), sample_type.clone(), false, &origin)
         .unwrap_cleanly();
 
+    ctx.introduce_variable_assign("test".into());
+
     let var2 = ctx.obtain("test".into(), &origin).unwrap_cleanly();
 
     assert_eq!(var, var2);
