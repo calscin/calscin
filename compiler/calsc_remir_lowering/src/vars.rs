@@ -101,8 +101,6 @@ pub fn lower_hir_variable_declaration(
             let value = value.unwrap();
             let value = lower_hir_value(value, ctx, module)?;
 
-            println!("Attempted writing {} to {}", value, var_type);
-
             variable
                 .write(module, value)
                 .convert(node.start.clone(), node.end.clone())?;

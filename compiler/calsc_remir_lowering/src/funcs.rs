@@ -40,13 +40,6 @@ pub fn lower_hir_function_call(
             lowered_arguments.push(v);
         }
 
-        println!(
-            "{}",
-            fmt_list(&module.functions[reference_label.id].arguments),
-        );
-
-        println!("vs {}", fmt_list(&lowered_arguments));
-
         let val = build_call(
             module,
             reference_label,
