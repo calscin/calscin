@@ -12,7 +12,7 @@ use crate::{
         func::parse_function_call,
         lru::parse_ast_struct_lru,
         values::{
-            arrays::parse_ast_index_usage,
+            arrays::{parse_ast_array_init, parse_ast_index_usage},
             conditions::{parse_ast_compare_expression, parse_ast_inverse_condition},
             lits::parse_ast_literal,
             math::parse_ast_math_expression,
@@ -88,7 +88,13 @@ pub fn parse_ast_value(
         TokenKind::Bang => parse_ast_inverse_condition(tokens, ind)?,
         TokenKind::BraceOpen => parse_ast_structured_init(tokens, ind)?,
 
-        TokenKind::BracketOpen => parse_ast_range(tokens, ind)?,
+        TokenKind::BracketOpen => {
+            if tokens[*ind + 2].kind == TokenKind::Dot {
+                parse_ast_range(tokens, ind)?
+            } else {
+                parse_ast_array_init(tokens, ind)?
+            }
+        }
 
         TokenKind::Keyword(_) => {
             if tokens[*ind + 1].kind == TokenKind::ParenOpen {
