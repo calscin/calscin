@@ -74,6 +74,8 @@ pub enum ASTNodeKind {
         values: HashMap<HashedString, ASTArenaReference>,
     },
 
+    ArrayInit(Vec<ASTArenaReference>),
+
     /// Refers to an element
     ElementReference(HashedString),
 

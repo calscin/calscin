@@ -4,7 +4,7 @@ use calsc_utils::pos::FilePosition;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
-    parser::values::parse_ast_value,
+    parser::{utils::parse_ast_list, values::parse_ast_value},
     refs::ASTArenaReference,
 };
 
@@ -14,8 +14,6 @@ pub fn parse_ast_index_usage(
     first_node: ASTArenaReference,
     start: FilePosition,
 ) -> DiagResult<ASTArenaReference> {
-    let start = tokens[*ind].start.clone();
-
     *ind += 1; // [
 
     let index = parse_ast_value(tokens, ind, true, false)?; // Auto increments
@@ -35,4 +33,25 @@ pub fn parse_ast_index_usage(
         end,
     )
     .push())
+}
+
+pub fn parse_ast_array_init(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+    let start = tokens[*ind].start.clone();
+
+    *ind += 1; // [
+
+    let values = parse_ast_list(
+        tokens,
+        ind,
+        &mut |tokens, ind| parse_ast_value(tokens, ind, true, false),
+        TokenKind::BracketClose,
+        false,
+        false,
+    )?; // Auto increments
+
+    let end = tokens[*ind - 1].end.clone(); // Bypass auto increment to get end
+
+    let node = ASTNode::new(ASTNodeKind::ArrayInit(values), start, end);
+
+    Ok(node.push())
 }
