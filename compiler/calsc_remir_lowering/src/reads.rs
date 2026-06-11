@@ -1,13 +1,9 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_remir_error};
-use calsc_hir::{
-    localctx::LocalContext,
-    nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
-};
+use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
-    builders::{build_array_gep, build_gep, build_struct_gep},
+    builders::{build_array_gep, build_struct_gep},
     module::Module,
     values::{ValueType, int::SSAIntValue, ptr::SSAPointerValue},
 };

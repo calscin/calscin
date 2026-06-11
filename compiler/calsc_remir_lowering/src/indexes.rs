@@ -3,9 +3,9 @@ use std::hint::unreachable_unchecked;
 use calsc_diagnostics::DiagResult;
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
-    builders::{build_array_gep, build_gep, build_load},
+    builders::{build_array_gep, build_load},
     module::Module,
-    values::{BaseSSAValue, ValueType, int::SSAIntValue, ptr::SSAPointerValue},
+    values::{BaseSSAValue, int::SSAIntValue},
 };
 
 use crate::{

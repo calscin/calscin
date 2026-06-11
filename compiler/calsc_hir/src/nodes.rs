@@ -321,6 +321,13 @@ impl HIRNode {
                 field_ind: _,
                 name: _,
             } => val.represents_pointer_referencable(),
+
+            HIRNodeKind::IndexUsage {
+                val,
+                index: _,
+                output_type: _,
+            } => val.represents_pointer_referencable(),
+
             _ => false,
         }
     }
@@ -334,7 +341,12 @@ impl HIRNode {
                 field_ind: _,
                 name: _,
             } => val.represents_mutable_variable(),
-            HIRNodeKind::PointerDereference(_) => true, // TODO: watch this
+            HIRNodeKind::PointerDereference(inner) => inner.represents_mutable_variable(),
+            HIRNodeKind::IndexUsage {
+                val,
+                index: _,
+                output_type: _,
+            } => val.represents_mutable_variable(),
 
             _ => false,
         }
@@ -355,6 +367,12 @@ impl HIRNode {
             } => val.get_root_variable_reference_index(),
 
             HIRNodeKind::PointerDereference(inner) => inner.get_root_variable_reference_index(),
+
+            HIRNodeKind::IndexUsage {
+                val,
+                index: _,
+                output_type: _,
+            } => val.get_root_variable_reference_index(),
 
             #[cfg(feature = "debug")]
             kind => panic!("Unexpected variable reference kind {:#?}", kind),

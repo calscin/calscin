@@ -6,7 +6,7 @@ use remir::{
     block::vars::BlockVariable,
     builders::{build_alloca, build_const_int},
     module::Module,
-    values::{BaseSSAValue, array::SSAArrayValue, ptr::SSAPointerValue},
+    values::BaseSSAValue,
 };
 
 use crate::{

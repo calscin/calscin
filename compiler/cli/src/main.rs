@@ -22,6 +22,10 @@ fn main() {
 
         CLICommand::Check { input, simple } => check_command(input, simple),
 
-        CLICommand::IR { input, llvm, remir } => ir_command(input, remir),
+        CLICommand::IR {
+            input,
+            llvm: _,
+            remir,
+        } => ir_command(input, remir),
     }
 }

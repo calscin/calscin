@@ -1,11 +1,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
-use calsc_hir::{
-    localctx::LocalContext,
-    nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
-};
+use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_extract_value, build_load, build_struct_gep},
     module::Module,

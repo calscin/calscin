@@ -1,9 +1,6 @@
 //! The error declarations
 
-use std::{
-    f32::consts::E,
-    fmt::{Debug, Display},
-};
+use std::fmt::{Debug, Display};
 
 use calsc_utils::pos::FilePosition;
 

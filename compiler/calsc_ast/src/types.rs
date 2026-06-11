@@ -75,7 +75,7 @@ impl Display for ASTType {
             }
 
             Self::Array(size, inner) => {
-                write!(f, "{}[", inner);
+                write!(f, "{}[", inner)?;
 
                 if size.is_some() {
                     write!(f, "{}", size.unwrap())?;
