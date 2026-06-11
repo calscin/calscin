@@ -76,9 +76,11 @@ pub fn lower_hir_variable_declaration(
     } = node.kind.clone()
     {
         let mut variable: BlockVariable;
+        let is_array = var_type.is_array();
+
         let var_type = lower_type(var_type).unwrap();
 
-        if mutable || ctx.variables[variable_index].reference_count > 0 {
+        if mutable || ctx.variables[variable_index].reference_count > 0 || is_array {
             // Uses a stack variable for mutable variables.
             // TODO: allow to customize this in the future
 

@@ -28,10 +28,6 @@ pub fn lower_hir_index_usage(
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
 
-        if let ValueType::Array(_) = &val.value_type {
-            todo!("Raw array indexing is not supported yet!")
-        }
-
         let val: SSAPointerValue = val
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
