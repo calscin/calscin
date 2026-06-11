@@ -106,6 +106,10 @@ pub enum HIRNodeKind {
         values: HashMap<HashedString, HIRArenaReference>,
     },
 
+    ArrayInit {
+        vals: Vec<HIRArenaReference>,
+    },
+
     Assignment {
         variable: HIRArenaReference,
         value: HIRArenaReference,
@@ -275,6 +279,11 @@ impl HIRNode {
                 output_type,
             } => Some(output_type),
 
+            HIRNodeKind::ArrayInit { vals } => Some(Type::Array {
+                size: Some(vals.len()),
+                inner: Box::new(vals[0].get_type(local_func_key)?.unwrap()),
+            }),
+
             _ => None,
         };
 
@@ -359,6 +368,16 @@ impl HIRNode {
                 start.is_weakly_typed()
                     && end.is_weakly_typed()
                     && (increment.is_none() || increment.as_ref().unwrap().is_weakly_typed())
+            }
+
+            HIRNodeKind::ArrayInit { vals } => {
+                for val in vals {
+                    if !val.is_weakly_typed() {
+                        return false;
+                    }
+                }
+
+                true
             }
 
             _ => false,

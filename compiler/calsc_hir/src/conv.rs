@@ -186,6 +186,12 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             }
         }
 
+        HIRNodeKind::ArrayInit { vals } => {
+            for val in vals {
+                weakly_transmute(val.clone(), ty.clone());
+            }
+        }
+
         #[cfg(feature = "debug")]
         kind => panic!("Unexpected {:#?}", kind),
 
