@@ -8,7 +8,6 @@ use remir_llvm::{LLVMBridge, build_llvm, compile_llvm};
 
 use crate::funcs::{lower_hir_function_decl, lower_hir_function_decl_none};
 
-pub mod assigns;
 pub mod body;
 pub mod control;
 pub mod funcs;

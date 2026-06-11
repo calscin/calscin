@@ -18,7 +18,7 @@ use crate::{
     result::CalscinRemirResult,
     values::{
         bool::{lower_hir_compare, lower_hir_inverse_condition},
-        consts::lower_hir_literal,
+        consts::{lower_hir_array_const, lower_hir_literal},
         math::lower_hir_math_operation,
         ptrs::{lower_hir_pointer_dereference, lower_hir_pointer_reference},
     },
@@ -69,6 +69,8 @@ pub fn lower_hir_value(
         HIRNodeKind::FieldReference { .. } => lower_hir_field_reference(node, ctx, module),
 
         HIRNodeKind::IndexUsage { .. } => lower_hir_index_usage(node, ctx, module),
+
+        HIRNodeKind::ArrayInit { .. } => lower_hir_array_const(node, ctx, module),
 
         e => panic!("Unexpected kind {:#?}", e),
     }

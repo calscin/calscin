@@ -22,7 +22,7 @@ pub fn lower_hir_index_usage(
     } = node.kind.clone()
     {
         let val = lower_hir_value(val, local_context, module)?;
-        let index = lower_hir_index_usage(index, local_context, module)?;
+        let index = lower_hir_value(index, local_context, module)?;
 
         let index: SSAIntValue = index
             .try_into()
