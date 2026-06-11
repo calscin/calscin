@@ -6,7 +6,7 @@ use remir::{
     block::vars::BlockVariable,
     builders::{build_alloca, build_const_int},
     module::Module,
-    values::BaseSSAValue,
+    values::{BaseSSAValue, array::SSAArrayValue, ptr::SSAPointerValue},
 };
 
 use crate::{
@@ -87,7 +87,7 @@ pub fn lower_hir_variable_declaration(
             let size = build_const_int(module, 0, 32, false)
                 .convert(node.start.clone(), node.end.clone())?;
 
-            let ptr = build_alloca(module, size, Some(var_type))
+            let ptr = build_alloca(module, size, Some(var_type.clone()))
                 .convert(node.start.clone(), node.end.clone())?;
 
             variable = BlockVariable::new_pointer(String::clone(&name), ptr);
@@ -100,6 +100,8 @@ pub fn lower_hir_variable_declaration(
         if value.is_some() {
             let value = value.unwrap();
             let value = lower_hir_value(value, ctx, module)?;
+
+            println!("Attempted writing {} to {}", value, var_type);
 
             variable
                 .write(module, value)

@@ -8,7 +8,9 @@ use remir::{
     values::{BaseSSAValue, ValueType, int::SSAIntValue, ptr::SSAPointerValue},
 };
 
-use crate::{result::CalscinRemirResult, values::lower_hir_value};
+use crate::{
+    reads::lower_hir_readable_pointer, result::CalscinRemirResult, values::lower_hir_value,
+};
 
 pub fn lower_hir_index_usage(
     node: HIRArenaReference,
@@ -21,14 +23,10 @@ pub fn lower_hir_index_usage(
         output_type: _,
     } = node.kind.clone()
     {
-        let val = lower_hir_value(val, local_context, module)?;
+        let val = lower_hir_readable_pointer(val, local_context, module)?;
         let index = lower_hir_value(index, local_context, module)?;
 
         let index: SSAIntValue = index
-            .try_into()
-            .convert(node.start.clone(), node.end.clone())?;
-
-        let val: SSAPointerValue = val
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
 

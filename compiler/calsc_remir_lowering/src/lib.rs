@@ -13,6 +13,7 @@ pub mod control;
 pub mod funcs;
 pub mod indexes;
 pub mod range;
+pub mod reads;
 pub mod result;
 pub mod types;
 pub mod values;
