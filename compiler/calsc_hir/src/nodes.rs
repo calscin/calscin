@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_typing::tree::Type;
+use calsc_typing::{FieldHavingType, tree::Type};
 use calsc_utils::{
     cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
 };
@@ -231,6 +231,20 @@ impl HIRNode {
                     None
                 } else {
                     left_expr.get_type(local_func_key)?
+                }
+            }
+
+            HIRNodeKind::FieldReference {
+                val,
+                field_ind: _,
+                name,
+            } => {
+                let ty = val.get_type(local_func_key)?.unwrap();
+
+                if ty.has_field(name.clone()) {
+                    Some(ty.get_field_type(name))
+                } else {
+                    None
                 }
             }
 

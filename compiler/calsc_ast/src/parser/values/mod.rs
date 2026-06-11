@@ -130,7 +130,10 @@ pub fn parse_ast_post(
     start: FilePosition,
     invoked_from_body: bool,
 ) -> DiagResult<ASTArenaReference> {
-    match tokens[*ind].kind {
+    let mut modified_node = true;
+    let start_two = start.clone();
+
+    let node = match tokens[*ind].kind {
         TokenKind::Plus
         | TokenKind::Minus
         | TokenKind::Star
@@ -141,38 +144,49 @@ pub fn parse_ast_post(
 
         TokenKind::Dot => {
             if tokens[*ind + 1].kind != TokenKind::Dot {
-                return parse_ast_struct_lru(tokens, ind, first_node, start);
+                parse_ast_struct_lru(tokens, ind, first_node, start)?
             } else {
-                return Ok(first_node);
+                modified_node = false;
+                first_node
             }
         }
 
         TokenKind::Bang => {
             if tokens[*ind].kind == TokenKind::Equal {
-                return parse_ast_compare_expression(tokens, ind, first_node, start);
+                parse_ast_compare_expression(tokens, ind, first_node, start)?
             } else {
-                return parse_ast_math_expression(tokens, ind, first_node, start);
+                parse_ast_math_expression(tokens, ind, first_node, start)?
             }
         }
 
         TokenKind::Equal => {
             if tokens[*ind + 1].kind == TokenKind::Equal {
-                return parse_ast_compare_expression(tokens, ind, first_node, start);
+                parse_ast_compare_expression(tokens, ind, first_node, start)?
             } else {
                 if invoked_from_body {
-                    return parse_ast_assign(tokens, ind, first_node, start);
+                    parse_ast_assign(tokens, ind, first_node, start)?
                 } else {
-                    return Ok(first_node);
+                    modified_node = false;
+                    first_node
                 }
             }
         }
 
         TokenKind::AngelBracketOpen | TokenKind::AngelBracketClose => {
-            parse_ast_compare_expression(tokens, ind, first_node, start)
+            parse_ast_compare_expression(tokens, ind, first_node, start)?
         }
 
-        TokenKind::BracketOpen => parse_ast_index_usage(tokens, ind, first_node, start),
+        TokenKind::BracketOpen => parse_ast_index_usage(tokens, ind, first_node, start)?,
 
-        _ => Ok(first_node),
+        _ => {
+            modified_node = false;
+            first_node
+        }
+    };
+
+    if modified_node {
+        parse_ast_post(tokens, ind, node, start_two, invoked_from_body)
+    } else {
+        Ok(node)
     }
 }
