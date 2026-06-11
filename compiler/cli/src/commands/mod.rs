@@ -4,6 +4,7 @@ use clap::Subcommand;
 
 pub mod build;
 pub mod check;
+pub mod remir;
 
 #[derive(Subcommand)]
 pub enum CLICommand {
@@ -31,6 +32,12 @@ pub enum CLICommand {
             help = "should the compiler use PIE or not"
         )]
         use_pie: bool,
+    },
+
+    #[command(about = "Builds the given Calscin files into Remir files")]
+    Remir {
+        #[arg(required = true)]
+        input: Vec<PathBuf>,
     },
 
     #[command(about = "Checks for errors without building the code")]

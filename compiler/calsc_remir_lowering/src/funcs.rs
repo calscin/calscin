@@ -1,7 +1,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest,
+    DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest, fmt::fmt_list,
 };
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
@@ -39,6 +39,13 @@ pub fn lower_hir_function_call(
 
             lowered_arguments.push(v);
         }
+
+        println!(
+            "{}",
+            fmt_list(&module.functions[reference_label.id].arguments),
+        );
+
+        println!("vs {}", fmt_list(&lowered_arguments));
 
         let val = build_call(
             module,
