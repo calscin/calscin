@@ -3,7 +3,7 @@ use std::hint::unreachable_unchecked;
 use calsc_diagnostics::DiagPossible;
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
-    builders::{build_gep, build_insert_value, build_store, build_struct_gep},
+    builders::{build_array_gep, build_gep, build_insert_value, build_store, build_struct_gep},
     module::Module,
     values::{
         BaseSSAValue, ValueType, int::SSAIntValue, ptr::SSAPointerValue, structs::SSAStructValue,
@@ -120,7 +120,8 @@ pub fn lower_hir_index_writable(
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
 
-        let ptr = build_gep(module, val, index).convert(node.start.clone(), node.end.clone())?;
+        let ptr =
+            build_array_gep(module, val, index).convert(node.start.clone(), node.end.clone())?;
 
         build_store(module, ptr, write_into).convert(node.start.clone(), node.end.clone())
     } else {

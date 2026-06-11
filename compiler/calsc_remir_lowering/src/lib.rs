@@ -56,14 +56,28 @@ pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
     Ok(())
 }
 
-pub fn print_context_as_remir(ctx: HIRContext, out: PathBuf) -> DiagPossible {
-    let mut module = Module::new("sample_mod".to_string());
+pub fn print_context_as_remir(
+    ctx: HIRContext,
+    out: PathBuf,
+    module_name: String,
+    remir: bool,
+) -> DiagPossible {
+    let mut module = Module::new(module_name.clone());
 
     lower_hir_context(ctx, &mut module)?;
 
     //lazy_pass(&mut module).unwrap();
 
-    module.save_to_file(out).unwrap();
+    if remir {
+        module.save_to_file(out).unwrap();
+
+        return Ok(());
+    }
+
+    let mut bridge = LLVMBridge::new();
+    build_llvm(&mut bridge, &mut module)?;
+
+    bridge.modules[&module_name].print_to_file(out).unwrap();
 
     Ok(())
 }

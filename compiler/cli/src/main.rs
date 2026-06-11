@@ -1,6 +1,4 @@
-use crate::commands::{
-    CLICommand, build::build_command, check::check_command, remir::remir_command,
-};
+use crate::commands::{CLICommand, build::build_command, check::check_command, ir::ir_command};
 use clap::Parser;
 
 pub mod commands;
@@ -24,6 +22,6 @@ fn main() {
 
         CLICommand::Check { input, simple } => check_command(input, simple),
 
-        CLICommand::Remir { input } => remir_command(input),
+        CLICommand::IR { input, llvm, remir } => ir_command(input, remir),
     }
 }

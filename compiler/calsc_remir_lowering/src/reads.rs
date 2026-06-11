@@ -7,7 +7,7 @@ use calsc_hir::{
     refs::HIRArenaReference,
 };
 use remir::{
-    builders::{build_gep, build_struct_gep},
+    builders::{build_array_gep, build_gep, build_struct_gep},
     module::Module,
     values::{ValueType, int::SSAIntValue, ptr::SSAPointerValue},
 };
@@ -127,7 +127,8 @@ pub fn lower_hir_readable_index_usage(
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
 
-        let ptr = build_gep(module, val, index).convert(node.start.clone(), node.end.clone())?;
+        let ptr =
+            build_array_gep(module, val, index).convert(node.start.clone(), node.end.clone())?;
 
         Ok(ptr)
     } else {

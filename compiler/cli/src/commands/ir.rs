@@ -1,11 +1,11 @@
 use std::path::PathBuf;
 
-use calsc_builder::compile_remir_file;
+use calsc_builder::compile_ir_file;
 use indicatif::{ProgressBar, ProgressStyle};
 
 use crate::commands::build::sanitize_path;
 
-pub fn remir_command(input: Vec<PathBuf>) {
+pub fn ir_command(input: Vec<PathBuf>, remir: bool) {
     let progress_bar = ProgressBar::new(input.len() as u64);
 
     let input: Vec<PathBuf> = input.iter().map(|f| sanitize_path(f.clone())).collect();
@@ -24,9 +24,15 @@ pub fn remir_command(input: Vec<PathBuf>) {
     for path in input {
         progress_bar.set_position(ind);
 
-        let out = path.with_extension("remir");
+        let out;
 
-        compile_remir_file(path, out);
+        if remir {
+            out = path.with_extension("remir");
+        } else {
+            out = path.with_extension("ll");
+        }
+
+        compile_ir_file(path, out, remir);
 
         ind += 1;
     }

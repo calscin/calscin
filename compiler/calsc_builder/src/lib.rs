@@ -52,7 +52,9 @@ pub fn build_file(path: PathBuf, out: PathBuf, pie: bool) {
     dump_and_stop_if_errors();
 }
 
-pub fn compile_remir_file(path: PathBuf, out: PathBuf) {
+pub fn compile_ir_file(path: PathBuf, out: PathBuf, remir: bool) {
+    let module_name = path.file_name().unwrap().to_str().unwrap().to_string();
+
     let contents = match fs::read_to_string(path.clone()) {
         Ok(v) => v,
         Err(e) => {
@@ -87,7 +89,8 @@ pub fn compile_remir_file(path: PathBuf, out: PathBuf) {
 
     // MIR
 
-    print_context_as_remir(hir, out).unwrap();
+    let _ = print_context_as_remir(hir, out, module_name, remir);
+    dump_and_stop_if_errors();
 }
 
 pub fn link_files(files: Vec<PathBuf>, out: PathBuf, linker: String) {
