@@ -2,11 +2,44 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::math::MathOperation;
 
 use crate::{
     nodes::BinaryOperator,
     parser::values::{conditions::parse_ast_comparing_operator, math::parse_ast_math_operator},
 };
+
+/// Represents the precedence or weight of an operator. The bigger it is the more it will be picked up before another one.
+pub enum Precedence {
+    Assignment = 1,
+    LogicalOr = 2,
+    LogicalAnd = 3,
+    BitwiseOr = 4,
+    BitwiseAnd = 6,
+    Comparing = 7,
+    BitwiseShift = 8,
+    Addition = 9,        // +, -
+    Multiplication = 10, // *, /, %
+}
+
+impl Precedence {
+    pub fn get_from_operator(operator: BinaryOperator) -> Precedence {
+        match operator {
+            BinaryOperator::Compare(op) => Precedence::Comparing,
+            BinaryOperator::Math(op) => match op.operation {
+                MathOperation::Add | MathOperation::Sub => Precedence::Addition,
+                MathOperation::And => Precedence::BitwiseAnd,
+                MathOperation::Or | MathOperation::Nor | MathOperation::Xor => {
+                    Precedence::BitwiseOr
+                }
+                MathOperation::ShiftLeft | MathOperation::ShiftRight => Precedence::BitwiseShift,
+                MathOperation::Mul | MathOperation::Div | MathOperation::Mod => {
+                    Precedence::Multiplication
+                }
+            },
+        }
+    }
+}
 
 pub fn parse_binary_comparing_operator(
     tokens: &Vec<Token>,
