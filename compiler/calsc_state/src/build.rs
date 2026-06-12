@@ -2,6 +2,7 @@
 
 use std::{collections::HashSet, path::PathBuf};
 
+#[derive(Clone)]
 pub enum BuildTargetMode {
     Check,
     Remir,
@@ -17,15 +18,17 @@ pub struct CompilerBuildState {
     pub(crate) files_to_build: HashSet<PathBuf>,
     pub out: Option<PathBuf>,
     pub target: BuildTargetMode,
+    pub linker: String,
 }
 
 impl CompilerBuildState {
     /// Creates a new [`CompilerBuildState`] based on the given out path and target mode
-    pub fn new(out: Option<PathBuf>, target: BuildTargetMode) -> Self {
+    pub fn new(out: Option<PathBuf>, target: BuildTargetMode, linker: String) -> Self {
         Self {
             files_to_build: HashSet::new(),
             out,
             target,
+            linker,
         }
     }
 
@@ -46,6 +49,12 @@ impl CompilerBuildState {
 
         self.files_to_build.clear();
         files
+    }
+
+    /// Gets the remaining amount of files in the queue.
+    /// Warn: this is not the total amount of files but the current amount
+    pub fn get_remaining_files(&self) -> usize {
+        self.files_to_build.len()
     }
 }
 

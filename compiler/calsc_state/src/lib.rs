@@ -18,7 +18,7 @@ pub struct CompilerGlobalState {
 impl CompilerGlobalState {
     pub fn new(out: Option<PathBuf>, target: BuildTargetMode) -> Self {
         Self {
-            build: CompilerBuildState::new(out, target),
+            build: CompilerBuildState::new(out, target, "".to_string()),
         }
     }
 

@@ -2,6 +2,7 @@ use std::path::PathBuf;
 
 use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
 use calsc_hir::HIRContext;
+use calsc_state::build::BuildTargetMode;
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
 use remir_llvm::{LLVMBridge, build_llvm, compile_llvm};
@@ -56,6 +57,31 @@ pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
     Ok(())
 }
 
+pub fn compile_file(
+    ctx: HIRContext,
+    out: PathBuf,
+    module_name: String,
+    target: BuildTargetMode,
+) -> DiagPossible {
+    let mut module = Module::new(module_name.clone());
+
+    lower_hir_context(ctx, &mut module)?;
+
+    if !target.requires_vendor_ir() {
+        module.save_to_file(out).unwrap();
+
+        return Ok(());
+    }
+
+    let mut bridge = LLVMBridge::new();
+    build_llvm(&mut bridge, &mut module)?;
+
+    bridge.modules[&module_name].print_to_file(out).unwrap();
+
+    Ok(())
+}
+
+#[deprecated]
 pub fn print_context_as_remir(
     ctx: HIRContext,
     out: PathBuf,
@@ -82,6 +108,7 @@ pub fn print_context_as_remir(
     Ok(())
 }
 
+#[deprecated]
 pub fn build_context_to_object_file(
     ctx: HIRContext,
     module_name: String,
