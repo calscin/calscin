@@ -1,33 +1,21 @@
 use std::path::PathBuf;
 
-use calsc_builder::check_file;
-use indicatif::{ProgressBar, ProgressStyle};
+use calsc_builder::{build, setup_build_state};
+use calsc_state::build::BuildTargetMode;
 
 use crate::commands::build::sanitize_path;
 
-pub fn check_command(input: Vec<PathBuf>, only_ast: bool) {
+pub fn check_command(input: Vec<PathBuf>, _only_ast: bool) {
     let input: Vec<PathBuf> = input.iter().map(|f| sanitize_path(f.clone())).collect();
+    let sample_out_fake = PathBuf::from(".");
 
-    let progress_bar = ProgressBar::new(input.len() as u64);
-
-    progress_bar.set_style(
-        ProgressStyle::with_template(
-            "{spinner:.green} [{elapsed_precise}] [{bar:40.green/dark_green}] \
-		 	{pos:>3}/{len:3} {msg}",
-        )
-        .unwrap()
-        .progress_chars("=>"),
+    setup_build_state(
+        sample_out_fake,
+        BuildTargetMode::Check,
+        input,
+        "".to_string(),
+        false,
     );
 
-    let mut ind = 0;
-
-    for path in input {
-        progress_bar.set_position(ind);
-
-        check_file(path, only_ast);
-
-        ind += 1;
-    }
-
-    progress_bar.finish_with_message("Finished checking")
+    build();
 }

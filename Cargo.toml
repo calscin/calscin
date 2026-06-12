@@ -1,11 +1,13 @@
 [workspace]
 members = [
-	"compiler/calsc_ast", "compiler/calsc_builder",
+	"compiler/calsc_ast",
+	"compiler/calsc_builder",
 	"compiler/calsc_diagnostics",
 	"compiler/calsc_hir",
 	"compiler/calsc_hir_lowering",
 	"compiler/calsc_lexer",
 	"compiler/calsc_remir_lowering",
+	"compiler/calsc_state",
 	"compiler/calsc_typing",
 	"compiler/calsc_utils",
 	"compiler/cli",

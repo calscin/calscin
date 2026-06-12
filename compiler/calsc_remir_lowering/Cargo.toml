@@ -8,7 +8,6 @@ calsc_hir = { path = "../calsc_hir" }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
 calsc_utils = { path = "../calsc_utils" }
 calsc_typing = { path = "../calsc_typing" }
-remir = { git = "https://github.com/Zffu/remir.git", version = "1.0.1", features = [
-	"allow_ptr_array_casting",
-] }
+remir = { git = "https://github.com/Zffu/remir.git", version = "1.0.1" }
 remir_llvm = { git = "https://github.com/Zffu/remir.git", version = "1.0.1" }
+calsc_state = { path = "../calsc_state" }
