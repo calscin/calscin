@@ -1,4 +1,4 @@
-use std::{fs, hint::unreachable_unchecked, path::PathBuf};
+use std::{fs, hint::unreachable_unchecked, path::PathBuf, process::Command};
 
 use calsc_ast::{AST_CONTEXT, parser::ctx::parse_ast_whole};
 use calsc_diagnostics::container::dump_and_stop_if_errors;
@@ -13,10 +13,12 @@ pub fn setup_build_state(
     target: BuildTargetMode,
     initial_files: Vec<PathBuf>,
     linker: String,
+    use_pie: bool,
 ) {
     GLOBAL_STATE.with_borrow_mut(|state| {
         state.attach_build_config(out, target);
         state.build.linker = linker;
+        state.build.use_pie = use_pie;
 
         for file in initial_files {
             state.build.append_to_build(file);
@@ -36,11 +38,45 @@ pub(crate) fn get_file_output() -> PathBuf {
     GLOBAL_STATE.with_borrow(|state| state.build.out.clone().unwrap())
 }
 
-pub(crate) fn consume_build_files(out_files: &mut Vec<PathBuf>) {
+pub(crate) fn get_linker() -> String {
+    GLOBAL_STATE.with_borrow(|state| state.build.linker.clone())
+}
+
+pub fn build() {
+    let mut out_files: Vec<PathBuf> = vec![];
+
+    loop {
+        if !consume_build_files(&mut out_files) {
+            break;
+        }
+    }
+
+    if get_target_type().requires_linking() {
+        let mut command = Command::new(get_linker());
+
+        for file in &out_files {
+            command.arg(file.to_str().unwrap());
+        }
+
+        command.arg(format!("-o{}", get_file_output().to_str().unwrap()));
+
+        let output = command.output().unwrap();
+
+        println!("{}", String::from_utf8_lossy(&output.stderr));
+
+        // Cleaning
+
+        for out in out_files {
+            fs::remove_file(out).unwrap();
+        }
+    }
+}
+
+pub(crate) fn consume_build_files(out_files: &mut Vec<PathBuf>) -> bool {
     let files = GLOBAL_STATE.with_borrow_mut(|state| state.build.consume_files());
 
     if files.is_empty() {
-        return;
+        return false;
     }
 
     for file in files {
@@ -51,6 +87,8 @@ pub(crate) fn consume_build_files(out_files: &mut Vec<PathBuf>) {
             None => continue,
         };
     }
+
+    true
 }
 
 pub fn build_file(file: PathBuf) -> Option<PathBuf> {
@@ -86,7 +124,7 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
         BuildTargetMode::Remir => file.with_extension("remir"),
         BuildTargetMode::Object => file.with_extension("o"),
         BuildTargetMode::VendorIR => file.with_extension("ll"),
-        BuildTargetMode::Executable => file.with_extension(""), // TODO: add windows support
+        BuildTargetMode::Executable => file.with_extension("o"),
 
         _ => unsafe { unreachable_unchecked() },
     };

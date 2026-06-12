@@ -19,6 +19,7 @@ pub struct CompilerBuildState {
     pub out: Option<PathBuf>,
     pub target: BuildTargetMode,
     pub linker: String,
+    pub use_pie: bool,
 }
 
 impl CompilerBuildState {
@@ -29,6 +30,7 @@ impl CompilerBuildState {
             out,
             target,
             linker,
+            use_pie: false,
         }
     }
 

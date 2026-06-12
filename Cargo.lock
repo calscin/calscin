@@ -229,6 +229,7 @@ name = "cli"
 version = "0.1.0"
 dependencies = [
  "calsc_builder",
+ "calsc_state",
  "clap",
  "indicatif",
 ]
