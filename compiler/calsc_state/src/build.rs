@@ -10,14 +10,18 @@ pub enum BuildTargetMode {
     Executable,
 }
 
+/// Represents the current state for building inside of the Calscin compiler.
+/// This uses a file consuming architecture which allows to efficiently handle
+/// module dependencies at compile time and build files that are only discovered during the compile time
 pub struct CompilerBuildState {
     pub(crate) files_to_build: HashSet<PathBuf>,
-    pub out: PathBuf,
+    pub out: Option<PathBuf>,
     pub target: BuildTargetMode,
 }
 
 impl CompilerBuildState {
-    pub fn new(out: PathBuf, target: BuildTargetMode) -> Self {
+    /// Creates a new [`CompilerBuildState`] based on the given out path and target mode
+    pub fn new(out: Option<PathBuf>, target: BuildTargetMode) -> Self {
         Self {
             files_to_build: HashSet::new(),
             out,
@@ -25,8 +29,23 @@ impl CompilerBuildState {
         }
     }
 
+    /// Appends the file to the building queue
     pub fn append_to_build(&mut self, path: PathBuf) {
         self.files_to_build.insert(path);
+    }
+
+    /// Consumes the file building queue and empties it.
+    /// This should be used to compile these files
+    /// A correct way to check if the compilation is ended is to see when the consume result is empty
+    pub fn consume_files(&mut self) -> Vec<PathBuf> {
+        if self.files_to_build.is_empty() {
+            return vec![];
+        }
+
+        let files: Vec<_> = self.files_to_build.iter().map(|f| f.clone()).collect();
+
+        self.files_to_build.clear();
+        files
     }
 }
 
