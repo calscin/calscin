@@ -6,7 +6,7 @@ edition = "2024"
 [dependencies]
 calsc_lexer = { path = "../calsc_lexer" }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
-calsc_utils = { path = "../calsc_utils" }
+calsc_utils = { path = "../calsc_utils", features = ["debug"] }
 
 [features]
 parser = []

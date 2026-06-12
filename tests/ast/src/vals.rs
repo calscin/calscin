@@ -1,3 +1,4 @@
+use calsc_ast::nodes::ASTNode;
 #[cfg(test)]
 use calsc_ast::{nodes::ASTNodeKind, parser::values::parse_ast_value};
 
@@ -77,6 +78,82 @@ pub fn parse_math_operation_long_test() {
         assert_eq!(operator, MathOperator::new(MathOperation::And, true, true))
     } else {
         panic!()
+    }
+}
+
+#[test]
+fn test_operator_precedence_chain() {
+    // FAILS with current code:
+    let tokens = lexer_tokenize("2 + 3 * 4 + 5", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let result = parse_ast_value(&tokens, &mut ind, true, false).unwrap_cleanly();
+
+    if let ASTNodeKind::MathExpression {
+        left_expr: outer_left,
+        right_expr: outer_right,
+        operator: outer_op,
+    } = result.kind.clone()
+    {
+        assert_eq!(
+            outer_op.operation,
+            MathOperation::Add,
+            "Outer operator should be +"
+        );
+
+        assert_eq!(
+            outer_right.kind.clone(),
+            ASTNodeKind::IntLiteral(5),
+            "Outer right should be 5"
+        );
+
+        if let ASTNodeKind::MathExpression {
+            left_expr: middle_left,
+            right_expr: middle_right,
+            operator: middle_op,
+        } = outer_left.kind.clone()
+        {
+            assert_eq!(
+                middle_op.operation,
+                MathOperation::Add,
+                "Middle operator should be +"
+            );
+            assert_eq!(
+                middle_left.kind.clone(),
+                ASTNodeKind::IntLiteral(2),
+                "Middle left should be 2"
+            );
+
+            if let ASTNodeKind::MathExpression {
+                left_expr: inner_left,
+                right_expr: inner_right,
+                operator: inner_op,
+            } = middle_right.kind.clone()
+            {
+                assert_eq!(
+                    inner_op.operation,
+                    MathOperation::Mul,
+                    "Inner operator should be *"
+                );
+                assert_eq!(inner_left.kind.clone(), ASTNodeKind::IntLiteral(3));
+                assert_eq!(inner_right.kind.clone(), ASTNodeKind::IntLiteral(4));
+            } else {
+                panic!(
+                    "FAIL: Middle right should be (3 * 4), got: {:?}",
+                    middle_right.kind
+                );
+            }
+        } else {
+            panic!(
+                "FAIL: Outer left should be (2 + (3 * 4)), got: {:?}",
+                outer_left.kind
+            );
+        }
+    } else {
+        panic!(
+            "FAIL: Result should be MathExpression, got: {:?}",
+            result.kind
+        );
     }
 }
 
