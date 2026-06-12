@@ -11,6 +11,18 @@ use crate::{
     refs::ASTArenaReference,
 };
 
+/// Represents the precedence or weight of an operator. The bigger it is the more it will be picked up before another one.
+pub enum Precedence {
+    Assignment = 1,
+    LogicalOr = 2,
+    LogicalAnd = 3,
+    BitwiseOr = 4,
+    BitwiseAnd = 6,
+    Comparing = 7,
+    Addition = 8,       // +, -
+    Multiplication = 9, // *, /, %
+}
+
 #[inline(always)]
 pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<MathOperator> {
     let mut fast = false;

@@ -26,6 +26,7 @@ use crate::{
 };
 
 pub mod arrays;
+pub mod binary;
 pub mod conditions;
 pub mod lits;
 pub mod math;
