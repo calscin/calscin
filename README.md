@@ -1,6 +1,6 @@
 # Calscin
 
-Calscin is a programming language focuising on allowing everyone to build reliable, efficient and safe software. 
+Calscin is a programming language focusing on allowing everyone to build reliable, efficient and safe software. 
 
 Calsin is the controlled rewrite of [Quickfall](https://github.com/Quickfall/quickfall)
 
