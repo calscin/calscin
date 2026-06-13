@@ -1,15 +1,6 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{
-    math::{MathOperation, MathOperator},
-    pos::FilePosition,
-};
-
-use crate::{
-    nodes::{ASTNode, ASTNodeKind},
-    parser::values::parse_ast_value,
-    refs::ASTArenaReference,
-};
+use calsc_utils::math::{MathOperation, MathOperator};
 
 #[inline(always)]
 pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<MathOperator> {

@@ -1,6 +1,8 @@
-use calsc_ast::nodes::BinaryOperator;
 #[cfg(test)]
-use calsc_ast::{nodes::ASTNodeKind, parser::values::parse_ast_value};
+use calsc_ast::{
+    nodes::{ASTNodeKind, BinaryOperator},
+    parser::values::parse_ast_value,
+};
 
 #[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;

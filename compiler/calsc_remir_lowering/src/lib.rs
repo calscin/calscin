@@ -5,7 +5,7 @@ use calsc_hir::HIRContext;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
-use remir_llvm::{LLVMBridge, build_llvm, compile_llvm};
+use remir_llvm::{LLVMBridge, compile_llvm};
 
 use crate::funcs::{lower_hir_function_decl, lower_hir_function_decl_none};
 
@@ -81,7 +81,7 @@ pub fn compile_file(
         remir::OptimizationLevel::Default,
         out,
         GLOBAL_STATE.with_borrow(|state| state.build.use_pie),
-    );
+    )?;
 
     Ok(())
 }
