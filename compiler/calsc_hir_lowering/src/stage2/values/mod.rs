@@ -13,6 +13,7 @@ use calsc_hir::{
 use crate::stage2::{
     funcs::lower_ast_function_call,
     values::{
+        binary::lower_ast_binary_expression,
         booleans::lower_hir_inverse_condition,
         index::lower_ast_index_usage,
         lits::lower_ast_literal,
@@ -22,6 +23,7 @@ use crate::stage2::{
     vars::lower_ast_variable_reference,
 };
 
+pub mod binary;
 pub mod booleans;
 pub mod index;
 pub mod lits;
@@ -47,8 +49,8 @@ pub fn lower_ast_value(
 
         ASTNodeKind::Range { .. } => lower_ast_range(node, local_ctx),
 
-        //ASTNodeKind::MathExpression { .. } => lower_ast_math_expression(node, local_ctx),
-        //ASTNodeKind::CompareExpression { .. } => lower_ast_compare_expression(node, local_ctx),
+        ASTNodeKind::BinaryExpression { .. } => lower_ast_binary_expression(node, local_ctx),
+
         ASTNodeKind::FunctionCall { .. } => lower_ast_function_call(node, None, local_ctx),
 
         ASTNodeKind::ElementReference(_) => lower_ast_variable_reference(node, local_ctx),
