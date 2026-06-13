@@ -71,9 +71,9 @@ pub fn lower_hir_function_decl_none(
     }
 
     if return_type.is_some() {
-        mir_return_type = Some(lower_type(return_type.unwrap())?);
+        mir_return_type = lower_type(return_type.unwrap())?;
     } else {
-        mir_return_type = None;
+        mir_return_type = ValueType::Void;
     }
 
     if is_main_function {
@@ -82,7 +82,7 @@ pub fn lower_hir_function_decl_none(
             ValueType::new_pointer(ValueType::new_any_pointer()),
         ];
 
-        mir_return_type = Some(ValueType::Int(true, 32));
+        mir_return_type = ValueType::Int(true, 32);
     }
 
     let _ = module.create_function(format!("{}", key), mir_arguments, mir_return_type);
