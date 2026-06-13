@@ -65,7 +65,7 @@ pub fn parse_ast_node_body_member(
         TokenKind::While => parse_ast_while_loop(tokens, ind),
         TokenKind::If => parse_ast_if_statement(tokens, ind),
         TokenKind::Return => parse_ast_return_statement(tokens, ind),
-        _ => parse_ast_value(tokens, ind, true, true),
+        _ => parse_ast_value(tokens, ind, true, true, true),
     }
 }
 
@@ -83,7 +83,7 @@ pub fn parse_ast_return_statement(
         val = None;
         *ind += 1; // ;
     } else {
-        val = Some(parse_ast_value(tokens, ind, true, false)?);
+        val = Some(parse_ast_value(tokens, ind, true, false, true)?);
     }
 
     let end = tokens[*ind - 1].end.clone();

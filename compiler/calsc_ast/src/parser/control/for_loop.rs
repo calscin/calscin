@@ -25,7 +25,7 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<AS
     tokens[*ind].expects(TokenKind::AngelBracketClose)?;
     *ind += 1; // >
 
-    let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
 
     let body = parse_ast_body_form(tokens, ind)?; // Auto increments
 

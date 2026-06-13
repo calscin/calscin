@@ -1,6 +1,19 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
 use calsc_lexer::toks::{Token, TokenKind};
 
+/// Peaks ahead in the AST.
+///
+/// This works on every function of the AST as it fakes another index in order to make every function behave correctly.
+///
+pub fn peek_ahead<F, R>(tokens: &Vec<Token>, ind: usize, f: F) -> R
+where
+    F: FnOnce(&Vec<Token>, &mut usize) -> R,
+{
+    let mut local_ind = ind;
+
+    f(tokens, &mut local_ind)
+}
+
 /// Parses an list of elements in the AST of type `R` by using the given element parsing function.
 ///
 /// **The provided parsing function should not post-increment** as it is already handled by the `parse_ast_list` function if `post_increments` is true.

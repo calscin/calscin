@@ -19,7 +19,7 @@ pub fn parse_ast_condition_form(
     tokens[*ind].expects(TokenKind::ParenOpen)?;
     *ind += 1; // (
 
-    let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::ParenClose)?;
     *ind += 1; // )

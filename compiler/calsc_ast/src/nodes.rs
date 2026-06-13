@@ -50,16 +50,11 @@ pub enum ASTNodeKind {
         increment: Option<ASTArenaReference>,
     },
 
-    MathExpression {
+    /// Represents any operation
+    BinaryExpression {
         left_expr: ASTArenaReference,
         right_expr: ASTArenaReference,
-        operator: MathOperator,
-    },
-
-    CompareExpression {
-        left_expr: ASTArenaReference,
-        right_expr: ASTArenaReference,
-        operator: CompareOperator,
+        operator: BinaryOperator,
     },
 
     /// A variable declaration
@@ -264,4 +259,11 @@ impl DiagnosticSource for ASTNode {
             helps,
         )
     }
+}
+
+/// Represents any binary operator
+#[derive(Debug, Clone, PartialEq)]
+pub enum BinaryOperator {
+    Math(MathOperator),
+    Compare(CompareOperator),
 }

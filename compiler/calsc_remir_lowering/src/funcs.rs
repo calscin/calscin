@@ -1,7 +1,7 @@
 use std::hint::unreachable_unchecked;
 
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest, fmt::fmt_list,
+    DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest,
 };
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,

@@ -16,7 +16,7 @@ pub fn parse_ast_index_usage(
 ) -> DiagResult<ASTArenaReference> {
     *ind += 1; // [
 
-    let index = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+    let index = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::BracketClose)?;
 
@@ -43,7 +43,7 @@ pub fn parse_ast_array_init(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<
     let values = parse_ast_list(
         tokens,
         ind,
-        &mut |tokens, ind| parse_ast_value(tokens, ind, true, false),
+        &mut |tokens, ind| parse_ast_value(tokens, ind, true, false, true),
         TokenKind::BracketClose,
         false,
         false,
