@@ -38,6 +38,9 @@ pub enum ASTType {
     ///
     /// `s.32<test>` would be `Generic(s, 32, [test])`
     Generic(HashedString, Option<usize>, Vec<ASTType>),
+
+    /// The void type
+    Void,
 }
 
 /// Represents a simpler stage of AST types that are basically used to generate full `ASTType` trees.
@@ -93,6 +96,8 @@ impl Display for ASTType {
 
                 Ok(())
             }
+
+            Self::Void => write!(f, "void"),
         }
     }
 }

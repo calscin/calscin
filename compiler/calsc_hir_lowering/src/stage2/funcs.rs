@@ -5,6 +5,7 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
         build_expected_error, build_expected_return_error, build_restricted_return_type,
+        build_unexpected_error,
     },
 };
 use calsc_hir::{
@@ -13,7 +14,7 @@ use calsc_hir::{
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
 };
-use calsc_typing::base::BaseType;
+use calsc_typing::{base::BaseType, tree::Type};
 
 use crate::{
     stage1::types::lower_ast_type,
@@ -182,21 +183,27 @@ pub fn lower_ast_return_statement(
                     .return_type
                     .clone(),
             )
-        }?);
+        });
 
-        if val.is_some() && expected_return_type.is_none() {
+        let expected_return_type = match expected_return_type {
+            Some(v) => v,
+            None => {
+                return Err(build_unexpected_error(
+                    &"cannot find expected return type".to_string(),
+                    &node,
+                )
+                .into());
+            }
+        };
+
+        if val.is_some() && expected_return_type == Type::Void {
             return Err(build_restricted_return_type(&"void", &node).into());
         }
 
         if val.is_some() {
             let val = lower_ast_value(ASTNode::clone(&val.unwrap()), local_ctx.clone())?;
             let val = val
-                .use_as(
-                    expected_return_type.unwrap(),
-                    val.clone(),
-                    None,
-                    local_ctx.clone(),
-                )?
+                .use_as(expected_return_type, val.clone(), None, local_ctx.clone())?
                 .push();
 
             v = Some(val);
@@ -251,19 +258,13 @@ pub fn lower_ast_function_decl(
         }
 
         let mut hir_arguments = vec![];
-        let ret_type;
+        let ret_type = lower_ast_type(return_type, &node, ty.clone())?;
 
         for argument in arguments {
             hir_arguments.push((
                 lower_ast_type(argument.0.clone(), &node, ty.clone())?,
                 argument.1,
             ));
-        }
-
-        if return_type.is_some() {
-            ret_type = Some(lower_ast_type(return_type.unwrap(), &node, ty.clone())?);
-        } else {
-            ret_type = None;
         }
 
         let body = lower_ast_body(
@@ -285,15 +286,10 @@ pub fn lower_ast_function_decl(
         })?;
 
         if !meets_ending_point {
-            return Err(build_expected_return_error(
-                ret_type.as_ref().unwrap(),
-                &"void".to_string(),
-                &node,
-            )
-            .into());
+            return Err(build_expected_return_error(&ret_type, &"void".to_string(), &node).into());
         }
 
-        let is_void = ret_type.is_none();
+        let is_void = ret_type == Type::Void;
 
         let n = HIRNode::new(
             HIRNodeKind::FunctionDeclaration {

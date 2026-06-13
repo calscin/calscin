@@ -14,6 +14,7 @@ use calsc_hir::{
 use calsc_typing::{
     base::BaseType,
     func::{MutableDeclBlockAffectedType, TypedFunction},
+    tree::Type,
 };
 
 use crate::stage1::types::lower_ast_type;
@@ -38,11 +39,7 @@ pub fn lower_ast_function_decl_first_stage(
         let is_main_function = key == GlobalContextKey::new("main".into());
 
         let mut args = vec![];
-        let mut ret_type = None;
-
-        if let Some(v) = return_type {
-            ret_type = Some(lower_ast_type(v, &node, target.clone())?);
-        }
+        let ret_type = lower_ast_type(return_type, &node, target.clone())?;
 
         let mut local_ctx = LocalContext::new(
             name.clone(),
@@ -63,7 +60,7 @@ pub fn lower_ast_function_decl_first_stage(
                 return Err(build_restricted_arument_type(&vec!["void".to_string()], &node).into());
             }
 
-            if ret_type.is_some() {
+            if ret_type != Type::Void {
                 return Err(build_restricted_return_type(&"void".to_string(), &node).into());
             }
         }
@@ -120,11 +117,7 @@ pub fn lower_ast_extern_function(node: ASTNode) -> DiagPossible {
         let key = GlobalContextKey::new(name.clone());
 
         let mut args = vec![];
-        let mut ret_type = None;
-
-        if let Some(v) = return_type {
-            ret_type = Some(lower_ast_type(v, &node, None)?);
-        }
+        let ret_type = lower_ast_type(return_type, &node, None)?;
 
         for argument in arguments {
             let ty = lower_ast_type(argument.0, &node, None)?;

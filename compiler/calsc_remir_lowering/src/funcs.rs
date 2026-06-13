@@ -59,21 +59,15 @@ pub fn lower_hir_function_call(
 pub fn lower_hir_function_decl_none(
     key: GlobalContextKey,
     arguments: Vec<Type>,
-    return_type: Option<Type>,
+    return_type: Type,
     is_main_function: bool,
     module: &mut Module,
 ) -> DiagPossible {
     let mut mir_arguments = vec![];
-    let mut mir_return_type;
+    let mut mir_return_type = lower_type(return_type)?;
 
     for argument in arguments {
         mir_arguments.push(lower_type(argument)?);
-    }
-
-    if return_type.is_some() {
-        mir_return_type = Some(lower_type(return_type.unwrap())?);
-    } else {
-        mir_return_type = None;
     }
 
     if is_main_function {
@@ -82,7 +76,7 @@ pub fn lower_hir_function_decl_none(
             ValueType::new_pointer(ValueType::new_any_pointer()),
         ];
 
-        mir_return_type = Some(ValueType::Int(true, 32));
+        mir_return_type = ValueType::Int(true, 32);
     }
 
     let _ = module.create_function(format!("{}", key), mir_arguments, mir_return_type);

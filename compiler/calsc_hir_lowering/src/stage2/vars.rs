@@ -152,7 +152,7 @@ pub fn lower_ast_variable_assign(
         let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?;
         let value = value
             .use_as(
-                variable.get_type(curr_ctx.clone())?.unwrap(),
+                variable.get_type(curr_ctx.clone())?,
                 value.clone(),
                 None,
                 curr_ctx.clone(),

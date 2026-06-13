@@ -38,5 +38,7 @@ pub fn lower_type(ty: Type) -> DiagResult<ValueType> {
             "Invalid type parameter type got into lowering! {} and ind {}",
             name, param_ind
         ),
+
+        Type::Void => Ok(ValueType::Void),
     }
 }

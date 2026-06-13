@@ -47,7 +47,7 @@ pub fn lower_ast_pointer_reference(
         if !val.represents_pointer_referencable() {
             return Err(build_expected_error(
                 &"referencable".to_string(),
-                &val.get_type(local_ctx)?.unwrap(),
+                &val.get_type(local_ctx)?,
                 &*val,
             )
             .into());
@@ -77,7 +77,7 @@ pub fn lower_ast_pointer_dereference(
         if !val.represents_pointer_referencable() {
             return Err(build_expected_error(
                 &"referencable".to_string(),
-                &val.get_type(local_ctx)?.unwrap(),
+                &val.get_type(local_ctx)?,
                 &*val,
             )
             .into());

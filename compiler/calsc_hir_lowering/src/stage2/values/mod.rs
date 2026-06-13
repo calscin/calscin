@@ -9,6 +9,7 @@ use calsc_hir::{
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
 };
+use calsc_typing::tree::Type;
 
 use crate::stage2::{
     funcs::lower_ast_function_call,
@@ -80,7 +81,7 @@ pub fn lower_ast_range(
         let start = lower_ast_value(ASTNode::clone(start), local_ctx.clone())?;
         let start_type = start.get_type(local_ctx.clone())?;
 
-        if start_type.is_none() {
+        if start_type == Type::Void {
             return Err(build_expected_error(
                 &"non void element".to_string(),
                 &"void element".to_string(),
@@ -88,8 +89,6 @@ pub fn lower_ast_range(
             )
             .into());
         }
-
-        let start_type = start_type.unwrap();
 
         let end = lower_ast_value(ASTNode::clone(end), local_ctx.clone())?;
         let end = end
@@ -157,7 +156,7 @@ pub fn lower_ast_array_init(
         let mut hir_vals = vec![];
 
         let first_val = lower_ast_value(ASTNode::clone(&vals[0]), local_ctx.clone())?;
-        let first_val_type = first_val.get_type(local_ctx.clone())?.unwrap(); // Unwrap is safe because of lower_ast_value
+        let first_val_type = first_val.get_type(local_ctx.clone())?;
 
         hir_vals.push(first_val.clone());
 

@@ -8,6 +8,7 @@ use calsc_hir::{
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
 };
+use calsc_typing::tree::Type;
 
 use crate::stage2::values::lower_ast_value;
 
@@ -24,8 +25,7 @@ pub fn lower_ast_binary_expression(
         let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx.clone())?;
         let left_expr_type = left_expr.get_type(local_ctx.clone())?;
 
-        if left_expr_type.is_none() || !left_expr_type.as_ref().unwrap().is_direct_numeric_generic()
-        {
+        if left_expr_type == Type::Void || !left_expr_type.is_direct_numeric_generic() {
             return Err(build_expected_error(
                 &"numeric type".to_string(),
                 &"".to_string(),
@@ -33,8 +33,6 @@ pub fn lower_ast_binary_expression(
             )
             .into());
         }
-
-        let left_expr_type = left_expr_type.unwrap();
 
         let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?;
         let right_expr = right_expr

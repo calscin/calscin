@@ -5,6 +5,7 @@ use calsc_ast::parser::func::parse_extern_function_declaration;
 use calsc_ast::{
     nodes::ASTNodeKind,
     parser::{func::parse_function_declaration, parse_ast_node_body_member},
+    types::ASTType,
 };
 
 #[cfg(test)]
@@ -25,7 +26,7 @@ pub fn function_decl_parsing_base_test() {
         ASTNodeKind::FunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
-            return_type: None,
+            return_type: ASTType::Void,
             body: vec![]
         }
     )
@@ -96,7 +97,7 @@ pub fn parse_extern_function_decl_base_test() {
         ASTNodeKind::ExternFunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
-            return_type: None,
+            return_type: ASTType::Void,
             triple_dot_position: None
         }
     )
@@ -114,7 +115,7 @@ pub fn parse_extern_function_decl_test() {
         ASTNodeKind::ExternFunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
-            return_type: None,
+            return_type: ASTType::Void,
             triple_dot_position: Some(0)
         }
     )

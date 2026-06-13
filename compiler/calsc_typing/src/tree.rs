@@ -30,6 +30,9 @@ pub enum Type {
         size: Option<usize>,
         inner: Box<Type>,
     },
+
+    /// Represents a void type
+    Void,
 }
 
 impl Type {
@@ -88,6 +91,7 @@ impl Type {
             Self::Reference { mutable: _, inner } => inner.is_real(),
             Self::TypeParameter { .. } => false,
             Self::Base(_) => true,
+            Self::Void => false,
         }
     }
 
@@ -140,19 +144,19 @@ impl Type {
 impl FieldHavingType for Type {
     fn get_field_type(&self, name: HashedString) -> Type {
         match self {
-            Self::Array { .. } => panic!("Cannot find field"),
-            Self::TypeParameter { .. } => panic!("Cannot find field"),
             Self::Reference { mutable: _, inner } => inner.get_field_type(name),
             Self::Base(instance) => instance.get_field_type(name),
+
+            _ => panic!("Cannot find field"),
         }
     }
 
     fn get_fields(&self) -> Vec<HashedString> {
         match self {
-            Self::Array { .. } => vec![],
-            Self::TypeParameter { .. } => vec![],
             Self::Reference { mutable: _, inner } => inner.get_fields(),
             Self::Base(instance) => instance.get_fields(),
+
+            _ => vec![],
         }
     }
 
@@ -167,10 +171,10 @@ impl FieldHavingType for Type {
 
     fn has_field(&self, name: HashedString) -> bool {
         match self {
-            Self::Array { .. } => false,
-            Self::TypeParameter { .. } => false,
             Self::Reference { mutable: _, inner } => inner.has_field(name),
             Self::Base(instance) => instance.has_field(name),
+
+            _ => false,
         }
     }
 }
@@ -178,19 +182,19 @@ impl FieldHavingType for Type {
 impl DeclBlockAffectedType for Type {
     fn has_function(&self, name: HashedString) -> bool {
         match self {
-            Self::Array { .. } => false,
-            Self::TypeParameter { .. } => false,
             Self::Reference { mutable: _, inner } => inner.has_function(name),
             Self::Base(instance) => instance.has_field(name),
+
+            _ => false,
         }
     }
 
     fn get_func_signature(&self, name: HashedString) -> TypeSignature {
         match self {
-            Self::Array { .. } => panic!("Cannot find function!"),
-            Self::TypeParameter { .. } => panic!("Cannot find function!"),
             Self::Reference { mutable: _, inner } => inner.get_func_signature(name),
             Self::Base(instance) => instance.get_func_signature(name),
+
+            _ => panic!("Cannot find function!"),
         }
     }
 }
@@ -256,10 +260,10 @@ impl TransmutableType for Type {
 impl IterableType for Type {
     fn is_iterable_at_all(&self) -> bool {
         match self {
-            Self::Base(_) => false,
-            Self::TypeParameter { .. } => false,
             Self::Reference { mutable: _, inner } => inner.is_iterable_at_all(),
             Self::Array { .. } => true,
+
+            _ => false,
         }
     }
 
@@ -267,6 +271,7 @@ impl IterableType for Type {
         match self {
             Self::Array { size: _, inner } => *inner.clone(),
             Self::Reference { mutable: _, inner } => inner.get_iterator_output_type(),
+
             _ => panic!(),
         }
     }

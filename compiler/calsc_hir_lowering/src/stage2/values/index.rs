@@ -17,7 +17,7 @@ pub fn lower_ast_index_usage(
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::IndexUsage { val, index } = node.kind.clone() {
         let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
-        let val_type = val.get_type(local_ctx.clone())?.unwrap();
+        let val_type = val.get_type(local_ctx.clone())?;
 
         if !val_type.is_iterable_at_all() {
             return Err(build_not_iterable(None, &val_type, &*val).into());

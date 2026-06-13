@@ -43,7 +43,7 @@ pub struct LocalContext {
     pub branch_ends: HashMap<usize, usize>,
     pub branch_ends_positions: HashMap<usize, (FilePosition, FilePosition)>,
 
-    pub return_type: Option<Type>,
+    pub return_type: Type,
 
     pub is_main_function: bool,
 
@@ -55,7 +55,7 @@ impl LocalContext {
     pub fn new(
         name: HashedString,
         key: GlobalContextKey,
-        return_type: Option<Type>,
+        return_type: Type,
         is_main_function: bool,
     ) -> Self {
         Self {
@@ -273,7 +273,7 @@ impl LocalContext {
     ///
     ///
     pub fn meets_ending_point_requirement(&self) -> bool {
-        if self.return_type.is_none() {
+        if self.return_type == Type::Void {
             return true;
         }
 
