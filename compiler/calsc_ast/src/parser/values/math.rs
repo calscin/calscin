@@ -65,30 +65,3 @@ pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
 
     Ok(MathOperator::new(operator, fast, assigns))
 }
-
-/// Parses a math operation / expression
-#[inline(always)]
-pub fn parse_ast_math_expression(
-    tokens: &Vec<Token>,
-    ind: &mut usize,
-    first_node: ASTArenaReference,
-    start: FilePosition,
-) -> DiagResult<ASTArenaReference> {
-    let operator = parse_ast_math_operator(tokens, ind)?; // Auto increments
-
-    let second = parse_ast_value(tokens, ind, true, false)?; // Auto increments
-
-    let end = tokens[*ind - 1].end.clone();
-
-    let node = ASTNode::new(
-        ASTNodeKind::MathExpression {
-            left_expr: first_node,
-            right_expr: second,
-            operator,
-        },
-        start,
-        end,
-    );
-
-    Ok(node.push())
-}

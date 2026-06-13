@@ -1,8 +1,8 @@
 //! Parsing of ranges
 
+use crate::refs::ASTArenaReference;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use crate::refs::ASTArenaReference;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -16,7 +16,7 @@ pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTAr
     tokens[*ind].expects(TokenKind::BracketOpen)?;
     *ind += 1; // [
 
-    let start_node = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+    let start_node = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::Dot)?;
     *ind += 1; // first .
@@ -24,7 +24,7 @@ pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTAr
     tokens[*ind].expects(TokenKind::Dot)?;
     *ind += 1;
 
-    let end_node = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+    let end_node = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::BracketClose)?;
     *ind += 1; // ]
@@ -37,7 +37,7 @@ pub fn parse_ast_range(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTAr
         tokens[*ind].expects(TokenKind::AngelBracketClose)?;
         *ind += 1; // >
 
-        increment = Some(parse_ast_value(tokens, ind, true, false)?); // Auto increments
+        increment = Some(parse_ast_value(tokens, ind, true, false, true)?); // Auto increments
     }
 
     let end = tokens[*ind - 1].end.clone(); // Cancels the auto increment to get the end

@@ -13,9 +13,9 @@ use crate::{
         lru::parse_ast_struct_lru,
         values::{
             arrays::{parse_ast_array_init, parse_ast_index_usage},
-            conditions::{parse_ast_compare_expression, parse_ast_inverse_condition},
+            binary::{Precedence, parse_ast_binary_operation},
+            conditions::parse_ast_inverse_condition,
             lits::parse_ast_literal,
-            math::parse_ast_math_expression,
             ptrs::{parse_ast_pointer_dereference, parse_ast_pointer_reference},
             range::parse_ast_range,
             structs::parse_ast_structured_init,
@@ -54,7 +54,7 @@ pub mod structs;
 /// let mut ind: usize = 0;
 /// let tokens = lexer_tokenize("16", "test".to_string()).unwrap();
 ///
-/// let parsed = parse_ast_value(&tokens, &mut ind, true, false).unwrap();
+/// let parsed = parse_ast_value(&tokens, &mut ind, true, false, true).unwrap();
 ///
 /// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
 /// ```
@@ -63,6 +63,7 @@ pub fn parse_ast_value(
     ind: &mut usize,
     allow_post: bool,
     invoked_from_body: bool, // Used to determine if parse assigns
+    allow_ops: bool,         // Used to determine if operations are allowed
 ) -> DiagResult<ASTArenaReference> {
     let first = match tokens[*ind].kind {
         TokenKind::IntLiteral(_)
@@ -74,7 +75,7 @@ pub fn parse_ast_value(
 
         TokenKind::ParenOpen => {
             *ind += 1; // (
-            let value = parse_ast_value(tokens, ind, true, false)?; // Doesn't allow variable assignment inside of parens
+            let value = parse_ast_value(tokens, ind, true, false, allow_ops)?; // Doesn't allow variable assignment inside of parens
             // Auto increments
 
             tokens[*ind].expects(TokenKind::ParenClose)?;
@@ -118,7 +119,7 @@ pub fn parse_ast_value(
     AST_CONTEXT.with_borrow(|f| start = f.nodes.get(first.clone()).start.clone());
 
     if allow_post {
-        parse_ast_post(tokens, ind, first, start, invoked_from_body)
+        parse_ast_post(tokens, ind, first, start, invoked_from_body, allow_ops)
     } else {
         Ok(first)
     }
@@ -130,6 +131,7 @@ pub fn parse_ast_post(
     first_node: ASTArenaReference,
     start: FilePosition,
     invoked_from_body: bool,
+    allow_ops: bool,
 ) -> DiagResult<ASTArenaReference> {
     let mut modified_node = true;
     let start_two = start.clone();
@@ -141,7 +143,14 @@ pub fn parse_ast_post(
         | TokenKind::Slash
         | TokenKind::BackSlash
         | TokenKind::Tilde
-        | TokenKind::Question => return parse_ast_math_expression(tokens, ind, first_node, start),
+        | TokenKind::Question => {
+            if !allow_ops {
+                modified_node = false;
+                first_node
+            } else {
+                parse_ast_binary_operation(tokens, ind, first_node, start, Precedence::Assignment)?
+            }
+        }
 
         TokenKind::Dot => {
             if tokens[*ind + 1].kind != TokenKind::Dot {
@@ -153,16 +162,17 @@ pub fn parse_ast_post(
         }
 
         TokenKind::Bang => {
-            if tokens[*ind].kind == TokenKind::Equal {
-                parse_ast_compare_expression(tokens, ind, first_node, start)?
+            if !allow_ops {
+                modified_node = false;
+                first_node
             } else {
-                parse_ast_math_expression(tokens, ind, first_node, start)?
+                parse_ast_binary_operation(tokens, ind, first_node, start, Precedence::Assignment)?
             }
         }
 
         TokenKind::Equal => {
             if tokens[*ind + 1].kind == TokenKind::Equal {
-                parse_ast_compare_expression(tokens, ind, first_node, start)?
+                parse_ast_binary_operation(tokens, ind, first_node, start, Precedence::Assignment)?
             } else {
                 if invoked_from_body {
                     parse_ast_assign(tokens, ind, first_node, start)?
@@ -174,7 +184,7 @@ pub fn parse_ast_post(
         }
 
         TokenKind::AngelBracketOpen | TokenKind::AngelBracketClose => {
-            parse_ast_compare_expression(tokens, ind, first_node, start)?
+            parse_ast_binary_operation(tokens, ind, first_node, start, Precedence::Assignment)?
         }
 
         TokenKind::BracketOpen => parse_ast_index_usage(tokens, ind, first_node, start)?,
@@ -186,7 +196,7 @@ pub fn parse_ast_post(
     };
 
     if modified_node {
-        parse_ast_post(tokens, ind, node, start_two, invoked_from_body)
+        parse_ast_post(tokens, ind, node, start_two, invoked_from_body, allow_ops)
     } else {
         Ok(node)
     }

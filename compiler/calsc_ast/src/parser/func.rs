@@ -88,7 +88,7 @@ pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<A
     let arguments = parse_ast_list(
         tokens,
         ind,
-        &mut |toks, ind| parse_ast_value(toks, ind, true, false),
+        &mut |toks, ind| parse_ast_value(toks, ind, true, false, true),
         TokenKind::ParenClose,
         false,
         false, // Doesn't post increment inside of the `parse_ast_list` function since `parse_ast_value` already does it

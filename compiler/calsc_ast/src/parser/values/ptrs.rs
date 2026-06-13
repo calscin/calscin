@@ -16,7 +16,7 @@ pub fn parse_ast_pointer_reference(
 
     *ind += 1; // &
 
-    let value = parse_ast_value(tokens, ind, false, false)?; // Doesn't allow post 
+    let value = parse_ast_value(tokens, ind, false, false, true)?; // Doesn't allow post 
     // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
@@ -35,7 +35,7 @@ pub fn parse_ast_pointer_dereference(
 
     *ind += 1; // *
 
-    let value = parse_ast_value(tokens, ind, false, false)?; // Doesn't allow post
+    let value = parse_ast_value(tokens, ind, false, false, true)?; // Doesn't allow post
     // Auto increments
 
     let end = tokens[*ind - 1].end.clone();

@@ -35,7 +35,7 @@ pub fn parse_ast_variable_declaration(
     if tokens[*ind].kind == TokenKind::Equal {
         *ind += 1; // =
 
-        val = Some(parse_ast_value(tokens, ind, true, false)?); // Auto increments
+        val = Some(parse_ast_value(tokens, ind, true, false, true)?); // Auto increments
     } else {
         val = None;
     }
@@ -82,7 +82,7 @@ pub fn parse_ast_assign(
 ) -> DiagResult<ASTArenaReference> {
     *ind += 1; // =
 
-    let value = parse_ast_value(tokens, ind, true, false)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 

@@ -5,11 +5,11 @@ use calsc_lexer::toks::{Token, TokenKind};
 ///
 /// This works on every function of the AST as it fakes another index in order to make every function behave correctly.
 ///
-pub fn peek_ahead<F, R>(tokens: &Vec<Token>, ind: &mut usize, f: F) -> R
+pub fn peek_ahead<F, R>(tokens: &Vec<Token>, ind: usize, f: F) -> R
 where
     F: FnOnce(&Vec<Token>, &mut usize) -> R,
 {
-    let mut local_ind = *ind;
+    let mut local_ind = ind;
 
     f(tokens, &mut local_ind)
 }
