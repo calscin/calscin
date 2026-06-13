@@ -83,14 +83,14 @@ pub enum ASTNodeKind {
     FunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
-        return_type: Option<ASTType>,
+        return_type: ASTType,
         body: Vec<ASTArenaReference>,
     },
 
     ExternFunctionDeclaration {
         name: HashedString,
         arguments: Vec<(ASTType, HashedString)>,
-        return_type: Option<ASTType>,
+        return_type: ASTType,
         triple_dot_position: Option<usize>,
     },
 
