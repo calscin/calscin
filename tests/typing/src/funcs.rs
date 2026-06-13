@@ -21,7 +21,7 @@ fn function_append_retrival_test() {
         TypedFunction::new(
             "test_function".into(),
             vec![Type::Base(instance.clone())],
-            Some(Type::Base(instance.clone())),
+            Type::Base(instance.clone()),
         ),
         &source,
     )
@@ -32,7 +32,7 @@ fn function_append_retrival_test() {
         base.get_func_signature("test_function".into()),
         (
             vec![Type::Base(instance.clone())],
-            Some(Type::Base(instance.clone()))
+            Type::Base(instance.clone())
         )
     );
 }

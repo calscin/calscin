@@ -194,18 +194,18 @@ impl HIRNode {
     /// This function will panic if references are wrong
     ///
     ///
-    pub fn get_type(&self, local_func_key: Option<GlobalContextKey>) -> DiagResult<Option<Type>> {
+    pub fn get_type(&self, local_func_key: Option<GlobalContextKey>) -> DiagResult<Type> {
         if self.stronger_type.is_some() {
-            return Ok(self.stronger_type.clone());
+            return Ok(self.stronger_type.clone().unwrap());
         }
 
         let ty = match self.kind.clone() {
-            HIRNodeKind::IntLiteral(_, size, signed) => Some(make_int_type(signed, size, self)),
-            HIRNodeKind::FloatLiteral(_, size, signed) => Some(make_float_type(signed, size, self)),
-            HIRNodeKind::StringLiteral(_) => Some(make_string_type(self)),
-            HIRNodeKind::CharLiteral(_) => Some(make_char_type(self)),
-            HIRNodeKind::BooleanLiteral(_) => Some(make_bool_type(self)),
-            HIRNodeKind::InverseCondition(_) => Some(make_bool_type(self)),
+            HIRNodeKind::IntLiteral(_, size, signed) => make_int_type(signed, size, self),
+            HIRNodeKind::FloatLiteral(_, size, signed) => make_float_type(signed, size, self),
+            HIRNodeKind::StringLiteral(_) => make_string_type(self),
+            HIRNodeKind::CharLiteral(_) => make_char_type(self),
+            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self),
+            HIRNodeKind::InverseCondition(_) => make_bool_type(self),
 
             HIRNodeKind::Range {
                 start,
@@ -213,13 +213,13 @@ impl HIRNode {
                 increment: _,
             } => start.get_type(local_func_key)?,
 
-            HIRNodeKind::PointerReference(val) => Some(Type::Reference {
+            HIRNodeKind::PointerReference(val) => Type::Reference {
                 mutable: true, // Mutable by default, will change
-                inner: Box::new(val.get_type(local_func_key)?.unwrap()),
-            }),
+                inner: Box::new(val.get_type(local_func_key)?),
+            },
 
             HIRNodeKind::PointerDereference(val) => {
-                Some(val.get_type(local_func_key)?.unwrap().get_inner()) // Assumes the container of a pointer reference is a pointer.
+                val.get_type(local_func_key)?.get_inner() // Assumes the container of a pointer reference is a pointer.
             }
 
             HIRNodeKind::MathExpression {
@@ -228,7 +228,7 @@ impl HIRNode {
                 operator,
             } => {
                 if operator.assigns {
-                    None
+                    Type::Void
                 } else {
                     left_expr.get_type(local_func_key)?
                 }
@@ -239,25 +239,25 @@ impl HIRNode {
                 field_ind: _,
                 name,
             } => {
-                let ty = val.get_type(local_func_key)?.unwrap();
+                let ty = val.get_type(local_func_key)?;
 
                 if ty.has_field(name.clone()) {
-                    Some(ty.get_field_type(name))
+                    ty.get_field_type(name)
                 } else {
-                    None
+                    Type::Void
                 }
             }
 
-            HIRNodeKind::CompareExpression { .. } => Some(make_bool_type(self)),
+            HIRNodeKind::CompareExpression { .. } => make_bool_type(self),
 
             HIRNodeKind::VariableReference {
                 name: _,
                 variable_index,
             } => {
                 if local_func_key.is_none() {
-                    None
+                    Type::Void
                 } else {
-                    Some(HIR_CONTEXT.with(|f| {
+                    HIR_CONTEXT.with(|f| {
                         f.borrow()
                             .scope
                             .get_entry(local_func_key.unwrap(), self)
@@ -270,7 +270,7 @@ impl HIRNode {
                             .variables[variable_index]
                             .ty
                             .clone()
-                    }))
+                    })
                 }
             }
 
@@ -291,14 +291,14 @@ impl HIRNode {
                 val: _,
                 index: _,
                 output_type,
-            } => Some(output_type),
+            } => output_type,
 
-            HIRNodeKind::ArrayInit { vals } => Some(Type::Array {
+            HIRNodeKind::ArrayInit { vals } => Type::Array {
                 size: Some(vals.len()),
-                inner: Box::new(vals[0].get_type(local_func_key)?.unwrap()),
-            }),
+                inner: Box::new(vals[0].get_type(local_func_key)?),
+            },
 
-            _ => None,
+            _ => Type::Void,
         };
 
         Ok(ty)

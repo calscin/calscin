@@ -34,7 +34,7 @@ impl HIRNode {
             return convert_structured_init_into(self.clone(), ty, local_func_key, self);
         }
 
-        if self.get_type(local_func_key.clone())?.is_none() {
+        if self.get_type(local_func_key.clone())? == Type::Void {
             return Err(build_unexpected_error(&"void".to_string(), self).into());
         }
 
@@ -42,7 +42,7 @@ impl HIRNode {
             return convert_numerical_literal_into(self.clone(), ty.as_base());
         }
 
-        let self_type = unsafe { self.get_type(local_func_key.clone())?.unwrap_unchecked() };
+        let self_type: Type = self.get_type(local_func_key.clone())?;
 
         if self_type == ty {
             return Ok(self.clone());

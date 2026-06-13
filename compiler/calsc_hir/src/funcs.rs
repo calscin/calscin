@@ -33,7 +33,7 @@ pub struct HIRFunction {
     pub local_context: Option<LocalContext>,
 
     /// The return type of the function
-    pub return_type: Option<Type>,
+    pub return_type: Type,
 
     /// The arguments of the function
     pub arguments: Vec<(HashedString, Type)>,
@@ -52,7 +52,7 @@ impl HIRFunction {
     pub fn new_extern(
         name: GlobalContextKey,
         origin_type: Option<BaseType>,
-        return_type: Option<Type>,
+        return_type: Type,
         arguments: Vec<(HashedString, Type)>,
         triple_dot_position: Option<usize>,
         is_main_function: bool,
@@ -73,7 +73,7 @@ impl HIRFunction {
         name: GlobalContextKey,
         local_ctx: LocalContext,
         origin_type: Option<BaseType>,
-        return_type: Option<Type>,
+        return_type: Type,
         arguments: Vec<(HashedString, Type)>,
         is_main_function: bool,
     ) -> Self {

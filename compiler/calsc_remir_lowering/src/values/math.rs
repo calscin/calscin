@@ -38,7 +38,7 @@ pub fn lower_hir_math_operation(
         operator,
     } = node.kind.clone()
     {
-        let ty = left_expr.get_type(Some(ctx.local_key.clone()))?.unwrap();
+        let ty = left_expr.get_type(Some(ctx.local_key.clone()))?;
         let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module)?;
         let right_expr_val = lower_hir_value(right_expr, ctx, module)?;
 

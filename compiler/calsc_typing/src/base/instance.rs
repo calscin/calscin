@@ -67,13 +67,7 @@ impl DeclBlockAffectedType for BaseTypeInstance {
             arguments.push(resolve_type_parameter_type(argument.clone(), self)); // Resolves type parameters
         }
 
-        let return_type;
-
-        if signature.1.is_none() {
-            return_type = None;
-        } else {
-            return_type = Some(resolve_type_parameter_type(signature.1.unwrap(), self)); // Resolves type parameters
-        }
+        let return_type = resolve_type_parameter_type(signature.1, self);
 
         (arguments, return_type)
     }

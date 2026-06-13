@@ -98,7 +98,7 @@ fn test_type_parameter_resolver_functions() {
                     struct_type.get_type_parameter_type("K".into()),
                     struct_type.get_type_parameter_type("V".into()),
                 ],
-                Some(struct_type.get_type_parameter_type("V".into())),
+                struct_type.get_type_parameter_type("V".into()),
             ),
             &source,
         )
@@ -126,10 +126,10 @@ fn test_type_parameter_resolver_functions() {
 
     assert_eq!(
         signature.1,
-        Some(Type::TypeParameter {
+        Type::TypeParameter {
             name: "V".into(),
             param_ind: 1
-        })
+        }
     );
 
     // Tests on the BaseTypeInstance layer
@@ -145,5 +145,5 @@ fn test_type_parameter_resolver_functions() {
     let signature = struct_instance.get_func_signature("test_function".into());
 
     assert_eq!(signature.0, vec![int_type, boolean_type.clone()]);
-    assert_eq!(signature.1, Some(boolean_type));
+    assert_eq!(signature.1, boolean_type);
 }

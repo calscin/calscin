@@ -6,7 +6,7 @@ use calsc_utils::hash::HashedString;
 use crate::tree::Type;
 
 /// Represents a signature of a function
-pub type TypeSignature = (Vec<Type>, Option<Type>);
+pub type TypeSignature = (Vec<Type>, Type);
 
 /// Represents a function inside of the typing system
 #[derive(Clone, PartialEq)]
@@ -15,12 +15,12 @@ pub struct TypedFunction {
     pub name: HashedString,
 
     pub arguments: Vec<Type>,
-    pub return_type: Option<Type>,
+    pub return_type: Type,
 }
 
 impl TypedFunction {
     /// Creates a new [`TypedFunction`] based on the given name, arguments and return type
-    pub fn new(name: String, arguments: Vec<Type>, return_type: Option<Type>) -> Self {
+    pub fn new(name: String, arguments: Vec<Type>, return_type: Type) -> Self {
         Self {
             name: name.into(),
             arguments,

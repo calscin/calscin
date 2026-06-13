@@ -151,6 +151,8 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
 
             Ok(ty)
         }
+
+        ASTType::Void => Ok(Type::Void),
     }
 }
 
