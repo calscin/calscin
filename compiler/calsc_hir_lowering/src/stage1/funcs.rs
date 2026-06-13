@@ -39,7 +39,7 @@ pub fn lower_ast_function_decl_first_stage(
         let is_main_function = key == GlobalContextKey::new("main".into());
 
         let mut args = vec![];
-        let ret_type = lower_ast_type(v, &node, target.clone())?;
+        let ret_type = lower_ast_type(return_type, &node, target.clone())?;
 
         let mut local_ctx = LocalContext::new(
             name.clone(),

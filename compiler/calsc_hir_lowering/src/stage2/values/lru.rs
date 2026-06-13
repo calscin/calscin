@@ -21,7 +21,7 @@ pub fn lower_ast_lru(
     } = node.kind.clone()
     {
         let left_expr = lower_ast_value(ASTNode::clone(&left_expr), curr_ctx.clone())?;
-        let left_ty = left_expr.get_type(curr_ctx.clone())?.unwrap();
+        let left_ty = left_expr.get_type(curr_ctx.clone())?;
 
         match &right_expr.kind {
             ASTNodeKind::FunctionCall { name, arguments: _ } => {
