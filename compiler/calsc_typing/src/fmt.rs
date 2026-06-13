@@ -73,6 +73,7 @@ impl Display for Type {
                 }
             }
             Self::Base(base) => write!(f, "{}", base),
+            Self::Void => write!(f, "void"),
         }
     }
 }

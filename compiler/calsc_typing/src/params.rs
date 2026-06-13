@@ -47,5 +47,7 @@ pub fn resolve_type_parameter_type(to_resolve: Type, instance: &BaseTypeInstance
 
         Type::Base(_) => to_resolve,
         Type::TypeParameter { name: _, param_ind } => instance.type_parameters[param_ind].clone(),
+
+        Type::Void => Type::Void,
     }
 }
