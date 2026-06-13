@@ -2,10 +2,15 @@ use std::path::PathBuf;
 
 use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
 use calsc_hir::HIRContext;
-use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
+use calsc_state::build::BuildTargetMode;
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
+
+#[cfg(feature = "llvm")]
 use remir_llvm::{LLVMBridge, compile_llvm};
+
+#[cfg(feature = "llvm")]
+use calsc_state::GLOBAL_STATE;
 
 use crate::funcs::{lower_hir_function_decl, lower_hir_function_decl_none};
 
@@ -73,8 +78,13 @@ pub fn compile_file(
         return Ok(());
     }
 
+    #[cfg(not(feature = "llvm"))]
+    module.save_to_file(out).unwrap();
+
+    #[cfg(feature = "llvm")]
     let mut bridge = LLVMBridge::new();
 
+    #[cfg(feature = "llvm")]
     compile_llvm(
         &mut bridge,
         &mut module,
