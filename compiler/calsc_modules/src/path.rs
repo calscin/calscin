@@ -1,8 +1,12 @@
-use std::hash::Hash;
+use std::{
+    fmt::{Debug, Display},
+    hash::Hash,
+};
 
 use calsc_utils::hash::HashedString;
 
 /// Represents a path to a module
+#[derive(Clone)]
 pub struct ModulePath {
     /// The package name of the module.
     pub package: HashedString,
@@ -31,9 +35,30 @@ impl ModulePath {
     }
 }
 
+impl Default for ModulePath {
+    fn default() -> Self {
+        Self {
+            package: "".into(),
+            path: vec![],
+        }
+    }
+}
+
+impl PartialEq for ModulePath {
+    fn eq(&self, other: &Self) -> bool {
+        if self.is_prelude() || other.is_prelude() {
+            return true;
+        }
+
+        return self.package == other.package && self.path == other.path;
+    }
+}
+
+impl Eq for ModulePath {}
+
 impl Hash for ModulePath {
     fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
-        if self.is_prelude() {
+        if self.is_prelude() || self.package == "".into() {
             return;
         }
 
@@ -41,5 +66,29 @@ impl Hash for ModulePath {
         state.write_usize(self.path.len());
 
         let _ = self.path.iter().map(|entry| entry.hash(state));
+    }
+}
+
+impl Display for ModulePath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.package)?;
+
+        for path in &self.path {
+            write!(f, "::{}", path)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Debug for ModulePath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.package)?;
+
+        for path in &self.path {
+            write!(f, "::{}", path)?;
+        }
+
+        Ok(())
     }
 }

@@ -5,6 +5,7 @@ use std::{
     hash::{Hash, Hasher},
 };
 
+use calsc_modules::path::ModulePath;
 use calsc_typing::base::BaseType;
 use calsc_utils::hash::HashedString;
 
@@ -13,6 +14,9 @@ use calsc_utils::hash::HashedString;
 #[derive(PartialEq, Eq, Clone)]
 pub struct GlobalContextKey {
     pub name: HashedString,
+
+    pub module_name: ModulePath,
+
     pub type_name: Option<BaseType>,
 }
 
@@ -21,6 +25,7 @@ impl GlobalContextKey {
     pub fn new(name: HashedString) -> Self {
         Self {
             name,
+            module_name: Default::default(),
             type_name: None,
         }
     }
@@ -29,6 +34,7 @@ impl GlobalContextKey {
     pub fn new_typed(name: HashedString, type_name: BaseType) -> Self {
         Self {
             name,
+            module_name: Default::default(),
             type_name: Some(type_name),
         }
     }
