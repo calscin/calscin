@@ -22,6 +22,7 @@ use crate::stage1::{
 };
 
 pub mod funcs;
+pub mod imports;
 pub mod types;
 
 pub fn lower_hir_stage_1_node(node: ASTNode, file_ctx: &mut HIRFileContext) -> DiagPossible {
