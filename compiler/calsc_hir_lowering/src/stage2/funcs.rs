@@ -120,13 +120,12 @@ pub fn lower_ast_function_call(
     local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::FunctionCall { name, arguments } = node.kind.clone() {
-        let key;
+        let mut key = GlobalContextKey::new(name);
+
         let mut hir_arguments = vec![];
 
         if ty.is_some() {
-            key = GlobalContextKey::new_typed(name, ty.unwrap());
-        } else {
-            key = GlobalContextKey::new(name);
+            key.associated_type(ty.clone().unwrap());
         }
 
         for argument in arguments {
@@ -248,12 +247,10 @@ pub fn lower_ast_function_decl(
         body,
     } = node.kind.clone()
     {
-        let key;
+        let mut key = GlobalContextKey::new(name.clone());
 
         if ty.is_some() {
-            key = GlobalContextKey::new_typed(name.clone(), ty.clone().unwrap());
-        } else {
-            key = GlobalContextKey::new(name.clone());
+            key.associated_type(ty.clone().unwrap());
         }
 
         let mut hir_arguments = vec![];

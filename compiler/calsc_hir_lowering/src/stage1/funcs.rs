@@ -33,7 +33,7 @@ pub fn lower_ast_function_decl_first_stage(
         let mut key = GlobalContextKey::new(name.clone());
 
         if target.is_some() {
-            key = GlobalContextKey::new_typed(name.clone(), target.clone().unwrap());
+            key.associated_type(target.clone().unwrap());
         }
 
         let is_main_function = key == GlobalContextKey::new("main".into());
