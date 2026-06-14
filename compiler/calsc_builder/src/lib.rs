@@ -126,7 +126,7 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
         BuildTargetMode::VendorIR => file.with_extension("ll"),
         BuildTargetMode::Executable => file.with_extension("o"),
 
-        _ => unsafe { unreachable_unchecked() },
+        _ => panic!(),
     };
 
     if out_destination.is_dir() {

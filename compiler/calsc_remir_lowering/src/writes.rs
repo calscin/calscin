@@ -93,7 +93,7 @@ pub fn lower_hir_field_writable(
                 .convert(node.start.clone(), node.end.clone())
         }
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -108,7 +108,7 @@ pub fn lower_hir_pointer_writable(
 
         build_store(module, inner, write_into).convert(node.start.clone(), node.end.clone())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -136,6 +136,6 @@ pub fn lower_hir_index_writable(
 
         build_store(module, ptr, write_into).convert(node.start.clone(), node.end.clone())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

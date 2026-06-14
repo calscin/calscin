@@ -1,6 +1,9 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{
+    DiagResult,
+    diags::errors::{
+        InternalErrors, build_internal_hir_node_leaked, build_internal_singleton_error,
+    },
+};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_typing::FieldHavingType;
 use remir::{
@@ -30,7 +33,11 @@ pub fn lower_hir_literal(
                 let master_type = master_type.unwrap().as_base();
 
                 if !master_type.ty.kind.is_int() {
-                    panic!("Master type of int lit is not an integer!");
+                    return Err(build_internal_singleton_error(
+                        InternalErrors::StrongerTypeLiterals,
+                        &*node,
+                    )
+                    .into());
                 }
 
                 size = master_type.size_specifiers[0];
@@ -50,7 +57,11 @@ pub fn lower_hir_literal(
                 let master_type = master_type.unwrap().as_base();
 
                 if !master_type.ty.kind.is_float() {
-                    panic!("Master type of float lit is not a float!");
+                    return Err(build_internal_singleton_error(
+                        InternalErrors::StrongerTypeLiterals,
+                        &*node,
+                    )
+                    .into());
                 }
 
                 size = master_type.size_specifiers[0];
@@ -95,7 +106,7 @@ pub fn lower_hir_literal(
             Ok(val.into())
         }
 
-        _ => panic!(),
+        _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
     }
 }
 
@@ -116,6 +127,6 @@ pub fn lower_hir_array_const(
 
         Ok(val.into())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

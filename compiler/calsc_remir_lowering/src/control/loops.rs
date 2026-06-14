@@ -1,6 +1,4 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     block::sync::VariableSynchronizer,
@@ -75,6 +73,6 @@ pub fn lower_hir_while_loop(
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

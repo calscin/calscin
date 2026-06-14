@@ -1,7 +1,6 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, diags::errors::build_cannot_find_element_no_closest,
+    DiagPossible, DiagResult,
+    diags::errors::{build_cannot_find_element_no_closest, build_internal_hir_node_leaked},
 };
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
@@ -140,7 +139,7 @@ pub fn lower_hir_function_decl(
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -162,6 +161,6 @@ pub fn lower_hir_function_return(
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

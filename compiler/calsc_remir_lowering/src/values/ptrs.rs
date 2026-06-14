@@ -1,6 +1,7 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{
+    DiagResult,
+    diags::errors::{build_expected_referencable, build_internal_hir_node_leaked},
+};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::build_load,
@@ -21,12 +22,12 @@ pub fn lower_hir_pointer_reference(
         let inner = lower_hir_variable_reference(inner, local_ctx, module)?;
 
         if !inner.write_as_pointer {
-            return Err(build_unexpected_error(&"unaddressable value".to_string(), &*node).into());
+            return Err(build_expected_referencable(&*node).into());
         }
 
         Ok(inner.held_value.clone().unwrap())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -46,6 +47,6 @@ pub fn lower_hir_pointer_dereference(
 
         Ok(res)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

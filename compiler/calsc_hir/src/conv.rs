@@ -4,7 +4,10 @@ use std::{collections::HashMap, hint::unreachable_unchecked};
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_expected_type_error, build_missing_field, build_unexpected_type_error},
+    diags::errors::{
+        build_expected_type_error, build_internal_hir_node_leaked, build_missing_field,
+        build_unexpected_type_error,
+    },
 };
 use calsc_typing::{
     FieldHavingType, TransmutableType, base::instance::BaseTypeInstance, tree::Type,
@@ -113,7 +116,7 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
 
         Ok(node)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&structured_init, &structured_init).into());
     }
 }
 
@@ -137,7 +140,7 @@ pub fn convert_numerical_literal_into(lit: HIRNode, ty: BaseTypeInstance) -> Dia
         ));
     }
 
-    unsafe { unreachable_unchecked() }
+    return Err(build_internal_hir_node_leaked(&lit, &*lit).into());
 }
 
 pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {

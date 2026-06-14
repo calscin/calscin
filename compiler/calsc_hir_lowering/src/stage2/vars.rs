@@ -47,7 +47,7 @@ pub fn lower_ast_variable_reference(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 

@@ -1,6 +1,4 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{
     ifs::IfStatementBranch, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference,
 };
@@ -182,6 +180,6 @@ pub fn lower_hir_if_statement(
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

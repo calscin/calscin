@@ -57,6 +57,7 @@ enum ErrorCode {
 
 pub enum InternalErrors {
     CannotFindReturnType,
+    StrongerTypeLiterals,
 }
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
