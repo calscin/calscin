@@ -21,4 +21,8 @@ impl HIRFileContext {
     pub fn advance_module(&mut self, path: HashedString) {
         self.current_module.path.push(path);
     }
+
+    pub fn deadvance_module(&mut self) {
+        self.current_module.path.pop();
+    }
 }
