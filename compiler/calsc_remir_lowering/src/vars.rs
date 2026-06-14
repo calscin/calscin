@@ -14,6 +14,7 @@ use crate::{
     writes::lower_hir_writable,
 };
 
+#[allow(unsafe_code)]
 pub fn lower_hir_variable_reference<'a>(
     node: HIRArenaReference,
     _ctx: &LocalContext,

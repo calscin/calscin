@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 //! The main AST declarations of Calscin. AST is used to lower the lexer tokens into parsed structures.
 
 use std::{cell::RefCell, collections::HashMap};

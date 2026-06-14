@@ -16,6 +16,7 @@ use crate::{
     body::lower_hir_body, range::lower_hir_range, result::CalscinRemirResult, types::lower_type,
 };
 
+#[allow(unsafe_code)]
 pub fn lower_hir_for_loop(
     node: HIRArenaReference,
     local_ctx: &LocalContext,

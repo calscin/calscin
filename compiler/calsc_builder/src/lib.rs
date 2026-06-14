@@ -1,3 +1,5 @@
+#![deny(unsafe_code)]
+
 use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::{AST_CONTEXT, parser::ctx::parse_ast_whole};
