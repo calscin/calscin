@@ -142,6 +142,9 @@ dependencies = [
 [[package]]
 name = "calsc_modules"
 version = "0.1.0"
+dependencies = [
+ "calsc_utils",
+]
 
 [[package]]
 name = "calsc_remir_lowering"
