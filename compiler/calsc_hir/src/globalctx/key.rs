@@ -43,6 +43,7 @@ impl GlobalContextKey {
 impl Hash for GlobalContextKey {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         hasher.write_usize(1); // Marker for HIR type values to avoid collisions with hashes from HashedString
+        self.module_name.hash(hasher);
         hasher.write_usize(self.type_name.is_some() as usize);
 
         if self.type_name.is_some() {
@@ -56,9 +57,15 @@ impl Hash for GlobalContextKey {
 impl Display for GlobalContextKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.type_name.is_none() {
-            write!(f, "{}", *self.name)
+            write!(f, "{}::{}", self.module_name, *self.name)
         } else {
-            write!(f, "{}::{}", self.type_name.clone().unwrap(), *self.name)
+            write!(
+                f,
+                "{}::{}::{}",
+                self.module_name,
+                self.type_name.clone().unwrap(),
+                *self.name
+            )
         }
     }
 }
