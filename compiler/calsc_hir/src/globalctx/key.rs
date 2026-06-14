@@ -40,9 +40,7 @@ impl Hash for GlobalContextKey {
         hasher.write_usize(self.type_name.is_some() as usize);
 
         if self.type_name.is_some() {
-            unsafe {
-                self.type_name.clone().unwrap_unchecked().hash(hasher);
-            }
+            self.type_name.clone().unwrap().hash(hasher);
         }
 
         self.name.hash(hasher);
@@ -54,14 +52,7 @@ impl Display for GlobalContextKey {
         if self.type_name.is_none() {
             write!(f, "{}", *self.name)
         } else {
-            unsafe {
-                write!(
-                    f,
-                    "{}::{}",
-                    self.type_name.clone().unwrap_unchecked(),
-                    *self.name
-                )
-            }
+            write!(f, "{}::{}", self.type_name.clone().unwrap(), *self.name)
         }
     }
 }
