@@ -6,6 +6,7 @@ use calsc_utils::hash::HashedString;
 
 use crate::{
     parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
+    path::ElementPath,
     refs::ASTArenaReference,
     types::ASTType,
 };
@@ -65,4 +66,25 @@ pub fn parse_ast_return_type_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagR
     }
 
     Ok(ASTType::Void)
+}
+
+pub fn parse_element_path_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ElementPath> {
+    let mut path: Vec<HashedString> = vec![];
+
+    path.push(tokens[*ind].expects_keyword()?.into());
+    *ind += 1; // first element
+
+    while tokens[*ind].kind == TokenKind::Colon {
+        *ind += 1; // first :
+
+        tokens[*ind].expects(TokenKind::Colon)?;
+        *ind += 1; // second :
+
+        let val = tokens[*ind].expects_keyword()?;
+        path.push(val.into());
+
+        *ind += 1; // keyword
+    }
+
+    Ok(ElementPath { members: path })
 }
