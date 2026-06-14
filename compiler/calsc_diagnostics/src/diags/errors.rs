@@ -20,6 +20,7 @@ enum ErrorCode {
     // Typing
     UnexpectedType,
     ExpectedType,
+    ExpectedSimpleType,
     FieldMissing,
     FunctionMissing,
     ExpectedSizeSpecifiers,
@@ -46,6 +47,9 @@ enum ErrorCode {
 
     // MIR
     RemirError,
+
+    // Internal
+    InternalHIRNode,
 }
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
@@ -376,5 +380,30 @@ pub fn build_expected_type_error<E: Display, G: Display, S: DiagnosticSource>(
         vec![],
         vec![],
         vec![],
+    )
+}
+
+pub fn build_expected_simple_type<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedSimpleType as usize),
+        "expected simple type".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_internal_hir_node_leaked<N: Debug, S: DiagnosticSource>(
+    node: &N,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::InternalHIRNode as usize),
+        format!("Internal HIR node {:#?} leaked!", node),
+        None,
+        vec![],
+        vec!["please report this issue immediately".to_string()],
+        vec!["https://github.com/calscin/calscin".to_string()],
     )
 }

@@ -9,7 +9,7 @@ use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
 };
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIR_CONTEXT, prelude::apply_prelude};
 
 use crate::stage1::{
@@ -44,7 +44,7 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
                 lower_ast_struct_declaration(ASTNode::clone(&node))?
             }
 
-            _ => panic!(),
+            _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
         };
     }
 
@@ -52,7 +52,7 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
         match &iter.kind {
             ASTNodeKind::StructDeclBlock { .. } => lower_ast_decl_block(ASTNode::clone(&iter))?,
 
-            _ => panic!(),
+            _ => return Err(build_internal_hir_node_leaked(&iter, &*iter).into()),
         }
     }
 
