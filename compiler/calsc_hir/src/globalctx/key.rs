@@ -15,7 +15,7 @@ use calsc_utils::hash::HashedString;
 pub struct GlobalContextKey {
     pub name: HashedString,
 
-    pub module_name: ModulePath,
+    pub module_path: ModulePath,
 
     pub type_name: Option<BaseType>,
 }
@@ -25,25 +25,28 @@ impl GlobalContextKey {
     pub fn new(name: HashedString) -> Self {
         Self {
             name,
-            module_name: Default::default(),
+            module_path: Default::default(),
             type_name: None,
         }
     }
 
-    /// Creates a new [`GlobalContextKey`] based on the given element name and type
-    pub fn new_typed(name: HashedString, type_name: BaseType) -> Self {
-        Self {
-            name,
-            module_name: Default::default(),
-            type_name: Some(type_name),
-        }
+    #[inline(always)]
+    pub fn associated_type(&mut self, type_name: BaseType) -> &mut Self {
+        self.type_name = Some(type_name);
+        self
+    }
+
+    #[inline(always)]
+    pub fn module_path(&mut self, module_path: ModulePath) -> &mut Self {
+        self.module_path = module_path;
+        self
     }
 }
 
 impl Hash for GlobalContextKey {
     fn hash<H: Hasher>(&self, hasher: &mut H) {
         hasher.write_usize(1); // Marker for HIR type values to avoid collisions with hashes from HashedString
-        self.module_name.hash(hasher);
+        self.module_path.hash(hasher);
         hasher.write_usize(self.type_name.is_some() as usize);
 
         if self.type_name.is_some() {
@@ -57,12 +60,12 @@ impl Hash for GlobalContextKey {
 impl Display for GlobalContextKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         if self.type_name.is_none() {
-            write!(f, "{}::{}", self.module_name, *self.name)
+            write!(f, "{}::{}", self.module_path, *self.name)
         } else {
             write!(
                 f,
                 "{}::{}::{}",
-                self.module_name,
+                self.module_path,
                 self.type_name.clone().unwrap(),
                 *self.name
             )
