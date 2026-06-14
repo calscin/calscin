@@ -31,13 +31,14 @@ impl GlobalContextKey {
     }
 
     #[inline(always)]
-    pub fn associated_type(&mut self, type_name: BaseType) -> &mut Self {
+    pub fn associated_type(mut self, type_name: BaseType) -> Self {
         self.type_name = Some(type_name);
+
         self
     }
 
     #[inline(always)]
-    pub fn module_path(&mut self, module_path: ModulePath) -> &mut Self {
+    pub fn module_path(mut self, module_path: ModulePath) -> Self {
         self.module_path = module_path;
         self
     }
