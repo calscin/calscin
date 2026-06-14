@@ -11,6 +11,7 @@ use crate::{nodes::ASTNode, refs::ASTArenaReference};
 pub mod ifs;
 pub mod imports;
 pub mod nodes;
+pub mod path;
 pub mod refs;
 pub mod types;
 

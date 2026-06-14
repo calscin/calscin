@@ -3,7 +3,8 @@
 use std::fmt::Display;
 
 use calsc_diagnostics::fmt::fmt_list;
-use calsc_utils::hash::HashedString;
+
+use crate::path::ElementPath;
 
 /// The AST representation of type. Works on a tree-like structure where nodes can have an "inner" child node that is deeper.
 ///
@@ -37,7 +38,7 @@ pub enum ASTType {
     /// `s32` would be `Generic(s32, None, [])`
     ///
     /// `s.32<test>` would be `Generic(s, 32, [test])`
-    Generic(HashedString, Option<usize>, Vec<ASTType>),
+    Generic(ElementPath, Option<usize>, Vec<ASTType>),
 
     /// The void type
     Void,
@@ -48,7 +49,7 @@ pub enum ASTType {
 pub enum SimpleASTType {
     Reference(bool),
     Array(Option<usize>),
-    Generic(HashedString, Option<usize>, Vec<ASTType>),
+    Generic(ElementPath, Option<usize>, Vec<ASTType>),
 }
 
 impl SimpleASTType {

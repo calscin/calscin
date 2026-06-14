@@ -14,6 +14,7 @@ use crate::{
     AST_CONTEXT,
     ifs::IfStatementBranch,
     imports::{ImportKind, ImportModule},
+    path::ElementPath,
     refs::ASTArenaReference,
     types::ASTType,
 };
@@ -95,7 +96,7 @@ pub enum ASTNodeKind {
     },
 
     FunctionCall {
-        name: HashedString,
+        name: ElementPath,
         arguments: Vec<ASTArenaReference>,
     },
 
