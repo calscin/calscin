@@ -33,6 +33,10 @@ impl ModulePath {
     pub fn is_prelude(&self) -> bool {
         self.package == "prelude".into()
     }
+
+    pub fn is_empty(&self) -> bool {
+        self.package.is_empty() && self.path.is_empty()
+    }
 }
 
 impl Default for ModulePath {

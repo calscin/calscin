@@ -60,16 +60,14 @@ impl Hash for GlobalContextKey {
 
 impl Display for GlobalContextKey {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        if !self.module_path.is_empty() {
+            write!(f, "{}::", self.module_path)?;
+        }
+
         if self.type_name.is_none() {
-            write!(f, "{}::{}", self.module_path, *self.name)
+            write!(f, "{}", *self.name)
         } else {
-            write!(
-                f,
-                "{}::{}::{}",
-                self.module_path,
-                self.type_name.clone().unwrap(),
-                *self.name
-            )
+            write!(f, "{}::{}", self.type_name.clone().unwrap(), *self.name)
         }
     }
 }

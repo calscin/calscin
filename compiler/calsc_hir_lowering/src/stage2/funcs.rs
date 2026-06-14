@@ -246,11 +246,18 @@ pub fn lower_ast_function_decl(
         body,
     } = node.kind.clone()
     {
-        let mut key =
-            GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
+        let mut key = GlobalContextKey::new(name.clone());
 
         if ty.is_some() {
             key = key.associated_type(ty.clone().unwrap());
+        } else {
+            key = key.module_path(file_ctx.current_module.clone());
+        }
+
+        let is_main_function = key.name == "main".into() && key.module_path.path.len() == 0;
+
+        if is_main_function {
+            key = GlobalContextKey::new("main".into());
         }
 
         let mut hir_arguments = vec![];
