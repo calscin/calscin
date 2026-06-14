@@ -1,5 +1,6 @@
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
+    path::ElementPath,
     types::ASTType,
 };
 use calsc_diagnostics::{
@@ -20,7 +21,7 @@ use calsc_typing::{
 };
 use calsc_utils::hash::HashedString;
 
-use crate::stage1::funcs::lower_ast_function_decl_first_stage;
+use crate::{stage1::funcs::lower_ast_function_decl_first_stage, stage2::key::lower_ast_key};
 
 pub fn lower_ast_struct_declaration(node: ASTNode) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
@@ -121,8 +122,12 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
             if inst.is_some() {
                 let inst = inst.clone().unwrap();
 
-                if inst.has_type_parameter(a.clone()) && b.is_none() && c.is_empty() {
-                    return Ok(inst.get_type_parameter_type(a));
+                if a.members.len() == 1
+                    && inst.has_type_parameter(a.last())
+                    && b.is_none()
+                    && c.is_empty()
+                {
+                    return Ok(inst.get_type_parameter_type(a.last()));
                 }
             }
 
@@ -147,12 +152,12 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
 }
 
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
-    name: HashedString,
+    name: ElementPath,
     size_specifiers: Vec<usize>,
     type_parameters: Vec<Type>,
     origin: &K,
 ) -> DiagResult<Type> {
-    let key = GlobalContextKey::new(name);
+    let key = lower_ast_key(name, origin, false)?;
 
     let ty = HIR_CONTEXT.with(|f| {
         f.borrow().scope.get_entry(key, origin)?.craft_type(

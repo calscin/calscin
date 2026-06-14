@@ -1,7 +1,10 @@
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagResult,
-    diags::errors::{build_cannot_find_element_no_closest, build_internal_hir_node_leaked},
+    diags::errors::{
+        build_cannot_find_element_no_closest, build_cannot_parse_error,
+        build_internal_hir_node_leaked,
+    },
 };
 use calsc_hir::{
     globalctx::key::GlobalContextKey,
@@ -26,7 +29,15 @@ pub fn lower_ast_lru(
 
         match &right_expr.kind {
             ASTNodeKind::FunctionCall { name, arguments: _ } => {
-                if !left_ty.clone().has_function(name.clone()) {
+                if name.members.len() != 1 {
+                    return Err(build_cannot_parse_error(
+                        &"LRU function call".to_string(),
+                        &*right_expr,
+                    )
+                    .into());
+                }
+
+                if !left_ty.clone().has_function(name.last().clone()) {
                     return Err(build_cannot_find_element_no_closest(&name, &node).into());
                 }
 

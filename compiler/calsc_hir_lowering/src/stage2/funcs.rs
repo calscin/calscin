@@ -21,6 +21,7 @@ use crate::{
         control::{
             lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop,
         },
+        key::lower_ast_key,
         values::{lower_ast_value, lru::lower_ast_lru},
         vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
     },
@@ -120,13 +121,9 @@ pub fn lower_ast_function_call(
     local_ctx: Option<GlobalContextKey>,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::FunctionCall { name, arguments } = node.kind.clone() {
-        let mut key = GlobalContextKey::new(name);
+        let key = lower_ast_key(name, &node, true)?;
 
         let mut hir_arguments = vec![];
-
-        if ty.is_some() {
-            key = key.associated_type(ty.clone().unwrap());
-        }
 
         for argument in arguments {
             hir_arguments.push(lower_ast_value(
