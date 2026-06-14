@@ -136,6 +136,8 @@ pub fn parse_ast_module(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTA
     let name: HashedString = tokens[*ind].expects_keyword()?.into(); // Auto increments
     let mut body = vec![];
 
+    *ind += 1; // name
+
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
