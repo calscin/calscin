@@ -3,6 +3,8 @@
 
 use std::{cell::RefCell, path::PathBuf};
 
+use calsc_utils::hash::HashedString;
+
 use crate::build::{BuildTargetMode, CompilerBuildState};
 
 pub mod build;
@@ -13,12 +15,14 @@ thread_local! {
 
 pub struct CompilerGlobalState {
     pub build: CompilerBuildState,
+    pub package_name: HashedString,
 }
 
 impl CompilerGlobalState {
     pub fn new(out: Option<PathBuf>, target: BuildTargetMode) -> Self {
         Self {
             build: CompilerBuildState::new(out, target, "".to_string()),
+            package_name: "test_pkg".into(),
         }
     }
 

@@ -29,12 +29,6 @@ pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K)
     scope.append(GlobalContextKey::new("bool".into()), bool_type, origin)?;
 
     scope.append(
-        GlobalContextKey::new("prelude_types".into()),
-        GlobalContextValue::Module(module_path.clone()),
-        origin,
-    )?;
-
-    scope.append(
         GlobalContextKey::new("s".into()).module_path(module_path.clone()),
         signed_integer_type,
         origin,

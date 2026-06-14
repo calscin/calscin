@@ -36,7 +36,7 @@ pub fn lower_ast_function_decl_first_stage(
             key = key.associated_type(target.clone().unwrap());
         }
 
-        let is_main_function = key == GlobalContextKey::new("main".into());
+        let is_main_function = key.name == "main".into();
 
         let mut args = vec![];
         let ret_type = lower_ast_type(return_type, &node, target.clone())?;
