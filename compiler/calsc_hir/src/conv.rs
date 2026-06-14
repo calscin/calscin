@@ -1,10 +1,13 @@
 //! Convertion definitions for HIR nodes
 
-use std::{collections::HashMap, hint::unreachable_unchecked};
+use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_expected_error, build_missing_field, build_unexpected_error},
+    diags::errors::{
+        build_expected_type_error, build_internal_hir_node_leaked, build_missing_field,
+        build_unexpected_type_error,
+    },
 };
 use calsc_typing::{
     FieldHavingType, TransmutableType, base::instance::BaseTypeInstance, tree::Type,
@@ -35,7 +38,7 @@ impl HIRNode {
         }
 
         if self.get_type(local_func_key.clone())? == Type::Void {
-            return Err(build_unexpected_error(&"void".to_string(), self).into());
+            return Err(build_unexpected_type_error(&"void".to_string(), self).into());
         }
 
         if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
@@ -74,7 +77,7 @@ impl HIRNode {
             weakly_transmute(other_node.unwrap(), self_type.clone());
         }
 
-        return Err(build_expected_error(&self_type, &ty, self).into());
+        return Err(build_expected_type_error(&self_type, &ty, self).into());
     }
 }
 
@@ -113,7 +116,7 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
 
         Ok(node)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&structured_init, &structured_init).into());
     }
 }
 
@@ -137,7 +140,7 @@ pub fn convert_numerical_literal_into(lit: HIRNode, ty: BaseTypeInstance) -> Dia
         ));
     }
 
-    unsafe { unreachable_unchecked() }
+    return Err(build_internal_hir_node_leaked(&lit, &lit).into());
 }
 
 pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {

@@ -1,6 +1,6 @@
 //! Function related parsing
 
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::{Either, hash::HashedString};
 
@@ -110,7 +110,7 @@ pub fn parse_extern_function_argument(
     already_consumed_triple_dot: &mut bool,
 ) -> DiagResult<Either<(), (ASTType, HashedString)>> {
     if *already_consumed_triple_dot {
-        return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into());
+        return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into());
     }
 
     if tokens[*ind].kind == TokenKind::Dot {

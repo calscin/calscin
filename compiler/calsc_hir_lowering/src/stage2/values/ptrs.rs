@@ -1,7 +1,8 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_expected_error};
+use calsc_diagnostics::{
+    DiagPossible, DiagResult,
+    diags::errors::{build_expected_referencable, build_internal_hir_node_leaked},
+};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
@@ -45,12 +46,7 @@ pub fn lower_ast_pointer_reference(
         let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
 
         if !val.represents_pointer_referencable() {
-            return Err(build_expected_error(
-                &"referencable".to_string(),
-                &val.get_type(local_ctx)?,
-                &*val,
-            )
-            .into());
+            return Err(build_expected_referencable(&node).into());
         }
 
         introduce_reference_ast(val.clone(), local_ctx.clone())?;
@@ -63,7 +59,7 @@ pub fn lower_ast_pointer_reference(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -75,12 +71,7 @@ pub fn lower_ast_pointer_dereference(
         let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
 
         if !val.represents_pointer_referencable() {
-            return Err(build_expected_error(
-                &"referencable".to_string(),
-                &val.get_type(local_ctx)?,
-                &*val,
-            )
-            .into());
+            return Err(build_expected_referencable(&node).into());
         }
 
         let node = HIRNode::new(
@@ -91,6 +82,6 @@ pub fn lower_ast_pointer_dereference(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

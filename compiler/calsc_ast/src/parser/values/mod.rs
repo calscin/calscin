@@ -2,7 +2,9 @@
 
 use std::path::PathBuf;
 
-use calsc_diagnostics::{DiagResult, PosDiagnosticSource, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{
+    DiagResult, PosDiagnosticSource, diags::errors::build_unexpected_token_error,
+};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::pos::FilePosition;
 
@@ -107,7 +109,7 @@ pub fn parse_ast_value(
         }
 
         _ => {
-            return Err(build_unexpected_error(
+            return Err(build_unexpected_token_error(
                 &tokens[*ind].kind,
                 &PosDiagnosticSource::new(tokens[*ind].start.clone(), tokens[*ind].end.clone()),
             )

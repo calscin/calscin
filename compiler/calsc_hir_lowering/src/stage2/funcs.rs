@@ -1,11 +1,10 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
-        build_expected_error, build_expected_return_error, build_restricted_return_type,
-        build_unexpected_error,
+        InternalErrors, build_expected_entry_type, build_expected_return_error,
+        build_internal_hir_node_leaked, build_internal_singleton_error,
+        build_restricted_return_type,
     },
 };
 use calsc_hir::{
@@ -145,7 +144,7 @@ pub fn lower_ast_function_call(
         });
 
         if !is_function? {
-            return Err(build_expected_error(&"function", &"?? TODO", &node).into());
+            return Err(build_expected_entry_type(&"function", &"?? TODO", &node).into());
         }
 
         let node = HIRNode::new(
@@ -159,7 +158,7 @@ pub fn lower_ast_function_call(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -188,8 +187,8 @@ pub fn lower_ast_return_statement(
         let expected_return_type = match expected_return_type {
             Some(v) => v,
             None => {
-                return Err(build_unexpected_error(
-                    &"cannot find expected return type".to_string(),
+                return Err(build_internal_singleton_error(
+                    InternalErrors::CannotFindReturnType,
                     &node,
                 )
                 .into());
@@ -234,7 +233,7 @@ pub fn lower_ast_return_statement(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -315,6 +314,6 @@ pub fn lower_ast_function_decl(
 
         Ok(r)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

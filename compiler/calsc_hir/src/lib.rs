@@ -1,5 +1,7 @@
 //! The main HIR declarations of Calscin. HIR is used to lower the AST into a guaranteed working form.
 
+#![deny(unsafe_code)]
+
 use std::cell::RefCell;
 
 use calsc_utils::alloc::arena::ArenaAllocator;

@@ -1,6 +1,6 @@
 //! Parsing for binary operators and operations
 
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::{math::MathOperation, pos::FilePosition};
 
@@ -72,7 +72,7 @@ pub fn parse_binary_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult
         | TokenKind::Slash
         | TokenKind::BackSlash => Ok(BinaryOperator::Math(parse_ast_math_operator(tokens, ind)?)),
 
-        tok => return Err(build_unexpected_error(tok, &tokens[*ind]).into()),
+        tok => return Err(build_unexpected_token_error(tok, &tokens[*ind]).into()),
     }
 }
 
@@ -107,8 +107,6 @@ pub fn parse_ast_binary_operation(
         let binary_operator = parse_binary_operator(tokens, ind)?;
 
         let mut right = parse_ast_value(tokens, ind, true, false, false)?;
-
-        eprintln!("Ind: {}", *ind);
 
         if is_binary_operator(tokens, *ind) {
             if let Ok(next_operator) = peek_ahead(tokens, *ind, parse_binary_operator) {

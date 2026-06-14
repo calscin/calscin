@@ -3,7 +3,7 @@
 //! # Guidelines
 //! Individual parsing functions should always post-increment unless specified otherwise.
 
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
@@ -122,6 +122,6 @@ pub fn parse_ast_top_level(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<A
         TokenKind::Decl => parse_ast_struct_decl_block(tokens, ind),
         TokenKind::Import => parse_ast_import_statement(tokens, ind),
 
-        _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+        _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     }
 }

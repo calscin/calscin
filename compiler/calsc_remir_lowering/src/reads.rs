@@ -1,6 +1,7 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::{DiagResult, diags::errors::build_remir_error};
+use calsc_diagnostics::{
+    DiagResult,
+    diags::errors::{build_internal_hir_node_leaked, build_remir_error},
+};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_array_gep, build_struct_gep},
@@ -80,7 +81,7 @@ pub fn lower_hir_readable_field(
 
         Ok(ptr)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -98,7 +99,7 @@ pub fn lower_hir_readable_pointer_deref(
 
         Ok(inner)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -128,6 +129,6 @@ pub fn lower_hir_readable_index_usage(
 
         Ok(ptr)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

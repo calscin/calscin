@@ -1,7 +1,9 @@
 use calsc_ast::nodes::{ASTNode, ASTNodeKind, BinaryOperator};
 use calsc_diagnostics::{
     DiagResult,
-    diags::errors::{build_expected_error, build_unexpected_error},
+    diags::errors::{
+        build_expected_mutable, build_expected_type_error, build_internal_hir_node_leaked,
+    },
 };
 use calsc_hir::{
     globalctx::key::GlobalContextKey,
@@ -26,8 +28,8 @@ pub fn lower_ast_binary_expression(
         let left_expr_type = left_expr.get_type(local_ctx.clone())?;
 
         if left_expr_type == Type::Void || !left_expr_type.is_direct_numeric_generic() {
-            return Err(build_expected_error(
-                &"numeric type".to_string(),
+            return Err(build_expected_type_error(
+                &"numeric".to_string(),
                 &"".to_string(),
                 &*left_expr,
             )
@@ -46,12 +48,7 @@ pub fn lower_ast_binary_expression(
 
         if let BinaryOperator::Math(operator) = operator {
             if operator.assigns && !left_expr.represents_mutable_variable() {
-                return Err(build_expected_error(
-                    &"mutable variable-like".to_string(),
-                    &"".to_string(),
-                    &*left_expr,
-                )
-                .into());
+                return Err(build_expected_mutable(&*left_expr).into());
             }
 
             let node = HIRNode::new(
@@ -81,8 +78,8 @@ pub fn lower_ast_binary_expression(
             return Ok(node.push());
         }
 
-        return Err(build_unexpected_error(&"invalid operator".to_string(), &node).into());
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     } else {
-        panic!("")
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

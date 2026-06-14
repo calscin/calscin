@@ -1,12 +1,12 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     types::ASTType,
 };
 use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
-    diags::errors::{build_compile_time_size, build_expected_error},
+    diags::errors::{
+        build_compile_time_size, build_expected_simple_type, build_internal_hir_node_leaked,
+    },
 };
 use calsc_hir::{
     HIR_CONTEXT,
@@ -53,23 +53,18 @@ pub fn lower_ast_struct_declaration(node: ASTNode) -> DiagPossible {
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
 pub fn lower_simple_ast_type<K: DiagnosticSource>(
     ty: ASTType,
     origin: &K,
-    inst: Option<BaseType>,
+    _inst: Option<BaseType>,
 ) -> DiagResult<BaseType> {
     if let ASTType::Generic(a, b, c) = ty.clone() {
         if b.is_some() || !c.is_empty() {
-            return Err(build_expected_error(
-                &"type name",
-                &lower_ast_type_complex(ty, origin, inst, false)?,
-                origin,
-            )
-            .into());
+            return Err(build_expected_simple_type(origin).into());
         }
 
         let ty = lower_ast_generic_base(a, vec![], vec![], origin)?;
@@ -83,12 +78,7 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
         }
     }
 
-    return Err(build_expected_error(
-        &"type name",
-        &lower_ast_type_complex(ty, origin, inst, false)?,
-        origin,
-    )
-    .into());
+    return Err(build_expected_simple_type(origin).into());
 }
 
 pub fn lower_ast_type<K: DiagnosticSource>(
@@ -185,6 +175,6 @@ pub fn lower_ast_decl_block(node: ASTNode) -> DiagPossible {
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

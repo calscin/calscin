@@ -1,10 +1,10 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::{
     ifs::IfStatementBranch,
     nodes::{ASTNode, ASTNodeKind},
 };
-use calsc_diagnostics::{DiagResult, DiagnosticSource};
+use calsc_diagnostics::{
+    DiagResult, DiagnosticSource, diags::errors::build_internal_hir_node_leaked,
+};
 use calsc_hir::{
     HIR_CONTEXT,
     globalctx::key::GlobalContextKey,
@@ -85,7 +85,7 @@ pub fn lower_ast_if_statement(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -159,7 +159,7 @@ pub fn lower_ast_for_loop(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -184,7 +184,7 @@ pub fn lower_ast_while_loop(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -208,6 +208,6 @@ pub fn lower_ast_loop(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

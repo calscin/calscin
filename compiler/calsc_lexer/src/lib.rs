@@ -2,6 +2,7 @@
 //! so that the AST can use it.
 
 #![deny(unstable_features)]
+#![deny(unsafe_code)]
 
 use std::path::PathBuf;
 

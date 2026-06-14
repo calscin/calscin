@@ -1,6 +1,7 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{
+    DiagResult,
+    diags::errors::{build_expected_type_error, build_internal_hir_node_leaked},
+};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_extract_value, build_load, build_struct_gep},
@@ -54,7 +55,10 @@ pub fn lower_hir_value(
             if val.is_some() {
                 Ok(val.unwrap())
             } else {
-                Err(build_unexpected_error(&"void returning function".to_string(), &*node).into())
+                Err(
+                    build_expected_type_error(&"void".to_string(), &"non-void".to_string(), &*node)
+                        .into(),
+                )
             }
         }
 
@@ -68,7 +72,7 @@ pub fn lower_hir_value(
 
         HIRNodeKind::ArrayInit { .. } => lower_hir_array_const(node, ctx, module),
 
-        e => panic!("Unexpected kind {:#?}", e),
+        _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
     }
 }
 
@@ -106,6 +110,6 @@ pub fn lower_hir_field_reference(
 
         Ok(field_val)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

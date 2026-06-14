@@ -4,7 +4,7 @@ use std::fmt::{Debug, Display};
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_expected_error, build_unexpected_error},
+    diags::errors::{build_expected_entry_type, build_unexpected_type_alias_additional_parameters},
 };
 use calsc_typing::{base::BaseType, tree::Type};
 
@@ -39,7 +39,7 @@ impl GlobalContextValue {
         match self {
             Self::Type(inst) => Ok(inst.clone()),
 
-            _ => return Err(build_expected_error(&"type".to_string(), self, origin).into()),
+            _ => return Err(build_expected_entry_type(&"type".to_string(), self, origin).into()),
         }
     }
 
@@ -52,7 +52,11 @@ impl GlobalContextValue {
         match self {
             Self::TypeAlias(ty) => Ok(ty.clone()),
 
-            _ => return Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
+            _ => {
+                return Err(
+                    build_expected_entry_type(&"type alias".to_string(), self, origin).into(),
+                );
+            }
         }
     }
 
@@ -69,11 +73,7 @@ impl GlobalContextValue {
                 if size_specifiers.is_empty() && type_parameters.is_empty() {
                     Ok(ty.clone())
                 } else {
-                    Err(build_unexpected_error(
-                        &"additional type parameters or size specifiers".to_string(),
-                        origin,
-                    )
-                    .into())
+                    Err(build_unexpected_type_alias_additional_parameters(origin).into())
                 }
             }
             Self::Type(ty) => Ok(Type::Base(safely_make_type_instance(
@@ -83,7 +83,7 @@ impl GlobalContextValue {
                 origin,
             )?)),
 
-            _ => return Err(build_expected_error(&"type".to_string(), self, origin).into()),
+            _ => return Err(build_expected_entry_type(&"type".to_string(), self, origin).into()),
         }
     }
 
@@ -96,7 +96,11 @@ impl GlobalContextValue {
         match self {
             Self::Function(func) => Ok(func),
 
-            _ => return Err(build_expected_error(&"function".to_string(), self, origin).into()),
+            _ => {
+                return Err(
+                    build_expected_entry_type(&"function".to_string(), self, origin).into(),
+                );
+            }
         }
     }
 
@@ -114,7 +118,7 @@ impl GlobalContextValue {
         match self {
             Self::Type(inst) => Ok(func(inst)),
 
-            _ => Err(build_expected_error(&"type".to_string(), self, origin).into()),
+            _ => Err(build_expected_entry_type(&"type".to_string(), self, origin).into()),
         }
     }
 
@@ -136,7 +140,7 @@ impl GlobalContextValue {
         match self {
             Self::TypeAlias(inst) => Ok(func(inst)),
 
-            _ => Err(build_expected_error(&"type alias".to_string(), self, origin).into()),
+            _ => Err(build_expected_entry_type(&"type alias".to_string(), self, origin).into()),
         }
     }
 
@@ -158,7 +162,7 @@ impl GlobalContextValue {
         match self {
             Self::Function(f) => Ok(func(f)),
 
-            _ => Err(build_expected_error(&"function".to_string(), self, origin).into()),
+            _ => Err(build_expected_entry_type(&"function".to_string(), self, origin).into()),
         }
     }
 

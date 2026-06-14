@@ -1,7 +1,5 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 
 use crate::{stage1::types::lower_simple_ast_type, stage2::funcs::lower_ast_function_decl};
 
@@ -15,6 +13,6 @@ pub fn lower_ast_struct_decl(node: ASTNode) -> DiagPossible {
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

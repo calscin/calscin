@@ -1,9 +1,9 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagPossible,
-    diags::errors::{build_restricted_arument_type, build_restricted_return_type},
+    diags::errors::{
+        build_internal_hir_node_leaked, build_restricted_arument_type, build_restricted_return_type,
+    },
 };
 use calsc_hir::{
     HIR_CONTEXT,
@@ -102,7 +102,7 @@ pub fn lower_ast_function_decl_first_stage(
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -142,6 +142,6 @@ pub fn lower_ast_extern_function(node: ASTNode) -> DiagPossible {
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

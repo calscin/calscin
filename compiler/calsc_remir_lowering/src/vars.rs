@@ -1,6 +1,6 @@
-use std::{hint::unreachable_unchecked, mem::transmute};
+use std::mem::transmute;
 
-use calsc_diagnostics::{DiagPossible, DiagResult};
+use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     block::vars::BlockVariable,
@@ -14,6 +14,7 @@ use crate::{
     writes::lower_hir_writable,
 };
 
+#[allow(unsafe_code)]
 pub fn lower_hir_variable_reference<'a>(
     node: HIRArenaReference,
     _ctx: &LocalContext,
@@ -33,7 +34,7 @@ pub fn lower_hir_variable_reference<'a>(
             ))
         }
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -58,7 +59,7 @@ pub fn lower_hir_variable_assign(
 
         lower_hir_writable(variable, ctx, module, value)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }
 
@@ -111,6 +112,6 @@ pub fn lower_hir_variable_declaration(
 
         Ok(())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

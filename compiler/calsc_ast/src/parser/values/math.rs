@@ -1,4 +1,4 @@
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::math::{MathOperation, MathOperator};
 
@@ -44,7 +44,7 @@ pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
             MathOperation::Xor
         }
 
-        _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+        _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     };
 
     *ind += 1; // post increment for every second character / single character operation

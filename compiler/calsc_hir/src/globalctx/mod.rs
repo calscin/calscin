@@ -72,14 +72,9 @@ impl GlobalContext {
             let closest = get_closest_key(self, key.clone());
 
             if closest.is_some() {
-                unsafe {
-                    return Err(build_cannot_find_element(
-                        &*key.name,
-                        &*closest.unwrap_unchecked().name,
-                        origin,
-                    )
-                    .into());
-                }
+                return Err(
+                    build_cannot_find_element(&*key.name, &*closest.unwrap().name, origin).into(),
+                );
             } else {
                 return Err(build_cannot_find_element_no_closest(&*key.name, origin).into());
             }

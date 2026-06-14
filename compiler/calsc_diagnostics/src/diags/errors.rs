@@ -5,33 +5,65 @@ use std::fmt::{Debug, Display};
 use calsc_utils::pos::FilePosition;
 
 use crate::{
-    Diagnostic, DiagnosticCode, DiagnosticSource, Level, PosDiagnosticSource, declare_diagnostic,
+    Diagnostic, DiagnosticCode, DiagnosticSource, Level, PosDiagnosticSource,
     fmt::fmt_list,
     span::{Span, SpanKind},
 };
 
 // Is triggered whenever the Lexer cannot parse something (eg: cannot parse literals).
-declare_diagnostic!(CANNOT_PARSE, 1);
-declare_diagnostic!(UNEXPECTED_TOKEN, 2);
-declare_diagnostic!(EXPECTED, 3);
-declare_diagnostic!(ALREADY_IN_SCOPE, 4);
-declare_diagnostic!(CANNOT_FIND, 5);
-declare_diagnostic!(FIELD_MISSING, 6);
-declare_diagnostic!(EXPECTED_SIZE_SPECS, 7);
-declare_diagnostic!(EXPECTED_TYPE_PARAMETERS, 8);
-declare_diagnostic!(VARIABLE_UNALIVE, 9);
-declare_diagnostic!(REMIR_ERROR, 10);
-declare_diagnostic!(EXPECTED_RETURN, 11);
-declare_diagnostic!(RESTRICTED_ARGUMENT_TYPES, 12);
-declare_diagnostic!(RESTRICTED_RETURN_TYPE, 13);
-declare_diagnostic!(COMPILE_TIME_SIZE, 14);
-declare_diagnostic!(NOT_ITERABLE, 15);
-declare_diagnostic!(NOT_INITIALIZED, 16);
+
+enum ErrorCode {
+    CannotParse,
+    UnexpectedToken,
+    ExpectedToken,
+
+    // Typing
+    UnexpectedType,
+    ExpectedType,
+    ExpectedSimpleType,
+    ExpectedReferencable,
+    FieldMissing,
+    _FunctionMissing,
+    ExpectedSizeSpecifiers,
+    ExpectedTypeParameters,
+    _ExpectedRealType,
+    ExpectedCompileTimeType,
+    NotIterable,
+
+    // HIR local context
+    AlreadyInScope,
+    ElementNotAlive,
+    NotInitialized,
+
+    // HIR Global context
+    CannotFind,
+    ExpectedEntryType,
+    AdditionalTypeAliasParameters,
+
+    // HIR misc
+    RestrictedArgumentTypes,
+    RestrictedReturnType,
+    _UnexpectedReturn,
+    ExpectedReturn,
+    ExpectedMutableLike,
+
+    // MIR
+    RemirError,
+
+    // Internal
+    InternalHIRNode,
+    InternalSingleton,
+}
+
+pub enum InternalErrors {
+    CannotFindReturnType,
+    StrongerTypeLiterals,
+}
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
 pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: &S) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, CANNOT_PARSE),
+        DiagnosticCode::new(Level::Error, ErrorCode::CannotParse as usize),
         format!("cannot parse {}", p),
         None,
         vec![],
@@ -40,10 +72,13 @@ pub fn build_cannot_parse_error<P: Display, S: DiagnosticSource>(p: &P, source: 
     )
 }
 
-pub fn build_unexpected_error<E: Display, S: DiagnosticSource>(elem: &E, source: &S) -> Diagnostic {
+pub fn build_unexpected_token_error<E: Display, S: DiagnosticSource>(
+    elem: &E,
+    source: &S,
+) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, UNEXPECTED_TOKEN),
-        format!("unexpected {}", elem),
+        DiagnosticCode::new(Level::Error, ErrorCode::UnexpectedToken as usize),
+        format!("unexpected token {}", elem),
         None,
         vec![],
         vec![],
@@ -51,13 +86,13 @@ pub fn build_unexpected_error<E: Display, S: DiagnosticSource>(elem: &E, source:
     )
 }
 
-pub fn build_expected_error<E: Display, G: Display, S: DiagnosticSource>(
+pub fn build_expected_token_error<E: Display, G: Display, S: DiagnosticSource>(
     expected: &E,
     got: &G,
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, UNEXPECTED_TOKEN),
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedToken as usize),
         format!("expected {} but got {}", expected, got),
         None,
         vec![],
@@ -71,7 +106,7 @@ pub fn build_already_in_scope<E: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, ALREADY_IN_SCOPE),
+        DiagnosticCode::new(Level::Error, ErrorCode::AlreadyInScope as usize),
         format!("{} already in scope", element),
         Some(format!("re-introduction of {} done here", element)),
         vec![],
@@ -86,7 +121,7 @@ pub fn build_cannot_find_element<E: Display, C: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, CANNOT_FIND),
+        DiagnosticCode::new(Level::Error, ErrorCode::CannotFind as usize),
         format!("cannot find {} did you mean {}?", element, closest),
         None,
         vec![],
@@ -100,7 +135,7 @@ pub fn build_cannot_find_element_no_closest<E: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, CANNOT_FIND),
+        DiagnosticCode::new(Level::Error, ErrorCode::CannotFind as usize),
         format!("cannot find {}", element),
         None,
         vec![],
@@ -111,7 +146,7 @@ pub fn build_cannot_find_element_no_closest<E: Display, S: DiagnosticSource>(
 
 pub fn build_missing_field<E: Display, S: DiagnosticSource>(element: &E, source: &S) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, FIELD_MISSING),
+        DiagnosticCode::new(Level::Error, ErrorCode::FieldMissing as usize),
         format!("missing field {}", element),
         None,
         vec![],
@@ -126,7 +161,7 @@ pub fn build_expected_size_specifiers_error<E: Display, G: Display, S: Diagnosti
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, EXPECTED_SIZE_SPECS),
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedSizeSpecifiers as usize),
         format!("expected {} size specifiers but got {}", expected, got),
         None,
         vec![],
@@ -141,7 +176,7 @@ pub fn build_expected_type_parameters_error<E: Display, G: Display, S: Diagnosti
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, EXPECTED_TYPE_PARAMETERS),
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedTypeParameters as usize),
         format!("expected {} type parameters but got {}", expected, got),
         None,
         vec![],
@@ -159,7 +194,7 @@ pub fn build_variable_unalive<S: DiagnosticSource, V: Display, I: Display, E: Di
     end: FilePosition,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, VARIABLE_UNALIVE),
+        DiagnosticCode::new(Level::Error, ErrorCode::ElementNotAlive as usize),
         format!("variable {} is not alive anymore", variable),
         None,
         vec![Span::new(
@@ -184,7 +219,7 @@ pub fn build_remir_error<E: Debug>(
     let source = PosDiagnosticSource::new(start, end);
 
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, REMIR_ERROR),
+        DiagnosticCode::new(Level::Error, ErrorCode::RemirError as usize),
         format!("ReMIR error happened here: {:#?}", error),
         None,
         vec![],
@@ -199,7 +234,7 @@ pub fn build_expected_return_error<E: Display, G: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, UNEXPECTED_TOKEN),
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedReturn as usize),
         format!("expected return type {} but got {}", expected, got),
         None,
         vec![],
@@ -213,7 +248,7 @@ pub fn build_restricted_arument_type<R: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, RESTRICTED_ARGUMENT_TYPES),
+        DiagnosticCode::new(Level::Error, ErrorCode::RestrictedArgumentTypes as usize),
         format!(
             "argument types are restricted to {} for this function",
             fmt_list(restricted)
@@ -230,7 +265,7 @@ pub fn build_restricted_return_type<R: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, RESTRICTED_RETURN_TYPE),
+        DiagnosticCode::new(Level::Error, ErrorCode::RestrictedReturnType as usize),
         format!(
             "return type is restricted to {} for this function",
             restricted
@@ -244,7 +279,7 @@ pub fn build_restricted_return_type<R: Display, S: DiagnosticSource>(
 
 pub fn build_compile_time_size<T: Display, S: DiagnosticSource>(ty: &T, source: &S) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, COMPILE_TIME_SIZE),
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedCompileTimeType as usize),
         format!("the type {} requires a size at compile time", ty),
         None,
         vec![],
@@ -263,7 +298,7 @@ pub fn build_not_iterable<T: Display, S: DiagnosticSource>(
 ) -> Diagnostic {
     if it_ty.is_some() {
         source.make_diagnostic_simple(
-            DiagnosticCode::new(Level::Error, NOT_ITERABLE),
+            DiagnosticCode::new(Level::Error, ErrorCode::NotIterable as usize),
             format!("the type {} is not iterable on type {}", it_ty.unwrap(), ty),
             None,
             vec![],
@@ -272,7 +307,7 @@ pub fn build_not_iterable<T: Display, S: DiagnosticSource>(
         )
     } else {
         source.make_diagnostic_simple(
-            DiagnosticCode::new(Level::Error, NOT_ITERABLE),
+            DiagnosticCode::new(Level::Error, ErrorCode::NotIterable as usize),
             format!("the type {} is not iterable", ty),
             None,
             vec![],
@@ -287,11 +322,132 @@ pub fn build_not_initialized<V: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, NOT_INITIALIZED),
+        DiagnosticCode::new(Level::Error, ErrorCode::NotInitialized as usize),
         format!("the variable {} was not initialized", variable),
         None,
         vec![],
         vec![],
         vec![],
+    )
+}
+
+pub fn build_expected_entry_type<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedEntryType as usize),
+        format!("expected element of type {} but got {}", expected, got),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_unexpected_type_alias_additional_parameters<S: DiagnosticSource>(
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(
+            Level::Error,
+            ErrorCode::AdditionalTypeAliasParameters as usize,
+        ),
+        "unexpected additional parameters on type alias".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_unexpected_type_error<T: Display, S: DiagnosticSource>(
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::UnexpectedType as usize),
+        format!("unexpected type {}", ty),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_type_error<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedType as usize),
+        format!("expected type {} but got {}", expected, got),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_simple_type<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedSimpleType as usize),
+        "expected simple type".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_mutable<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedMutableLike as usize),
+        "expected a mutable-like value".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_referencable<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedReferencable as usize),
+        "expected a referencable-like value".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_internal_hir_node_leaked<N: Debug, S: DiagnosticSource>(
+    node: &N,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::InternalHIRNode as usize),
+        format!("Internal HIR node {:#?} leaked!", node),
+        None,
+        vec![],
+        vec!["please report this issue immediately".to_string()],
+        vec!["https://github.com/calscin/calscin".to_string()],
+    )
+}
+
+pub fn build_internal_singleton_error<S: DiagnosticSource>(
+    internal: InternalErrors,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::InternalSingleton as usize),
+        format!("Internal singleton error: #{}", internal as usize),
+        None,
+        vec![],
+        vec!["please report this issue immediately".to_string()],
+        vec!["https://github.com/calscin/calscin".to_string()],
     )
 }

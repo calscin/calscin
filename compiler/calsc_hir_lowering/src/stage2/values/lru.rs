@@ -1,7 +1,8 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagResult, diags::errors::build_cannot_find_element_no_closest};
+use calsc_diagnostics::{
+    DiagResult,
+    diags::errors::{build_cannot_find_element_no_closest, build_internal_hir_node_leaked},
+};
 use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
@@ -54,7 +55,7 @@ pub fn lower_ast_lru(
 
                     return Ok(ret.push());
                 } else {
-                    panic!()
+                    return Err(build_internal_hir_node_leaked(&ret, &ret).into());
                 }
             }
 
@@ -78,9 +79,9 @@ pub fn lower_ast_lru(
                 return Ok(node.push());
             }
 
-            _ => panic!(),
+            _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
         }
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }

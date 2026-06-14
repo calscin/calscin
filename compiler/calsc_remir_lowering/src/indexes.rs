@@ -1,6 +1,4 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_array_gep, build_load},
@@ -37,6 +35,6 @@ pub fn lower_hir_index_usage(
 
         Ok(val)
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
 }

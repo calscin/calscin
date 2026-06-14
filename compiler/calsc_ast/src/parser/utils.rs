@@ -1,4 +1,4 @@
-use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_expected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 
 /// Peaks ahead in the AST.
@@ -60,10 +60,8 @@ where
     loop {
         if tokens[*ind].kind == closing_point {
             if elements.is_empty() && requires_at_least_one {
-                println!("Empty");
-
-                return Err(build_expected_error(
-                    &"type parameter",
+                return Err(build_expected_token_error(
+                    &"a least one element",
                     &tokens[*ind].kind,
                     &tokens[*ind],
                 )
