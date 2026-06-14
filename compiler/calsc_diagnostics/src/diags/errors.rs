@@ -21,6 +21,7 @@ enum ErrorCode {
     UnexpectedType,
     ExpectedType,
     ExpectedSimpleType,
+    ExpectedReferencable,
     FieldMissing,
     FunctionMissing,
     ExpectedSizeSpecifiers,
@@ -44,12 +45,18 @@ enum ErrorCode {
     RestrictedReturnType,
     UnexpectedReturn,
     ExpectedReturn,
+    ExpectedMutableLike,
 
     // MIR
     RemirError,
 
     // Internal
     InternalHIRNode,
+    InternalSingleton,
+}
+
+pub enum InternalErrors {
+    CannotFindReturnType,
 }
 
 /// Builds a `CANNOT_PARSE` error (E1) based on the given source and given element.
@@ -394,6 +401,28 @@ pub fn build_expected_simple_type<S: DiagnosticSource>(source: &S) -> Diagnostic
     )
 }
 
+pub fn build_expected_mutable<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedMutableLike as usize),
+        "expected a mutable-like value".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_referencable<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedReferencable as usize),
+        "expected a referencable-like value".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
 pub fn build_internal_hir_node_leaked<N: Debug, S: DiagnosticSource>(
     node: &N,
     source: &S,
@@ -401,6 +430,20 @@ pub fn build_internal_hir_node_leaked<N: Debug, S: DiagnosticSource>(
     source.make_diagnostic_simple(
         DiagnosticCode::new(Level::Error, ErrorCode::InternalHIRNode as usize),
         format!("Internal HIR node {:#?} leaked!", node),
+        None,
+        vec![],
+        vec!["please report this issue immediately".to_string()],
+        vec!["https://github.com/calscin/calscin".to_string()],
+    )
+}
+
+pub fn build_internal_singleton_error<S: DiagnosticSource>(
+    internal: InternalErrors,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::InternalSingleton as usize),
+        format!("Internal singleton error: #{}", internal as usize),
         None,
         vec![],
         vec!["please report this issue immediately".to_string()],

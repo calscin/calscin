@@ -1,9 +1,7 @@
 //! Lowering for literals
 
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::DiagResult;
+use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -18,7 +16,7 @@ pub fn lower_ast_literal(node: ASTNode) -> DiagResult<HIRArenaReference> {
         ASTNodeKind::CharLiteral(val) => HIRNodeKind::CharLiteral(*val),
         ASTNodeKind::BooleanLiteral(val) => HIRNodeKind::BooleanLiteral(*val),
 
-        _ => unsafe { unreachable_unchecked() },
+        _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     };
 
     let node = HIRNode::new(kind, node.start.clone(), node.end.clone());

@@ -7,7 +7,7 @@ use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
 };
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 
 use crate::stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_decl};
 
@@ -29,7 +29,7 @@ pub fn lower_hir_stage_2(ast_context: ASTContext) -> DiagPossible {
             ASTNodeKind::ExternFunctionDeclaration { .. } => continue,
             ASTNodeKind::StructDeclaration { .. } => continue,
 
-            kind => panic!("Unexpected {:#?}", kind),
+            _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
         }
     }
 
@@ -37,7 +37,7 @@ pub fn lower_hir_stage_2(ast_context: ASTContext) -> DiagPossible {
         match &iter.kind {
             ASTNodeKind::StructDeclBlock { .. } => lower_ast_struct_decl(ASTNode::clone(&iter))?,
 
-            kind => panic!("Unexpected {:#?}", kind),
+            _ => return Err(build_internal_hir_node_leaked(&iter, &*iter).into()),
         }
     }
 

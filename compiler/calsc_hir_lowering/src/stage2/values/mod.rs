@@ -1,9 +1,12 @@
 //! Lowering for values
 
-use std::{collections::HashMap, hint::unreachable_unchecked};
+use std::collections::HashMap;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
-use calsc_diagnostics::{DiagResult, diags::errors::build_expected_error};
+use calsc_diagnostics::{
+    DiagResult,
+    diags::errors::{build_internal_hir_node_leaked, build_unexpected_type_error},
+};
 use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
@@ -64,7 +67,7 @@ pub fn lower_ast_value(
 
         ASTNodeKind::ArrayInit(_) => lower_ast_array_init(node, local_ctx),
 
-        kind => panic!("Reached {:#?}", kind),
+        _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     }
 }
 
@@ -82,12 +85,7 @@ pub fn lower_ast_range(
         let start_type = start.get_type(local_ctx.clone())?;
 
         if start_type == Type::Void {
-            return Err(build_expected_error(
-                &"non void element".to_string(),
-                &"void element".to_string(),
-                &*start,
-            )
-            .into());
+            return Err(build_unexpected_type_error(&Type::Void, &*start).into());
         }
 
         let end = lower_ast_value(ASTNode::clone(end), local_ctx.clone())?;
@@ -121,7 +119,7 @@ pub fn lower_ast_range(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -144,7 +142,7 @@ pub fn lower_ast_structured_init(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
@@ -184,6 +182,6 @@ pub fn lower_ast_array_init(
 
         Ok(node.push())
     } else {
-        unsafe { unreachable_unchecked() }
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
