@@ -1,4 +1,4 @@
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
@@ -21,7 +21,7 @@ pub fn parse_ast_import_statement(
         TokenKind::Std => ImportModule::Std,
         TokenKind::Keyword(raw) => ImportModule::Package(raw.clone().into()),
 
-        _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+        _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     };
 
     *ind += 1; // std or keyword

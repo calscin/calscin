@@ -1,4 +1,4 @@
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::cmp::{CompareOperator, ComparePredicate};
 
@@ -49,7 +49,7 @@ pub fn parse_ast_comparing_operator(
         TokenKind::AngelBracketOpen => ComparePredicate::LowerThan,
         TokenKind::AngelBracketClose => ComparePredicate::GreaterThan,
 
-        _ => return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+        _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     };
 
     *ind += 1; // post kind increment

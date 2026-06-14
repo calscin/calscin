@@ -1,6 +1,6 @@
 //! Parsing related to types
 
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_error};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
@@ -170,7 +170,7 @@ pub fn parse_type_generic(
         // Parsing of the size specifier
         if tokens[*ind].kind == TokenKind::Dot {
             if !allow_generic_parameters {
-                return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into());
+                return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into());
             }
 
             *ind += 1; // .
@@ -183,7 +183,7 @@ pub fn parse_type_generic(
 
         if tokens[*ind].kind == TokenKind::AngelBracketOpen {
             if !allow_generic_parameters {
-                return Err(build_unexpected_error(&tokens[*ind].kind, &tokens[*ind]).into());
+                return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into());
             }
 
             *ind += 1; // <
