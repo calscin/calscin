@@ -11,8 +11,10 @@ use calsc_utils::pos::FilePosition;
 use crate::{
     AST_CONTEXT,
     parser::{
+        forms::parse_element_path_form,
         func::parse_function_call,
         lru::parse_ast_struct_lru,
+        utils::peek_ahead,
         values::{
             arrays::{parse_ast_array_init, parse_ast_index_usage},
             binary::{Precedence, parse_ast_binary_operation},
@@ -101,7 +103,12 @@ pub fn parse_ast_value(
         }
 
         TokenKind::Keyword(_) => {
-            if tokens[*ind + 1].kind == TokenKind::ParenOpen {
+            let peeked_ind = peek_ahead(tokens, *ind, |tokens, ind| {
+                parse_element_path_form(tokens, ind)
+            })
+            .1; // Auto increments
+
+            if tokens[peeked_ind].kind == TokenKind::ParenOpen {
                 parse_function_call(tokens, ind)?
             } else {
                 parse_ast_element_reference(tokens, ind)?

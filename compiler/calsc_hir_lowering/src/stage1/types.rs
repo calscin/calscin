@@ -11,6 +11,7 @@ use calsc_diagnostics::{
 };
 use calsc_hir::{
     HIR_CONTEXT,
+    file::HIRFileContext,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 use calsc_typing::{
@@ -170,12 +171,16 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
     Ok(ty)
 }
 
-pub fn lower_ast_decl_block(node: ASTNode) -> DiagPossible {
+pub fn lower_ast_decl_block(node: ASTNode, file_ctx: &mut HIRFileContext) -> DiagPossible {
     if let ASTNodeKind::StructDeclBlock { target, functions } = node.kind.clone() {
         let target = lower_simple_ast_type(target, &node, None)?;
 
         for func in functions {
-            lower_ast_function_decl_first_stage(ASTNode::clone(&func), Some(target.clone()))?;
+            lower_ast_function_decl_first_stage(
+                ASTNode::clone(&func),
+                Some(target.clone()),
+                file_ctx,
+            )?;
         }
 
         Ok(())

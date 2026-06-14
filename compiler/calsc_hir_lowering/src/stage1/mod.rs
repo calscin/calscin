@@ -10,7 +10,7 @@ use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
 };
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{HIR_CONTEXT, prelude::apply_prelude};
+use calsc_hir::{HIR_CONTEXT, file::HIRFileContext, prelude::apply_prelude};
 
 use crate::stage1::{
     funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
@@ -22,6 +22,7 @@ pub mod types;
 
 pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
     let mut first = false;
+    let mut file_ctx = HIRFileContext::new();
 
     for iter in ast_context.tree_order {
         let node = ast_context.tree[&iter].clone();
@@ -34,7 +35,7 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
 
         match node.kind {
             ASTNodeKind::FunctionDeclaration { .. } => {
-                lower_ast_function_decl_first_stage(ASTNode::clone(&node), None)?;
+                lower_ast_function_decl_first_stage(ASTNode::clone(&node), None, &mut file_ctx)?;
             }
 
             ASTNodeKind::ExternFunctionDeclaration { .. } => {
@@ -50,7 +51,9 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
 
     for iter in ast_context.additional_tree {
         match &iter.kind {
-            ASTNodeKind::StructDeclBlock { .. } => lower_ast_decl_block(ASTNode::clone(&iter))?,
+            ASTNodeKind::StructDeclBlock { .. } => {
+                lower_ast_decl_block(ASTNode::clone(&iter), &mut file_ctx)?
+            }
 
             _ => return Err(build_internal_hir_node_leaked(&iter, &*iter).into()),
         }

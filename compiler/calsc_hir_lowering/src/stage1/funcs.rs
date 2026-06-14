@@ -7,6 +7,7 @@ use calsc_diagnostics::{
 };
 use calsc_hir::{
     HIR_CONTEXT,
+    file::HIRFileContext,
     funcs::HIRFunction,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
     localctx::LocalContext,
@@ -22,6 +23,7 @@ use crate::stage1::types::lower_ast_type;
 pub fn lower_ast_function_decl_first_stage(
     node: ASTNode,
     target: Option<BaseType>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagPossible {
     if let ASTNodeKind::FunctionDeclaration {
         name,
@@ -30,7 +32,8 @@ pub fn lower_ast_function_decl_first_stage(
         body: _,
     } = node.kind.clone()
     {
-        let mut key = GlobalContextKey::new(name.clone());
+        let mut key =
+            GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
         if target.is_some() {
             key = key.associated_type(target.clone().unwrap());

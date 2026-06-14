@@ -77,7 +77,7 @@ pub fn parse_binary_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult
 }
 
 pub fn is_binary_operator(tokens: &Vec<Token>, ind: usize) -> bool {
-    peek_ahead(tokens, ind, parse_binary_operator).is_ok() // TODO: maybe make this better
+    peek_ahead(tokens, ind, parse_binary_operator).0.is_ok() // TODO: maybe make this better
 }
 
 pub fn parse_ast_binary_operation(
@@ -94,7 +94,7 @@ pub fn parse_ast_binary_operation(
             break;
         }
 
-        let binary_operator = peek_ahead(tokens, *ind, parse_binary_operator)?;
+        let binary_operator = peek_ahead(tokens, *ind, parse_binary_operator).0?;
         let precedence = Precedence::get_from_operator(binary_operator) as usize;
 
         if precedence < min_precedence {
@@ -109,7 +109,7 @@ pub fn parse_ast_binary_operation(
         let mut right = parse_ast_value(tokens, ind, true, false, false)?;
 
         if is_binary_operator(tokens, *ind) {
-            if let Ok(next_operator) = peek_ahead(tokens, *ind, parse_binary_operator) {
+            if let Ok(next_operator) = peek_ahead(tokens, *ind, parse_binary_operator).0 {
                 let next_precedence = Precedence::get_from_operator(next_operator);
 
                 if next_precedence.clone() as usize > precedence {
