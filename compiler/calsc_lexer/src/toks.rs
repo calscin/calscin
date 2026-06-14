@@ -4,6 +4,7 @@ use std::fmt::Display;
 
 use calsc_diagnostics::{
     DiagPossible, DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
+    diags::errors::build_expected_token_error,
     span::{Span, SpanKind},
 };
 use calsc_utils::pos::FilePosition;
@@ -323,7 +324,7 @@ impl Token {
         if self.kind == kind {
             Ok(())
         } else {
-            Err(build_expected_error(&kind, &self.kind, self).into())
+            Err(build_expected_token_error(&kind, &self.kind, self).into())
         }
     }
 
@@ -345,7 +346,7 @@ impl Token {
         if let TokenKind::IntLiteral(v) = &self.kind {
             Ok(*v)
         } else {
-            Err(build_expected_error(&"int literal".to_string(), &self.kind, self).into())
+            Err(build_expected_token_error(&"int literal".to_string(), &self.kind, self).into())
         }
     }
 
@@ -367,7 +368,7 @@ impl Token {
         if let TokenKind::FloatLiteral(v) = &self.kind {
             Ok(*v)
         } else {
-            Err(build_expected_error(&"float literal".to_string(), &self.kind, self).into())
+            Err(build_expected_token_error(&"float literal".to_string(), &self.kind, self).into())
         }
     }
 
@@ -389,7 +390,7 @@ impl Token {
         if let TokenKind::StringLiteral(v) = &self.kind {
             Ok(v.clone())
         } else {
-            Err(build_expected_error(&"string literal".to_string(), &self.kind, self).into())
+            Err(build_expected_token_error(&"string literal".to_string(), &self.kind, self).into())
         }
     }
 
@@ -411,7 +412,7 @@ impl Token {
         if let TokenKind::CharLiteral(v) = &self.kind {
             Ok(*v)
         } else {
-            Err(build_expected_error(&"char literal".to_string(), &self.kind, self).into())
+            Err(build_expected_token_error(&"char literal".to_string(), &self.kind, self).into())
         }
     }
 
@@ -433,7 +434,7 @@ impl Token {
         if let TokenKind::Keyword(v) = &self.kind {
             Ok(v.clone())
         } else {
-            Err(build_expected_error(&"keyword".to_string(), &self.kind, self).into())
+            Err(build_expected_token_error(&"keyword".to_string(), &self.kind, self).into())
         }
     }
 }

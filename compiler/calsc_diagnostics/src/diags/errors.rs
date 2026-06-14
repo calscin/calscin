@@ -18,6 +18,8 @@ enum ErrorCode {
     ExpectedToken,
 
     // Typing
+    UnexpectedType,
+    ExpectedType,
     FieldMissing,
     FunctionMissing,
     ExpectedSizeSpecifiers,
@@ -33,6 +35,8 @@ enum ErrorCode {
 
     // HIR Global context
     CannotFind,
+    ExpectedEntryType,
+    AdditionalTypeAliasParameters,
 
     // HIR misc
     RestrictedArgumentTypes,
@@ -308,6 +312,66 @@ pub fn build_not_initialized<V: Display, S: DiagnosticSource>(
     source.make_diagnostic_simple(
         DiagnosticCode::new(Level::Error, ErrorCode::NotInitialized as usize),
         format!("the variable {} was not initialized", variable),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_entry_type<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedEntryType as usize),
+        format!("expected element of type {} but got {}", expected, got),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_unexpected_type_alias_additional_parameters<S: DiagnosticSource>(
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(
+            Level::Error,
+            ErrorCode::AdditionalTypeAliasParameters as usize,
+        ),
+        "unexpected additional parameters on type alias".to_string(),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_unexpected_type_error<T: Display, S: DiagnosticSource>(
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::UnexpectedType as usize),
+        format!("unexpected type {}", ty),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_type_error<E: Display, G: Display, S: DiagnosticSource>(
+    expected: &E,
+    got: &G,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedType as usize),
+        format!("expected type {} but got {}", expected, got),
         None,
         vec![],
         vec![],
