@@ -1,3 +1,4 @@
+use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{
     ifs::IfStatementBranch, nodes::ASTNodeKind, parser::parse_ast_node_body_member, types::ASTType,
@@ -25,7 +26,16 @@ fn parse_for_loop_test() {
         body,
     } = for_loop.kind.clone()
     {
-        assert_eq!(iterator_type, ASTType::Generic("s32".into(), None, vec![]));
+        assert_eq!(
+            iterator_type,
+            ASTType::Generic(
+                ElementPath {
+                    members: vec!["s32".into()]
+                },
+                None,
+                vec![]
+            )
+        );
         assert_eq!(iterator_name, "test".into());
         assert_eq!(body, vec![]);
 
@@ -58,7 +68,13 @@ fn parse_loop_test() {
             body[0].kind.clone(),
             ASTNodeKind::VariableDeclaration {
                 mutable: false,
-                var_type: ASTType::Generic("s32".into(), None, vec![]),
+                var_type: ASTType::Generic(
+                    ElementPath {
+                        members: vec!["s32".into()]
+                    },
+                    None,
+                    vec![]
+                ),
                 name: "test".into(),
                 value: None
             }

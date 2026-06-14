@@ -9,3 +9,4 @@ calsc_hir = { path = "../calsc_hir", features = ["debug"] }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
 calsc_utils = { path = "../calsc_utils" }
 calsc_typing = { path = "../calsc_typing" }
+calsc_modules = { path = "../calsc_modules" }

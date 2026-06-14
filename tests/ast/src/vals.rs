@@ -1,3 +1,4 @@
+use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{
     nodes::{ASTNodeKind, BinaryOperator},
@@ -250,7 +251,9 @@ fn parse_lru_function_test() {
         assert_eq!(
             right_expr.kind,
             ASTNodeKind::FunctionCall {
-                name: "abc".into(),
+                name: ElementPath {
+                    members: vec!["abc".into()]
+                },
                 arguments: vec![]
             }
         );

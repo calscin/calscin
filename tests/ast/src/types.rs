@@ -1,5 +1,6 @@
 //! Parsing tests related to type parsing
 
+use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{parser::types::parse_ast_type, types::ASTType};
 
@@ -16,7 +17,16 @@ pub fn test_simple_type_parsing() {
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
-    assert_eq!(ty, ASTType::Generic("s32".into(), None, vec![]));
+    assert_eq!(
+        ty,
+        ASTType::Generic(
+            ElementPath {
+                members: vec!["s32".into()]
+            },
+            None,
+            vec![]
+        )
+    );
 }
 
 #[test]
@@ -35,7 +45,9 @@ pub fn test_simple_type_parsing_generic_type_specs() {
     assert_eq!(
         ty,
         ASTType::Generic(
-            "s32".into(),
+            ElementPath {
+                members: vec!["s32".into()]
+            },
             None,
             vec![
                 parse_ast_type(&type1, &mut ind1, true).unwrap_cleanly(),
@@ -52,7 +64,16 @@ pub fn test_simple_type_parsing_size_spec() {
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
-    assert_eq!(ty, ASTType::Generic("s".into(), Some(32), vec![]))
+    assert_eq!(
+        ty,
+        ASTType::Generic(
+            ElementPath {
+                members: vec!["s".into()]
+            },
+            Some(32),
+            vec![]
+        )
+    )
 }
 
 #[test]
@@ -75,7 +96,9 @@ pub fn test_complex_type_parsing() {
             Box::new(ASTType::Array(
                 Some(32),
                 Box::new(ASTType::Generic(
-                    "s".into(),
+                    ElementPath {
+                        members: vec!["s".into()]
+                    },
                     Some(32),
                     vec![
                         parse_ast_type(&type1, &mut ind1, true).unwrap_cleanly(),

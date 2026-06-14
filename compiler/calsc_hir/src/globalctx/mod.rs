@@ -83,6 +83,10 @@ impl GlobalContext {
         Ok(&self.values[self.key_to_ind[&key]])
     }
 
+    pub fn has_entry(&self, key: &GlobalContextKey) -> bool {
+        self.key_to_ind.contains_key(key)
+    }
+
     /// Mutates the given entry at the given key according to the given mutation function.
     ///
     /// # Error

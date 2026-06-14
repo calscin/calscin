@@ -1,6 +1,7 @@
 #[cfg(test)]
 use calsc_ast::parser::func::parse_extern_function_declaration;
 
+use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{
     nodes::ASTNodeKind,
@@ -54,7 +55,9 @@ pub fn function_call_parsing_test() {
     assert_eq!(
         call.kind.clone(),
         ASTNodeKind::FunctionCall {
-            name: "test".into(),
+            name: ElementPath {
+                members: vec!["test".into()]
+            },
             arguments: vec![]
         }
     )
@@ -69,12 +72,19 @@ pub fn parse_call_parsing_args_test() {
     let call = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 
     if let ASTNodeKind::FunctionCall { name, arguments } = call.kind.clone() {
-        assert_eq!(name, "test".into());
+        assert_eq!(
+            name,
+            ElementPath {
+                members: vec!["test".into()]
+            }
+        );
 
         assert_eq!(
             arguments[0].kind.clone(),
             ASTNodeKind::FunctionCall {
-                name: "testtwo".into(),
+                name: ElementPath {
+                    members: vec!["testtwo".into()]
+                },
                 arguments: vec![]
             }
         );

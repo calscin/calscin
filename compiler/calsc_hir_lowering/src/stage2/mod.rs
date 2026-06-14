@@ -13,6 +13,7 @@ use crate::stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_de
 
 pub mod control;
 pub mod funcs;
+pub mod key;
 pub mod structs;
 pub mod values;
 pub mod vars;
