@@ -11,9 +11,12 @@ use crate::{
 };
 
 // Is triggered whenever the Lexer cannot parse something (eg: cannot parse literals).
+
+// Parsing errors
 declare_diagnostic!(CANNOT_PARSE, 1);
 declare_diagnostic!(UNEXPECTED_TOKEN, 2);
-declare_diagnostic!(EXPECTED, 3);
+declare_diagnostic!(EXPECTED_TOKEN, 3);
+
 declare_diagnostic!(ALREADY_IN_SCOPE, 4);
 declare_diagnostic!(CANNOT_FIND, 5);
 declare_diagnostic!(FIELD_MISSING, 6);
@@ -57,7 +60,7 @@ pub fn build_expected_error<E: Display, G: Display, S: DiagnosticSource>(
     source: &S,
 ) -> Diagnostic {
     source.make_diagnostic_simple(
-        DiagnosticCode::new(Level::Error, UNEXPECTED_TOKEN),
+        DiagnosticCode::new(Level::Error, EXPECTED_TOKEN),
         format!("expected {} but got {}", expected, got),
         None,
         vec![],
