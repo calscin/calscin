@@ -3,11 +3,61 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    imports::{ImportKind, ImportModule},
+    imports::ImportKind,
     nodes::{ASTNode, ASTNodeKind},
     parser::utils::parse_ast_list,
+    path::ElementPath,
     refs::ASTArenaReference,
 };
+
+pub fn parse_ast_import_path(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ElementPath> {
+    let mut relative = false;
+    let mut path = vec![];
+
+    let first: HashedString = match &tokens[*ind].kind {
+        TokenKind::Keyword(inner) => inner.clone().into(),
+        TokenKind::Colon => {
+            *ind += 1; // first :
+
+            tokens[*ind].expects(TokenKind::Colon)?;
+            *ind += 1; // second :
+
+            relative = true;
+
+            tokens[*ind].expects_keyword()?.into()
+        }
+
+        _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+    };
+
+    *ind += 1; // keyword
+
+    path.push(first);
+
+    while tokens[*ind].kind == TokenKind::Colon {
+        *ind += 1; // first :
+
+        tokens[*ind].expects(TokenKind::Colon)?;
+        *ind += 1; // second :
+
+        if tokens[*ind].kind == TokenKind::BracketOpen
+            || tokens[*ind].kind == TokenKind::Star
+            || tokens[*ind].kind == TokenKind::SemiColon
+        {
+            break;
+        }
+
+        let val = tokens[*ind].expects_keyword()?;
+        *ind += 1; // keyword
+
+        path.push(val.into());
+    }
+
+    Ok(ElementPath {
+        relative,
+        members: path,
+    })
+}
 
 pub fn parse_ast_import_statement(
     tokens: &Vec<Token>,
@@ -17,50 +67,34 @@ pub fn parse_ast_import_statement(
 
     *ind += 1; // import
 
-    let module = match &tokens[*ind].kind {
-        TokenKind::Std => ImportModule::Std,
-        TokenKind::Keyword(raw) => ImportModule::Package(raw.clone().into()),
+    let import_path = parse_ast_import_path(tokens, ind)?; // Auto increments
+
+    let kind = match tokens[*ind].kind {
+        TokenKind::Star => ImportKind::Whole,
+        TokenKind::SemiColon => ImportKind::Module,
+        TokenKind::BracketOpen => {
+            *ind += 1; // [
+
+            let list = parse_ast_list(
+                tokens,
+                ind,
+                &mut |tokens, ind| tokens[*ind].expects_keyword(),
+                TokenKind::BracketClose,
+                true,
+                true,
+            )?;
+
+            ImportKind::Items(list.iter().map(|elem| elem.clone().into()).collect())
+        }
 
         _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     };
 
-    *ind += 1; // std or keyword
-
-    let mut path: Vec<HashedString> = vec![];
-
-    while tokens[*ind].kind == TokenKind::Colon {
-        *ind += 1; // first :
-
-        tokens[*ind].expects(TokenKind::Colon)?;
-        *ind += 1; // second :
-
-        path.push(tokens[*ind].expects_keyword()?.into());
-        *ind += 1; // keyword
-    }
-
-    let mut kind = ImportKind::Whole;
-
-    if tokens[*ind].kind == TokenKind::BracketOpen {
-        *ind += 1; // [
-
-        let list = parse_ast_list(
-            tokens,
-            ind,
-            &mut |tokens, ind| Ok(HashedString::from(tokens[*ind].expects_keyword()?)),
-            TokenKind::BracketClose,
-            true,
-            true,
-        )?; // Auto increments
-
-        kind = ImportKind::Items(list);
-    }
-
-    let end = tokens[*ind - 1].end.clone(); // Cancels the auto increment
+    let end = tokens[*ind - 1].end.clone();
 
     let node = ASTNode::new(
         ASTNodeKind::ImportStatement {
-            source: module,
-            path,
+            path: import_path,
             kind,
         },
         start,

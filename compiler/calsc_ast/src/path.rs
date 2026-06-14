@@ -30,6 +30,13 @@ impl ElementPath {
         }
     }
 
+    pub fn new_relative(members: Vec<HashedString>) -> Self {
+        Self {
+            relative: true,
+            members,
+        }
+    }
+
     pub fn last(&self) -> HashedString {
         self.members[self.members.len() - 1].clone()
     }

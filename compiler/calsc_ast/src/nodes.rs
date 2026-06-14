@@ -11,12 +11,8 @@ use calsc_utils::{
 };
 
 use crate::{
-    AST_CONTEXT,
-    ifs::IfStatementBranch,
-    imports::{ImportKind, ImportModule},
-    path::ElementPath,
-    refs::ASTArenaReference,
-    types::ASTType,
+    AST_CONTEXT, ifs::IfStatementBranch, imports::ImportKind, path::ElementPath,
+    refs::ASTArenaReference, types::ASTType,
 };
 
 /// The kind of AST tree node. Holds information about the node itself.
@@ -125,11 +121,8 @@ pub enum ASTNodeKind {
     },
 
     ImportStatement {
-        /// The source / import module
-        source: ImportModule,
-
         /// The path
-        path: Vec<HashedString>,
+        path: ElementPath,
 
         /// The kind of import
         kind: ImportKind,

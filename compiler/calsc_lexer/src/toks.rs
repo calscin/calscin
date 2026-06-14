@@ -53,9 +53,6 @@ pub enum TokenKind {
     /// `import`
     Import,
 
-    /// `std`
-    Std,
-
     /// `var`
     Var,
 
@@ -495,7 +492,6 @@ impl Display for TokenKind {
             Self::Loop => "loop",
             Self::ExternFunc => "externfunc",
             Self::Import => "import",
-            Self::Std => "std",
             Self::Var => "var",
             Self::Mut => "mut",
             Self::Struct => "struct",

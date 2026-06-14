@@ -2,10 +2,11 @@
 
 #[cfg(test)]
 use calsc_ast::{
-    imports::{ImportKind, ImportModule},
-    nodes::ASTNodeKind,
-    parser::import::parse_ast_import_statement,
+    imports::ImportKind, nodes::ASTNodeKind, parser::import::parse_ast_import_statement,
 };
+
+#[cfg(test)]
+use calsc_ast::path::ElementPath;
 
 #[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
@@ -21,14 +22,13 @@ pub mod vars;
 
 #[test]
 fn parse_import_statement_whole_test() {
-    let tokens = lexer_tokenize("import std::meow", "test.cal".to_string()).unwrap_cleanly();
+    let tokens = lexer_tokenize("import std::meow::*", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
     let import = parse_ast_import_statement(&tokens, &mut ind).unwrap_cleanly();
 
-    if let ASTNodeKind::ImportStatement { source, path, kind } = import.kind.clone() {
-        assert_eq!(source, ImportModule::Std);
-        assert_eq!(path, vec!["meow".into()]);
+    if let ASTNodeKind::ImportStatement { path, kind } = import.kind.clone() {
+        assert_eq!(path, ElementPath::new(vec!["std".into(), "meow".into()]));
         assert_eq!(kind, ImportKind::Whole);
     } else {
         panic!()
@@ -43,11 +43,23 @@ fn parse_import_statement_elements_test() {
 
     let import = parse_ast_import_statement(&tokens, &mut ind).unwrap_cleanly();
 
-    if let ASTNodeKind::ImportStatement { source, path, kind } = import.kind.clone() {
-        assert_eq!(source, ImportModule::Package("meow".into()));
-        assert_eq!(path, vec!["test".into()]);
+    if let ASTNodeKind::ImportStatement { path, kind } = import.kind.clone() {
+        assert_eq!(path, ElementPath::new(vec!["meow".into(), "test".into()]));
         assert_eq!(kind, ImportKind::Items(vec!["print".into()]));
     } else {
         panic!()
+    }
+}
+
+#[test]
+pub fn parse_import_statement_module_test() {
+    let tokens = lexer_tokenize("import meow::test;", "test.cal".to_string()).unwrap_cleanly();
+    let mut ind = 0;
+
+    let import = parse_ast_import_statement(&tokens, &mut ind).unwrap_cleanly();
+
+    if let ASTNodeKind::ImportStatement { path, kind } = import.kind.clone() {
+        assert_eq!(path, ElementPath::new(vec!["meow".into(), "test".into()]));
+        assert_eq!(kind, ImportKind::Module);
     }
 }
