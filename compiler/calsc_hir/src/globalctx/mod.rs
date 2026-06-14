@@ -78,7 +78,13 @@ impl GlobalContext {
             }
         }
 
-        Ok(&self.values[self.key_to_ind[&key]])
+        let val = &self.values[self.key_to_ind[&key]];
+
+        if let GlobalContextValue::AnotherReference(key) = &val {
+            return self.get_entry(key.clone(), origin);
+        }
+
+        Ok(val)
     }
 
     pub fn has_entry(&self, key: &GlobalContextKey) -> bool {

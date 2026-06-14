@@ -9,7 +9,9 @@ use calsc_diagnostics::{
 use calsc_modules::path::ModulePath;
 use calsc_typing::{base::BaseType, tree::Type};
 
-use crate::{funcs::HIRFunction, types::safely_make_type_instance};
+use crate::{
+    funcs::HIRFunction, globalctx::key::GlobalContextKey, types::safely_make_type_instance,
+};
 
 /// An entry / value inside of the global context.
 /// This shouldn't be clonable due to the inner data modification not being able to be synced
@@ -21,6 +23,8 @@ pub enum GlobalContextValue {
 
     /// Represents a type alias
     TypeAlias(Type),
+
+    AnotherReference(GlobalContextKey),
 
     /// Represents an imported module
     Module(ModulePath),
@@ -219,6 +223,13 @@ impl GlobalContextValue {
             _ => false,
         }
     }
+
+    pub fn is_reference(&self) -> bool {
+        match self {
+            Self::AnotherReference(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Display for GlobalContextValue {
@@ -228,6 +239,7 @@ impl Display for GlobalContextValue {
             Self::Module(_) => "module",
             Self::TypeAlias(_) => "type alias",
             Self::Function(_) => "function",
+            Self::AnotherReference(_) => "reference to another entry",
         };
 
         write!(f, "{}", s)
