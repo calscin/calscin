@@ -4,7 +4,6 @@ use std::fmt::Display;
 
 use calsc_diagnostics::{
     DiagPossible, DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
-    diags::errors::build_expected_error,
     span::{Span, SpanKind},
 };
 use calsc_utils::pos::FilePosition;
