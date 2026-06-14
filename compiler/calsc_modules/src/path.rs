@@ -39,6 +39,8 @@ impl ModulePath {
     }
 
     pub fn append(&mut self, path: ModulePath) {
+        self.path.push(path.package);
+
         for entry in path.path {
             self.path.push(entry);
         }

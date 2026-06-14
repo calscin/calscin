@@ -31,7 +31,7 @@ pub fn lower_ast_key<S: DiagnosticSource>(
     let everything_but_last = path.everything_but_last();
     let last = path.last();
 
-    if check {
+    if check && everything_but_last.members.len() > 1 {
         let key = lower_ast_key(everything_but_last, source, false, file_ctx)?;
 
         let is_type = HIR_CONTEXT.with_borrow(|ctx| {
@@ -64,6 +64,17 @@ pub fn lower_ast_key<S: DiagnosticSource>(
 
     if path.relative {
         module_path = file_ctx.current_module.clone();
+
+        // Check if prelude is found: If found: prelude, takes priority:
+        {
+            let key = GlobalContextKey::new(last.clone())
+                .module_path(ModulePath::new_prelude_path(vec![]));
+
+            if HIR_CONTEXT.with_borrow(|f| f.scope.has_entry(&key)) {
+                return Ok(key);
+            }
+        }
+
         module_path.append(lower_ast_module_path(&everything_but_last));
     } else {
         module_path = lower_ast_module_path(&everything_but_last);

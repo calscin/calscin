@@ -10,9 +10,16 @@ pub struct ElementPath {
 
 impl ElementPath {
     pub fn everything_but_last(&self) -> ElementPath {
-        ElementPath {
-            members: self.members[0..self.members.len() - 1].to_vec(),
-            relative: self.relative, // TODO: not sure if we transfer this
+        if self.members.is_empty() {
+            ElementPath {
+                members: vec![],
+                relative: self.relative,
+            }
+        } else {
+            ElementPath {
+                members: self.members[0..self.members.len() - 1].to_vec(),
+                relative: self.relative, // TODO: not sure if we transfer this
+            }
         }
     }
 
