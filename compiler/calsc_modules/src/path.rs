@@ -18,6 +18,14 @@ impl ModulePath {
         Self { package, path }
     }
 
+    /// Creates a new [`ModulePath`]
+    pub fn new_prelude_path(path: Vec<HashedString>) -> Self {
+        Self {
+            package: "prelude".into(),
+            path,
+        }
+    }
+
     pub fn is_prelude(&self) -> bool {
         self.package == "prelude".into()
     }
