@@ -157,7 +157,7 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
     type_parameters: Vec<Type>,
     origin: &K,
 ) -> DiagResult<Type> {
-    let key = lower_ast_key(name, origin, false)?;
+    let key = lower_ast_key(name, origin, true)?;
 
     let ty = HIR_CONTEXT.with(|f| {
         f.borrow().scope.get_entry(key, origin)?.craft_type(

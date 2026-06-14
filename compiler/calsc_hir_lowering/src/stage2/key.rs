@@ -4,8 +4,16 @@ use calsc_hir::{HIR_CONTEXT, globalctx::key::GlobalContextKey};
 use calsc_modules::path::ModulePath;
 
 pub fn lower_ast_module_path(path: &ElementPath) -> ModulePath {
-    let module_name = path.members[0].clone();
-    let module_path = path.members[1..path.members.len()].to_vec();
+    let module_name;
+    let module_path;
+
+    if path.members.is_empty() {
+        module_name = "".into();
+        module_path = vec![];
+    } else {
+        module_name = path.members[0].clone();
+        module_path = path.members[1..path.members.len()].to_vec();
+    }
 
     ModulePath::new(module_name, module_path)
 }
@@ -13,16 +21,20 @@ pub fn lower_ast_module_path(path: &ElementPath) -> ModulePath {
 pub fn lower_ast_key<S: DiagnosticSource>(
     path: ElementPath,
     source: &S,
-    check_for_type: bool,
+    check: bool,
 ) -> DiagResult<GlobalContextKey> {
     let everything_but_last = path.everything_but_last();
     let last = path.last();
 
-    if check_for_type {
+    if check {
         let key = lower_ast_key(everything_but_last, source, false)?;
 
         let is_type = HIR_CONTEXT.with_borrow(|ctx| {
             Ok(ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_type())
+        })?;
+
+        let is_module = HIR_CONTEXT.with_borrow(|ctx| {
+            Ok(ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_module())
         })?;
 
         if is_type {
@@ -33,11 +45,17 @@ pub fn lower_ast_key<S: DiagnosticSource>(
             return Ok(GlobalContextKey::new(last).associated_type(ty));
         }
 
+        if is_module {
+            let module = HIR_CONTEXT
+                .with_borrow(|ctx| ctx.scope.get_entry(key.clone(), source)?.as_module(source))?;
+
+            return Ok(GlobalContextKey::new(last).module_path(module));
+        }
+
         return lower_ast_key(path, source, false);
     }
 
     let module_path = lower_ast_module_path(&everything_but_last);
 
-    let key = GlobalContextKey::new(last).module_path(module_path);
-    Ok(key)
+    Ok(GlobalContextKey::new(last).module_path(module_path))
 }
