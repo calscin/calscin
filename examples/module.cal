@@ -1,0 +1,9 @@
+module myTestModule {
+	func test() -> s.32 {
+		return 10;
+	}
+}
+
+func main() {
+	return myTestModule::test();
+}
