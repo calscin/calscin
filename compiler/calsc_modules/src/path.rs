@@ -39,7 +39,9 @@ impl ModulePath {
     }
 
     pub fn append(&mut self, path: ModulePath) {
-        self.path.push(path.package);
+        if !path.package.is_empty() {
+            self.path.push(path.package);
+        }
 
         for entry in path.path {
             self.path.push(entry);

@@ -9,15 +9,21 @@ use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
 };
-use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
+use calsc_diagnostics::{
+    DiagPossible, PosDiagnosticSource, diags::errors::build_internal_hir_node_leaked,
+};
 use calsc_hir::{
     HIR_CONTEXT,
     file::{self, HIRFileContext},
+    globalctx::key::GlobalContextKey,
     prelude::apply_prelude,
 };
+use calsc_modules::path::ModulePath;
+use calsc_typing::tree::Type;
 
 use crate::stage1::{
     funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
+    imports::import_function,
     types::{lower_ast_decl_block, lower_ast_struct_declaration},
 };
 
