@@ -102,7 +102,7 @@ pub fn parse_ast_value(
             }
         }
 
-        TokenKind::Keyword(_) => {
+        TokenKind::Keyword(_) | TokenKind::Colon => {
             let peeked_ind = peek_ahead(tokens, *ind, |tokens, ind| {
                 parse_element_path_form(tokens, ind)
             })

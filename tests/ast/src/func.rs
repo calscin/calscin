@@ -55,9 +55,7 @@ pub fn function_call_parsing_test() {
     assert_eq!(
         call.kind.clone(),
         ASTNodeKind::FunctionCall {
-            name: ElementPath {
-                members: vec!["test".into()]
-            },
+            name: ElementPath::new(vec!["test".into()]),
             arguments: vec![]
         }
     )
@@ -72,19 +70,12 @@ pub fn parse_call_parsing_args_test() {
     let call = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
 
     if let ASTNodeKind::FunctionCall { name, arguments } = call.kind.clone() {
-        assert_eq!(
-            name,
-            ElementPath {
-                members: vec!["test".into()]
-            }
-        );
+        assert_eq!(name, ElementPath::new(vec!["test".into()]));
 
         assert_eq!(
             arguments[0].kind.clone(),
             ASTNodeKind::FunctionCall {
-                name: ElementPath {
-                    members: vec!["testtwo".into()]
-                },
+                name: ElementPath::new(vec!["testtwo".into()]),
                 arguments: vec![]
             }
         );

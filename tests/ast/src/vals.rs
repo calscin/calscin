@@ -251,9 +251,7 @@ fn parse_lru_function_test() {
         assert_eq!(
             right_expr.kind,
             ASTNodeKind::FunctionCall {
-                name: ElementPath {
-                    members: vec!["abc".into()]
-                },
+                name: ElementPath::new(vec!["abc".into()]),
                 arguments: vec![]
             }
         );

@@ -70,9 +70,23 @@ pub fn parse_ast_return_type_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagR
 
 pub fn parse_element_path_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ElementPath> {
     let mut path: Vec<HashedString> = vec![];
+    let mut relative = false;
+
+    if tokens[*ind].kind == TokenKind::Colon {
+        *ind += 1; // first :
+
+        tokens[*ind].expects(TokenKind::Colon)?;
+        *ind += 1; // second :
+
+        relative = true;
+    }
 
     path.push(tokens[*ind].expects_keyword()?.into());
     *ind += 1; // first element
+
+    if tokens[*ind].kind != TokenKind::Colon {
+        relative = true;
+    }
 
     while tokens[*ind].kind == TokenKind::Colon {
         *ind += 1; // first :
@@ -86,5 +100,8 @@ pub fn parse_element_path_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
         *ind += 1; // keyword
     }
 
-    Ok(ElementPath { members: path })
+    Ok(ElementPath {
+        members: path,
+        relative,
+    })
 }

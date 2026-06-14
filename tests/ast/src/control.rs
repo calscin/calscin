@@ -28,13 +28,7 @@ fn parse_for_loop_test() {
     {
         assert_eq!(
             iterator_type,
-            ASTType::Generic(
-                ElementPath {
-                    members: vec!["s32".into()]
-                },
-                None,
-                vec![]
-            )
+            ASTType::Generic(ElementPath::new(vec!["s32".into()]), None, vec![])
         );
         assert_eq!(iterator_name, "test".into());
         assert_eq!(body, vec![]);
@@ -68,13 +62,7 @@ fn parse_loop_test() {
             body[0].kind.clone(),
             ASTNodeKind::VariableDeclaration {
                 mutable: false,
-                var_type: ASTType::Generic(
-                    ElementPath {
-                        members: vec!["s32".into()]
-                    },
-                    None,
-                    vec![]
-                ),
+                var_type: ASTType::Generic(ElementPath::new(vec!["s32".into()]), None, vec![]),
                 name: "test".into(),
                 value: None
             }
@@ -99,13 +87,7 @@ fn parse_while_loop_test() {
             body[0].kind.clone(),
             ASTNodeKind::VariableDeclaration {
                 mutable: false,
-                var_type: ASTType::Generic(
-                    ElementPath {
-                        members: vec!["s32".into()]
-                    },
-                    None,
-                    vec![]
-                ),
+                var_type: ASTType::Generic(ElementPath::new(vec!["s32".into()]), None, vec![]),
                 name: "test".into(),
                 value: None
             }
@@ -130,13 +112,7 @@ fn parse_if_statement_simple_test() {
                 body[0].kind.clone(),
                 ASTNodeKind::VariableDeclaration {
                     mutable: false,
-                    var_type: ASTType::Generic(
-                        ElementPath {
-                            members: vec!["s32".into()]
-                        },
-                        None,
-                        vec![]
-                    ),
+                    var_type: ASTType::Generic(ElementPath::new(vec!["s32".into()]), None, vec![]),
                     name: "test".into(),
                     value: None
                 }
