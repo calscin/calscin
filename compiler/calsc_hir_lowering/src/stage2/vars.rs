@@ -7,6 +7,7 @@ use calsc_diagnostics::{
 };
 use calsc_hir::{
     HIR_CONTEXT,
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -52,6 +53,7 @@ pub fn lower_ast_variable_reference(
 pub fn lower_ast_variable_declaration(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::VariableDeclaration {
         mutable,
@@ -60,7 +62,7 @@ pub fn lower_ast_variable_declaration(
         value,
     } = node.kind.clone()
     {
-        let var_type = lower_ast_type(var_type, &node, None)?;
+        let var_type = lower_ast_type(var_type, &node, None, file_ctx)?;
 
         let id = HIR_CONTEXT.with(|f| {
             f.borrow_mut().scope.mutate_entry(
@@ -86,7 +88,8 @@ pub fn lower_ast_variable_declaration(
         let mut v = None;
 
         if value.is_some() {
-            let value = lower_ast_value(ASTNode::clone(&value.unwrap()), curr_ctx.clone())?;
+            let value =
+                lower_ast_value(ASTNode::clone(&value.unwrap()), curr_ctx.clone(), file_ctx)?;
             v = Some(
                 value
                     .use_as(var_type.clone(), value.clone(), None, curr_ctx.clone())?
@@ -146,11 +149,12 @@ pub fn introduce_variable_mutation(
 pub fn lower_ast_variable_assign(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::Assignment { variable, value } = node.kind.clone() {
-        let variable = lower_ast_value(ASTNode::clone(&variable), curr_ctx.clone())?;
+        let variable = lower_ast_value(ASTNode::clone(&variable), curr_ctx.clone(), file_ctx)?;
 
-        let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone())?;
+        let value = lower_ast_value(ASTNode::clone(&value), curr_ctx.clone(), file_ctx)?;
         let value = value
             .use_as(
                 variable.get_type(curr_ctx.clone())?,

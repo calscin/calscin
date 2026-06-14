@@ -3,6 +3,7 @@
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -14,9 +15,10 @@ use crate::stage2::values::lower_ast_value;
 pub fn lower_hir_inverse_condition(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::InverseCondition(val) = node.kind.clone() {
-        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
+        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone(), file_ctx)?;
         let val = val.use_as(make_bool_type(&node), val.clone(), None, local_ctx.clone())?;
 
         let node = HIRNode::new(

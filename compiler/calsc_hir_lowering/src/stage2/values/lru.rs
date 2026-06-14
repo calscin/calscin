@@ -7,6 +7,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -18,13 +19,14 @@ use crate::stage2::{funcs::lower_ast_function_call, values::lower_ast_value};
 pub fn lower_ast_lru(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::StructLRUsage {
         left_expr,
         right_expr,
     } = node.kind.clone()
     {
-        let left_expr = lower_ast_value(ASTNode::clone(&left_expr), curr_ctx.clone())?;
+        let left_expr = lower_ast_value(ASTNode::clone(&left_expr), curr_ctx.clone(), file_ctx)?;
         let left_ty = left_expr.get_type(curr_ctx.clone())?;
 
         match &right_expr.kind {
@@ -49,6 +51,7 @@ pub fn lower_ast_lru(
                     node,
                     Some(left_ty.get_transparent_real().ty),
                     curr_ctx.clone(),
+                    file_ctx,
                 )?;
 
                 let ret = HIRNode::clone(&ret);

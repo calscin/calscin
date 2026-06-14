@@ -37,6 +37,12 @@ impl ModulePath {
     pub fn is_empty(&self) -> bool {
         self.package.is_empty() && self.path.is_empty()
     }
+
+    pub fn append(&mut self, path: ModulePath) {
+        for entry in path.path {
+            self.path.push(entry);
+        }
+    }
 }
 
 impl Default for ModulePath {

@@ -6,6 +6,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -17,6 +18,7 @@ use crate::stage2::values::lower_ast_value;
 pub fn lower_ast_binary_expression(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::BinaryExpression {
         left_expr,
@@ -24,7 +26,7 @@ pub fn lower_ast_binary_expression(
         operator,
     } = &node.kind
     {
-        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx.clone())?;
+        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx.clone(), file_ctx)?;
         let left_expr_type = left_expr.get_type(local_ctx.clone())?;
 
         if left_expr_type == Type::Void || !left_expr_type.is_direct_numeric_generic() {
@@ -36,7 +38,7 @@ pub fn lower_ast_binary_expression(
             .into());
         }
 
-        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone())?;
+        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone(), file_ctx)?;
         let right_expr = right_expr
             .use_as(
                 left_expr_type.clone(),

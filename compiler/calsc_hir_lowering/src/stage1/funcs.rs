@@ -46,7 +46,7 @@ pub fn lower_ast_function_decl_first_stage(
         }
 
         let mut args = vec![];
-        let ret_type = lower_ast_type(return_type, &node, target.clone())?;
+        let ret_type = lower_ast_type(return_type, &node, target.clone(), file_ctx)?;
 
         let mut local_ctx = LocalContext::new(
             name.clone(),
@@ -56,7 +56,7 @@ pub fn lower_ast_function_decl_first_stage(
         );
 
         for argument in arguments {
-            let ty = lower_ast_type(argument.0, &node, target.clone())?;
+            let ty = lower_ast_type(argument.0, &node, target.clone(), file_ctx)?;
 
             local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node)?;
             args.push((argument.1, ty));
@@ -113,7 +113,7 @@ pub fn lower_ast_function_decl_first_stage(
     }
 }
 
-pub fn lower_ast_extern_function(node: ASTNode) -> DiagPossible {
+pub fn lower_ast_extern_function(node: ASTNode, file_ctx: &mut HIRFileContext) -> DiagPossible {
     if let ASTNodeKind::ExternFunctionDeclaration {
         name,
         arguments,
@@ -124,10 +124,10 @@ pub fn lower_ast_extern_function(node: ASTNode) -> DiagPossible {
         let key = GlobalContextKey::new(name.clone());
 
         let mut args = vec![];
-        let ret_type = lower_ast_type(return_type, &node, None)?;
+        let ret_type = lower_ast_type(return_type, &node, None, file_ctx)?;
 
         for argument in arguments {
-            let ty = lower_ast_type(argument.0, &node, None)?;
+            let ty = lower_ast_type(argument.0, &node, None, file_ctx)?;
 
             args.push((argument.1, ty));
         }

@@ -7,6 +7,7 @@ use calsc_diagnostics::{
 };
 use calsc_hir::{
     HIR_CONTEXT,
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -21,27 +22,32 @@ pub fn lower_ast_if_statement_branch<K: DiagnosticSource>(
     branch: IfStatementBranch,
     local_ctx: Option<GlobalContextKey>,
     origin: &K,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<calsc_hir::ifs::IfStatementBranch> {
     match branch {
         IfStatementBranch::If { condition, body } => {
-            let condition = lower_ast_value(ASTNode::clone(&condition), local_ctx.clone())?;
+            let condition =
+                lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx)?;
             let body = lower_ast_body(
                 body.iter().map(|f| ASTNode::clone(f)).collect(),
                 local_ctx,
                 true,
                 origin,
+                file_ctx,
             )?;
 
             Ok(calsc_hir::ifs::IfStatementBranch::If { condition, body })
         }
 
         IfStatementBranch::IfElse { condition, body } => {
-            let condition = lower_ast_value(ASTNode::clone(&condition), local_ctx.clone())?;
+            let condition =
+                lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx)?;
             let body = lower_ast_body(
                 body.iter().map(|f| ASTNode::clone(f)).collect(),
                 local_ctx,
                 true,
                 origin,
+                file_ctx,
             )?;
 
             Ok(calsc_hir::ifs::IfStatementBranch::IfElse { condition, body })
@@ -53,6 +59,7 @@ pub fn lower_ast_if_statement_branch<K: DiagnosticSource>(
                 local_ctx,
                 true,
                 origin,
+                file_ctx,
             )?;
 
             Ok(calsc_hir::ifs::IfStatementBranch::Else { body })
@@ -63,6 +70,7 @@ pub fn lower_ast_if_statement_branch<K: DiagnosticSource>(
 pub fn lower_ast_if_statement(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::IfStatement { branches } = node.kind.clone() {
         let mut hir_branches = vec![];
@@ -72,6 +80,7 @@ pub fn lower_ast_if_statement(
                 branch,
                 local_ctx.clone(),
                 &node,
+                file_ctx,
             )?);
         }
 
@@ -92,6 +101,7 @@ pub fn lower_ast_if_statement(
 pub fn lower_ast_for_loop(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::ForLoop {
         iterator_type,
@@ -100,8 +110,8 @@ pub fn lower_ast_for_loop(
         body,
     } = node.kind.clone()
     {
-        let iterator_type = lower_ast_type(iterator_type, &node, None)?;
-        let iterated = lower_ast_value(ASTNode::clone(&iterated), local_ctx.clone())?;
+        let iterator_type = lower_ast_type(iterator_type, &node, None, file_ctx)?;
+        let iterated = lower_ast_value(ASTNode::clone(&iterated), local_ctx.clone(), file_ctx)?;
 
         let iterated = iterated
             .use_as(
@@ -143,6 +153,7 @@ pub fn lower_ast_for_loop(
             local_ctx.clone(),
             true,
             &node,
+            file_ctx,
         )?;
 
         let node = HIRNode::new(
@@ -166,14 +177,16 @@ pub fn lower_ast_for_loop(
 pub fn lower_ast_while_loop(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::WhileLoop { condition, body } = node.kind.clone() {
-        let condition = lower_ast_value(ASTNode::clone(&condition), local_ctx.clone())?;
+        let condition = lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx)?;
         let body = lower_ast_body(
             body.iter().map(|f| ASTNode::clone(f)).collect(),
             local_ctx.clone(),
             true,
             &node,
+            file_ctx,
         )?;
 
         let node = HIRNode::new(
@@ -191,6 +204,7 @@ pub fn lower_ast_while_loop(
 pub fn lower_ast_loop(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::Loop { body } = node.kind.clone() {
         let body = lower_ast_body(
@@ -198,6 +212,7 @@ pub fn lower_ast_loop(
             local_ctx.clone(),
             true,
             &node,
+            file_ctx,
         )?;
 
         let node = HIRNode::new(

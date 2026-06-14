@@ -31,10 +31,10 @@ pub fn lower_hir_stage_1_node(node: ASTNode, file_ctx: &mut HIRFileContext) -> D
         }
 
         ASTNodeKind::ExternFunctionDeclaration { .. } => {
-            lower_ast_extern_function(ASTNode::clone(&node))?
+            lower_ast_extern_function(ASTNode::clone(&node), file_ctx)?
         }
         ASTNodeKind::StructDeclaration { .. } => {
-            lower_ast_struct_declaration(ASTNode::clone(&node))?
+            lower_ast_struct_declaration(ASTNode::clone(&node), file_ctx)?
         }
 
         ASTNodeKind::StructDeclBlock { .. } => {

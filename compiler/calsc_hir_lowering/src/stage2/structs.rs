@@ -6,7 +6,7 @@ use crate::{stage1::types::lower_simple_ast_type, stage2::funcs::lower_ast_funct
 
 pub fn lower_ast_struct_decl(node: ASTNode, file_ctx: &mut HIRFileContext) -> DiagPossible {
     if let ASTNodeKind::StructDeclBlock { target, functions } = node.kind.clone() {
-        let target = lower_simple_ast_type(target, &node, None)?;
+        let target = lower_simple_ast_type(target, &node, None, file_ctx)?;
 
         for func in functions {
             let _ = lower_ast_function_decl(ASTNode::clone(&func), Some(target.clone()), file_ctx)?;

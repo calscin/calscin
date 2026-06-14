@@ -5,6 +5,7 @@ use calsc_diagnostics::{
 };
 use calsc_hir::{
     HIR_CONTEXT,
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -41,9 +42,10 @@ pub fn introduce_reference_ast(
 pub fn lower_ast_pointer_reference(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::PointerReference(val) = node.kind.clone() {
-        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
+        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone(), file_ctx)?;
 
         if !val.represents_pointer_referencable() {
             return Err(build_expected_referencable(&node).into());
@@ -66,9 +68,10 @@ pub fn lower_ast_pointer_reference(
 pub fn lower_ast_pointer_dereference(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::PointerDereference(val) = node.kind.clone() {
-        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone())?;
+        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone(), file_ctx)?;
 
         if !val.represents_pointer_referencable() {
             return Err(build_expected_referencable(&node).into());
