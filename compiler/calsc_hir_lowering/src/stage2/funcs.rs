@@ -9,6 +9,7 @@ use calsc_diagnostics::{
 };
 use calsc_hir::{
     HIR_CONTEXT,
+    file::{self, HIRFileContext},
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
     refs::HIRArenaReference,
@@ -236,6 +237,7 @@ pub fn lower_ast_return_statement(
 pub fn lower_ast_function_decl(
     node: ASTNode,
     ty: Option<BaseType>,
+    file_ctx: &mut HIRFileContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::FunctionDeclaration {
         name,
@@ -244,7 +246,8 @@ pub fn lower_ast_function_decl(
         body,
     } = node.kind.clone()
     {
-        let mut key = GlobalContextKey::new(name.clone());
+        let mut key =
+            GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
         if ty.is_some() {
             key = key.associated_type(ty.clone().unwrap());
