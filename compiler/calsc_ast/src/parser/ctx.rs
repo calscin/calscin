@@ -14,16 +14,7 @@ pub fn parse_ast_whole(tokens: &Vec<Token>) -> DiagPossible {
     while tokens[ind].kind != TokenKind::Eof {
         let node = parse_ast_top_level(tokens, &mut ind)?;
 
-        if node.is_additional_tree() {
-            AST_CONTEXT.with_borrow_mut(|f| f.additional_tree.push(node))
-        } else {
-            let name = node.get_top_level_name();
-
-            AST_CONTEXT.with_borrow_mut(|f| {
-                f.tree.insert(name.clone(), node);
-                f.tree_order.push(name);
-            });
-        }
+        AST_CONTEXT.with_borrow_mut(|f| f.tree.push(node));
     }
 
     Ok(())

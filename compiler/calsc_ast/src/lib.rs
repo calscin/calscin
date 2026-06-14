@@ -27,18 +27,14 @@ thread_local! {
 #[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ASTContext {
     pub nodes: ArenaAllocator<ASTNode, ASTArenaReference>,
-    pub tree: HashMap<HashedString, ASTArenaReference>,
-    pub tree_order: Vec<HashedString>,
-    pub additional_tree: Vec<ASTArenaReference>,
+    pub tree: Vec<ASTArenaReference>,
 }
 
 impl ASTContext {
     pub fn new() -> Self {
         Self {
             nodes: ArenaAllocator::new(),
-            tree: HashMap::new(),
-            tree_order: vec![],
-            additional_tree: vec![],
+            tree: vec![],
         }
     }
 }

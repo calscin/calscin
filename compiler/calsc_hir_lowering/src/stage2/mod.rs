@@ -22,9 +22,7 @@ pub mod vars;
 pub fn lower_hir_stage_2(ast_context: ASTContext) -> DiagPossible {
     let mut file_ctx = HIRFileContext::new();
 
-    for iter in ast_context.tree_order {
-        let node = ast_context.tree[&iter].clone();
-
+    for node in &ast_context.tree {
         match &node.kind {
             ASTNodeKind::FunctionDeclaration { .. } => {
                 let _ = lower_ast_function_decl(ASTNode::clone(&node), None, &mut file_ctx)?;
@@ -33,17 +31,11 @@ pub fn lower_hir_stage_2(ast_context: ASTContext) -> DiagPossible {
             ASTNodeKind::ExternFunctionDeclaration { .. } => continue,
             ASTNodeKind::StructDeclaration { .. } => continue,
 
-            _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
-        }
-    }
-
-    for iter in ast_context.additional_tree {
-        match &iter.kind {
             ASTNodeKind::StructDeclBlock { .. } => {
-                lower_ast_struct_decl(ASTNode::clone(&iter), &mut file_ctx)?
+                lower_ast_struct_decl(ASTNode::clone(&node), &mut file_ctx)?
             }
 
-            _ => return Err(build_internal_hir_node_leaked(&iter, &*iter).into()),
+            _ => return Err(build_internal_hir_node_leaked(&node, &**node).into()),
         }
     }
 

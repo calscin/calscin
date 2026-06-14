@@ -24,13 +24,11 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
     let mut first = false;
     let mut file_ctx = HIRFileContext::new();
 
-    for iter in ast_context.tree_order {
-        let node = ast_context.tree[&iter].clone();
-
+    for node in &ast_context.tree {
         if !first {
             first = true;
 
-            HIR_CONTEXT.with(|f| apply_prelude(&mut f.borrow_mut().scope, &*node))?;
+            HIR_CONTEXT.with(|f| apply_prelude(&mut f.borrow_mut().scope, &**node))?;
         }
 
         match node.kind {
@@ -45,18 +43,12 @@ pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
                 lower_ast_struct_declaration(ASTNode::clone(&node))?
             }
 
-            _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
-        };
-    }
-
-    for iter in ast_context.additional_tree {
-        match &iter.kind {
             ASTNodeKind::StructDeclBlock { .. } => {
-                lower_ast_decl_block(ASTNode::clone(&iter), &mut file_ctx)?
+                lower_ast_decl_block(ASTNode::clone(&node), &mut file_ctx)?
             }
 
-            _ => return Err(build_internal_hir_node_leaked(&iter, &*iter).into()),
-        }
+            _ => return Err(build_internal_hir_node_leaked(&node, &**node).into()),
+        };
     }
 
     Ok(())
