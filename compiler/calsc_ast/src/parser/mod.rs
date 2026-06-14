@@ -5,6 +5,7 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::hash::HashedString;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -121,7 +122,32 @@ pub fn parse_ast_top_level(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<A
         TokenKind::Struct => parse_ast_struct_declaration(tokens, ind),
         TokenKind::Decl => parse_ast_struct_decl_block(tokens, ind),
         TokenKind::Import => parse_ast_import_statement(tokens, ind),
+        TokenKind::Module => parse_ast_module(tokens, ind),
 
         _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     }
+}
+
+pub fn parse_ast_module(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+    let start = tokens[*ind].start.clone();
+
+    *ind += 1; // module
+
+    let name: HashedString = tokens[*ind].expects_keyword()?.into(); // Auto increments
+    let mut body = vec![];
+
+    tokens[*ind].expects(TokenKind::BraceOpen)?;
+    *ind += 1; // {
+
+    while tokens[*ind].kind != TokenKind::BraceClose {
+        body.push(parse_ast_top_level(tokens, ind)?);
+    }
+
+    let end = tokens[*ind].end.clone();
+
+    *ind += 1; // }
+
+    let node = ASTNode::new(ASTNodeKind::Module { name, body }, start, end);
+
+    Ok(node.push())
 }

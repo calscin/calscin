@@ -157,6 +157,11 @@ pub enum ASTNodeKind {
         functions: Vec<ASTArenaReference>,
     },
 
+    Module {
+        name: HashedString,
+        body: Vec<ASTArenaReference>,
+    },
+
     None,
 }
 

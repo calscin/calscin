@@ -77,6 +77,9 @@ pub enum TokenKind {
     /// `while`
     While,
 
+    /// `module`
+    Module,
+
     /// ;
     SemiColon,
 
@@ -498,6 +501,7 @@ impl Display for TokenKind {
             Self::Struct => "struct",
             Self::Decl => "decl",
             Self::Return => "return",
+            Self::Module => "module",
             Self::SemiColon => ";",
             Self::Comma => ",",
             Self::Dot => ".",

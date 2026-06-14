@@ -31,6 +31,7 @@ pub const RETURN_HASH: u64 = fnvhash!("return");
 pub const FOR_HASH: u64 = fnvhash!("for");
 pub const LOOP_HASH: u64 = fnvhash!("loop");
 pub const WHILE_HASH: u64 = fnvhash!("while");
+pub const MODULE_HASH: u64 = fnvhash!("module");
 
 /// Converts raw texts into lexer tokens.
 /// # Examples
@@ -178,6 +179,7 @@ pub fn parse_keyword(
         FOR_HASH => TokenKind::For,
         LOOP_HASH => TokenKind::Loop,
         WHILE_HASH => TokenKind::While,
+        MODULE_HASH => TokenKind::Module,
         _ => TokenKind::Keyword(slice),
     };
 
