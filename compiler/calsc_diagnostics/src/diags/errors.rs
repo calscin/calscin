@@ -23,10 +23,10 @@ enum ErrorCode {
     ExpectedSimpleType,
     ExpectedReferencable,
     FieldMissing,
-    FunctionMissing,
+    _FunctionMissing,
     ExpectedSizeSpecifiers,
     ExpectedTypeParameters,
-    ExpectedRealType,
+    _ExpectedRealType,
     ExpectedCompileTimeType,
     NotIterable,
 
@@ -43,7 +43,7 @@ enum ErrorCode {
     // HIR misc
     RestrictedArgumentTypes,
     RestrictedReturnType,
-    UnexpectedReturn,
+    _UnexpectedReturn,
     ExpectedReturn,
     ExpectedMutableLike,
 

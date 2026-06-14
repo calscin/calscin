@@ -1,7 +1,5 @@
 //! Variable lowering
 
-use std::hint::unreachable_unchecked;
-
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagPossible, DiagResult,
@@ -47,7 +45,7 @@ pub fn lower_ast_variable_reference(
 
         Ok(node.push())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 

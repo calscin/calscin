@@ -1,6 +1,6 @@
 //! Convertion definitions for HIR nodes
 
-use std::{collections::HashMap, hint::unreachable_unchecked};
+use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
@@ -140,7 +140,7 @@ pub fn convert_numerical_literal_into(lit: HIRNode, ty: BaseTypeInstance) -> Dia
         ));
     }
 
-    return Err(build_internal_hir_node_leaked(&lit, &*lit).into());
+    return Err(build_internal_hir_node_leaked(&lit, &lit).into());
 }
 
 pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {

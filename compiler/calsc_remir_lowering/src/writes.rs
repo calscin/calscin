@@ -1,6 +1,4 @@
-use std::hint::unreachable_unchecked;
-
-use calsc_diagnostics::{DiagPossible, DiagResult};
+use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_array_gep, build_insert_value, build_store, build_struct_gep},

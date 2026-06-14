@@ -1,4 +1,4 @@
-use std::{fs, hint::unreachable_unchecked, path::PathBuf, process::Command};
+use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::{AST_CONTEXT, parser::ctx::parse_ast_whole};
 use calsc_diagnostics::container::dump_and_stop_if_errors;

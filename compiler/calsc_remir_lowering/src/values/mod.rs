@@ -1,5 +1,3 @@
-use std::hint::unreachable_unchecked;
-
 use calsc_diagnostics::{
     DiagResult,
     diags::errors::{build_expected_type_error, build_internal_hir_node_leaked},
