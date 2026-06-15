@@ -1,4 +1,7 @@
 #[cfg(test)]
+use calsc_ast::ASTContext;
+
+#[cfg(test)]
 use calsc_ast::{
     ifs::IfStatementBranch, nodes::ASTNodeKind, parser::parse_ast_node_body_member, types::ASTType,
 };
@@ -14,12 +17,14 @@ use calsc_lexer::lexer_tokenize;
 
 #[test]
 fn parse_for_loop_test() {
+    let mut ctx = ASTContext::new();
+
     let tokens =
         lexer_tokenize("for s32 test => [0..1]->2 {}", "test.cal".to_string()).unwrap_cleanly();
 
     let mut ind = 0;
 
-    let for_loop = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+    let for_loop = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
 
     if let ASTNodeKind::ForLoop {
         iterator_type,
@@ -54,10 +59,12 @@ fn parse_for_loop_test() {
 
 #[test]
 fn parse_loop_test() {
+    let mut ctx = ASTContext::new();
+
     let tokens = lexer_tokenize("loop { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let loop_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+    let loop_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
 
     if let ASTNodeKind::Loop { body } = loop_node.kind.clone() {
         assert_eq!(
@@ -80,12 +87,14 @@ fn parse_loop_test() {
 
 #[test]
 fn parse_while_loop_test() {
+    let mut ctx = ASTContext::new();
+
     let tokens =
         lexer_tokenize("while(true) { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
 
     let mut ind = 0;
 
-    let while_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+    let while_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
 
     if let ASTNodeKind::WhileLoop { condition, body } = while_node.kind.clone() {
         assert_eq!(condition.kind.clone(), ASTNodeKind::BooleanLiteral(true));
@@ -109,11 +118,12 @@ fn parse_while_loop_test() {
 
 #[test]
 fn parse_if_statement_simple_test() {
+    let mut ctx = ASTContext::new();
     let tokens =
         lexer_tokenize("if(true) { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let if_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+    let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
 
     if let ASTNodeKind::IfStatement { branches } = if_node.kind.clone() {
         if let IfStatementBranch::If { condition, body } = branches[0].clone() {
@@ -141,6 +151,7 @@ fn parse_if_statement_simple_test() {
 
 #[test]
 fn parse_if_statement_test() {
+    let mut ctx = ASTContext::new();
     let tokens = lexer_tokenize(
         "if(true) {} else if(false) {} else {}",
         "test.cal".to_string(),
@@ -149,7 +160,7 @@ fn parse_if_statement_test() {
 
     let mut ind = 0;
 
-    let if_node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+    let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
 
     if let ASTNodeKind::IfStatement { branches } = if_node.kind.clone() {
         if let IfStatementBranch::If { condition, body } = branches[0].clone() {
