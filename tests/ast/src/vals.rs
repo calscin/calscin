@@ -1,9 +1,11 @@
-use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{
     nodes::{ASTNodeKind, BinaryOperator},
     parser::values::parse_ast_value,
 };
+
+#[cfg(test)]
+use calsc_ast::path::ElementPath;
 
 #[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;

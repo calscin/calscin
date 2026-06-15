@@ -1,4 +1,3 @@
-use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{
     ifs::IfStatementBranch, nodes::ASTNodeKind, parser::parse_ast_node_body_member, types::ASTType,
@@ -6,6 +5,9 @@ use calsc_ast::{
 
 #[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
+use calsc_ast::path::ElementPath;
 
 #[cfg(test)]
 use calsc_lexer::lexer_tokenize;

@@ -1,11 +1,13 @@
 //! Parsing tests related to type parsing
 
-use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{parser::types::parse_ast_type, types::ASTType};
 
 #[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
+use calsc_ast::path::ElementPath;
 
 #[cfg(test)]
 use calsc_lexer::lexer_tokenize;

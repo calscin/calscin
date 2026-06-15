@@ -1,7 +1,6 @@
 #[cfg(test)]
 use calsc_ast::parser::func::parse_extern_function_declaration;
 
-use calsc_ast::path::ElementPath;
 #[cfg(test)]
 use calsc_ast::{
     nodes::ASTNodeKind,
@@ -11,6 +10,9 @@ use calsc_ast::{
 
 #[cfg(test)]
 use calsc_diagnostics::result::CalscinResult;
+
+#[cfg(test)]
+use calsc_ast::path::ElementPath;
 
 #[cfg(test)]
 use calsc_lexer::lexer_tokenize;
