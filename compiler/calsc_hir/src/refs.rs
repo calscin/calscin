@@ -8,20 +8,14 @@ use calsc_utils::alloc::arena::ArenaAllocatorReference;
 use crate::{HIR_CONTEXT, nodes::HIRNode};
 
 #[must_use]
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub struct HIRArenaReference {
-    pub refer: ArenaAllocatorReference,
+    pub refer: &'static HIRNode,
 }
 
-impl From<ArenaAllocatorReference> for HIRArenaReference {
-    fn from(value: ArenaAllocatorReference) -> Self {
-        HIRArenaReference { refer: value }
-    }
-}
-
-impl From<HIRArenaReference> for ArenaAllocatorReference {
-    fn from(value: HIRArenaReference) -> Self {
-        value.refer
+impl From<&'static HIRNode> for HIRArenaReference {
+    fn from(value: &'static HIRNode) -> Self {
+        Self { refer: value }
     }
 }
 
@@ -29,17 +23,12 @@ impl Deref for HIRArenaReference {
     type Target = HIRNode;
 
     fn deref(&self) -> &Self::Target {
-        HIR_CONTEXT.with(|f| f.borrow().nodes.get_static(self.clone()))
+        self.refer
     }
 }
 
-#[cfg(feature = "debug")]
 impl Debug for HIRArenaReference {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{:#?}",
-            HIR_CONTEXT.with(|f| f.borrow().nodes.get_static(self.clone()))
-        )
+        self.refer.fmt(f)
     }
 }

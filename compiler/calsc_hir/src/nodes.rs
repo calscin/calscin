@@ -12,7 +12,7 @@ use calsc_utils::{
 };
 
 use crate::{
-    HIR_CONTEXT,
+    HIRContext,
     globalctx::key::GlobalContextKey,
     ifs::IfStatementBranch,
     refs::HIRArenaReference,
@@ -182,8 +182,8 @@ impl HIRNode {
         }
     }
 
-    pub fn push(self) -> HIRArenaReference {
-        HIR_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
+    pub fn push(self, ctx: &mut HIRContext) -> HIRArenaReference {
+        ctx.nodes.append(self)
     }
 
     /// Gets the type of the [`HIRNode`] based on the node kind and the potentially given local context reference.
@@ -194,7 +194,11 @@ impl HIRNode {
     /// This function will panic if references are wrong
     ///
     ///
-    pub fn get_type(&self, local_func_key: Option<GlobalContextKey>) -> DiagResult<Type> {
+    pub fn get_type(
+        &self,
+        local_func_key: Option<GlobalContextKey>,
+        ctx: &mut HIRContext,
+    ) -> DiagResult<Type> {
         if self.stronger_type.is_some() {
             return Ok(self.stronger_type.clone().unwrap());
         }
@@ -211,15 +215,15 @@ impl HIRNode {
                 start,
                 end: _,
                 increment: _,
-            } => start.get_type(local_func_key)?,
+            } => start.get_type(local_func_key, ctx)?,
 
             HIRNodeKind::PointerReference(val) => Type::Reference {
                 mutable: true, // Mutable by default, will change
-                inner: Box::new(val.get_type(local_func_key)?),
+                inner: Box::new(val.get_type(local_func_key, ctx)?),
             },
 
             HIRNodeKind::PointerDereference(val) => {
-                val.get_type(local_func_key)?.get_inner() // Assumes the container of a pointer reference is a pointer.
+                val.get_type(local_func_key, ctx)?.get_inner() // Assumes the container of a pointer reference is a pointer.
             }
 
             HIRNodeKind::MathExpression {
@@ -230,7 +234,7 @@ impl HIRNode {
                 if operator.assigns {
                     Type::Void
                 } else {
-                    left_expr.get_type(local_func_key)?
+                    left_expr.get_type(local_func_key, ctx)?
                 }
             }
 
@@ -239,7 +243,7 @@ impl HIRNode {
                 field_ind: _,
                 name,
             } => {
-                let ty = val.get_type(local_func_key)?;
+                let ty = val.get_type(local_func_key, ctx)?;
 
                 if ty.has_field(name.clone()) {
                     ty.get_field_type(name)
@@ -257,35 +261,24 @@ impl HIRNode {
                 if local_func_key.is_none() {
                     Type::Void
                 } else {
-                    HIR_CONTEXT.with(|f| {
-                        f.borrow()
-                            .scope
-                            .get_entry(local_func_key.unwrap(), self)
-                            .unwrap()
-                            .as_function(self)
-                            .unwrap()
-                            .local_context
-                            .as_ref()
-                            .unwrap()
-                            .variables[variable_index]
-                            .ty
-                            .clone()
-                    })
+                    ctx.scope
+                        .get_entry(local_func_key.unwrap(), self)?
+                        .as_function(self)?
+                        .local_context
+                        .as_ref()
+                        .unwrap()
+                        .variables[variable_index]
+                        .ty
+                        .clone()
                 }
             }
 
-            HIRNodeKind::FunctionCall { func, arguments: _ } => {
-                let ty = HIR_CONTEXT.with(|f| {
-                    Ok(f.borrow()
-                        .scope
-                        .get_entry(func, self)?
-                        .as_function(self)?
-                        .return_type
-                        .clone())
-                });
-
-                ty?
-            }
+            HIRNodeKind::FunctionCall { func, arguments: _ } => ctx
+                .scope
+                .get_entry(func, self)?
+                .as_function(self)?
+                .return_type
+                .clone(),
 
             HIRNodeKind::IndexUsage {
                 val: _,
@@ -295,7 +288,7 @@ impl HIRNode {
 
             HIRNodeKind::ArrayInit { vals } => Type::Array {
                 size: Some(vals.len()),
-                inner: Box::new(vals[0].get_type(local_func_key)?),
+                inner: Box::new(vals[0].get_type(local_func_key, ctx)?),
             },
 
             _ => Type::Void,
