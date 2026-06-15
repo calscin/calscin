@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
-    HIR_CONTEXT,
+    HIRContext,
     file::HIRFileContext,
     funcs::HIRFunction,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
@@ -24,6 +24,7 @@ pub fn lower_ast_function_decl_first_stage(
     node: ASTNode,
     target: Option<BaseType>,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
     if let ASTNodeKind::FunctionDeclaration {
         name,
@@ -46,7 +47,7 @@ pub fn lower_ast_function_decl_first_stage(
         }
 
         let mut args = vec![];
-        let ret_type = lower_ast_type(return_type, &node, target.clone(), file_ctx)?;
+        let ret_type = lower_ast_type(return_type, &node, target.clone(), file_ctx, ctx)?;
 
         let mut local_ctx = LocalContext::new(
             name.clone(),
@@ -56,7 +57,7 @@ pub fn lower_ast_function_decl_first_stage(
         );
 
         for argument in arguments {
-            let ty = lower_ast_type(argument.0, &node, target.clone(), file_ctx)?;
+            let ty = lower_ast_type(argument.0, &node, target.clone(), file_ctx, ctx)?;
 
             local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node)?;
             args.push((argument.1, ty));
@@ -83,13 +84,11 @@ pub fn lower_ast_function_decl_first_stage(
 
             let typed = TypedFunction::new((*name).clone(), argument_types, ret_type.clone());
 
-            HIR_CONTEXT.with(|f| {
-                f.borrow_mut().scope.mutate_entry(
-                    k,
-                    |e| e.mutate_type(|typ| typ.add_function(name, typed, &node), &node),
-                    &node,
-                )
-            })???;
+            ctx.scope.mutate_entry(
+                k,
+                |entry| entry.mutate_type(|typ| typ.add_function(name, typed, &node), &node),
+                &node,
+            )?;
         }
 
         let func = HIRFunction::new_stage_1(
@@ -101,11 +100,9 @@ pub fn lower_ast_function_decl_first_stage(
             is_main_function,
         );
 
-        let _ = HIR_CONTEXT.with(|f| {
-            f.borrow_mut()
-                .scope
-                .append(key, GlobalContextValue::Function(func), &node)
-        })?;
+        let _ = ctx
+            .scope
+            .append(key, GlobalContextValue::Function(func), &node)?;
 
         Ok(())
     } else {
@@ -113,7 +110,11 @@ pub fn lower_ast_function_decl_first_stage(
     }
 }
 
-pub fn lower_ast_extern_function(node: ASTNode, file_ctx: &mut HIRFileContext) -> DiagPossible {
+pub fn lower_ast_extern_function(
+    node: ASTNode,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+) -> DiagPossible {
     if let ASTNodeKind::ExternFunctionDeclaration {
         name,
         arguments,
@@ -124,10 +125,10 @@ pub fn lower_ast_extern_function(node: ASTNode, file_ctx: &mut HIRFileContext) -
         let key = GlobalContextKey::new(name.clone());
 
         let mut args = vec![];
-        let ret_type = lower_ast_type(return_type, &node, None, file_ctx)?;
+        let ret_type = lower_ast_type(return_type, &node, None, file_ctx, ctx)?;
 
         for argument in arguments {
-            let ty = lower_ast_type(argument.0, &node, None, file_ctx)?;
+            let ty = lower_ast_type(argument.0, &node, None, file_ctx, ctx)?;
 
             args.push((argument.1, ty));
         }
@@ -141,11 +142,9 @@ pub fn lower_ast_extern_function(node: ASTNode, file_ctx: &mut HIRFileContext) -
             false,
         );
 
-        let _ = HIR_CONTEXT.with(|f| {
-            f.borrow_mut()
-                .scope
-                .append(key, GlobalContextValue::Function(func), &node)
-        })?;
+        let _ = ctx
+            .scope
+            .append(key, GlobalContextValue::Function(func), &node)?;
 
         Ok(())
     } else {
