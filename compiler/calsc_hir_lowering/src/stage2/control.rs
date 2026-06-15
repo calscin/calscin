@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource, diags::errors::build_internal_hir_node_leaked,
 };
 use calsc_hir::{
-    HIR_CONTEXT,
+    HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
@@ -23,17 +23,19 @@ pub fn lower_ast_if_statement_branch<K: DiagnosticSource>(
     local_ctx: Option<GlobalContextKey>,
     origin: &K,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<calsc_hir::ifs::IfStatementBranch> {
     match branch {
         IfStatementBranch::If { condition, body } => {
             let condition =
-                lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx)?;
+                lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx, ctx)?;
             let body = lower_ast_body(
                 body.iter().map(|f| ASTNode::clone(f)).collect(),
                 local_ctx,
                 true,
                 origin,
                 file_ctx,
+                ctx,
             )?;
 
             Ok(calsc_hir::ifs::IfStatementBranch::If { condition, body })
@@ -41,13 +43,14 @@ pub fn lower_ast_if_statement_branch<K: DiagnosticSource>(
 
         IfStatementBranch::IfElse { condition, body } => {
             let condition =
-                lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx)?;
+                lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx, ctx)?;
             let body = lower_ast_body(
                 body.iter().map(|f| ASTNode::clone(f)).collect(),
                 local_ctx,
                 true,
                 origin,
                 file_ctx,
+                ctx,
             )?;
 
             Ok(calsc_hir::ifs::IfStatementBranch::IfElse { condition, body })
@@ -60,6 +63,7 @@ pub fn lower_ast_if_statement_branch<K: DiagnosticSource>(
                 true,
                 origin,
                 file_ctx,
+                ctx,
             )?;
 
             Ok(calsc_hir::ifs::IfStatementBranch::Else { body })
@@ -71,6 +75,7 @@ pub fn lower_ast_if_statement(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::IfStatement { branches } = node.kind.clone() {
         let mut hir_branches = vec![];
@@ -81,6 +86,7 @@ pub fn lower_ast_if_statement(
                 local_ctx.clone(),
                 &node,
                 file_ctx,
+                ctx,
             )?);
         }
 
@@ -92,7 +98,7 @@ pub fn lower_ast_if_statement(
             node.end.clone(),
         );
 
-        Ok(node.push())
+        Ok(node.push(ctx))
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
@@ -102,6 +108,7 @@ pub fn lower_ast_for_loop(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::ForLoop {
         iterator_type,
@@ -110,8 +117,9 @@ pub fn lower_ast_for_loop(
         body,
     } = node.kind.clone()
     {
-        let iterator_type = lower_ast_type(iterator_type, &node, None, file_ctx)?;
-        let iterated = lower_ast_value(ASTNode::clone(&iterated), local_ctx.clone(), file_ctx)?;
+        let iterator_type = lower_ast_type(iterator_type, &node, None, file_ctx, ctx)?;
+        let iterated =
+            lower_ast_value(ASTNode::clone(&iterated), local_ctx.clone(), file_ctx, ctx)?;
 
         let iterated = iterated
             .use_as(
@@ -119,31 +127,30 @@ pub fn lower_ast_for_loop(
                 iterated.clone(),
                 None,
                 local_ctx.clone(),
+                ctx,
             )?
-            .push();
+            .push(ctx);
 
-        let variable_index = HIR_CONTEXT.with(|f| {
-            f.borrow_mut().scope.mutate_entry(
-                local_ctx.clone().unwrap(),
-                |entry| {
-                    entry.mutate_function(
-                        |ff| {
-                            ff.local_context
-                                .as_mut()
-                                .unwrap()
-                                .introduce_variable_next_branch(
-                                    iterator_name.clone(),
-                                    iterator_type.clone(),
-                                    true,
-                                    &node,
-                                )
-                        },
-                        &node,
-                    )?
-                },
-                &node,
-            )?
-        })?;
+        let variable_index = ctx.scope.mutate_entry(
+            local_ctx.clone().unwrap(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| {
+                        ff.local_context
+                            .as_mut()
+                            .unwrap()
+                            .introduce_variable_next_branch(
+                                iterator_name.clone(),
+                                iterator_type.clone(),
+                                true,
+                                &node,
+                            )
+                    },
+                    &node,
+                )
+            },
+            &node,
+        )???;
 
         // Lower body after to avoid the branch introduction
         //and let the iterator be registered in the branch after the current one (aka the lower_ast_body introduced one)
@@ -154,6 +161,7 @@ pub fn lower_ast_for_loop(
             true,
             &node,
             file_ctx,
+            ctx,
         )?;
 
         let node = HIRNode::new(
@@ -168,7 +176,7 @@ pub fn lower_ast_for_loop(
             node.end.clone(),
         );
 
-        Ok(node.push())
+        Ok(node.push(ctx))
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
@@ -178,15 +186,18 @@ pub fn lower_ast_while_loop(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::WhileLoop { condition, body } = node.kind.clone() {
-        let condition = lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx)?;
+        let condition =
+            lower_ast_value(ASTNode::clone(&condition), local_ctx.clone(), file_ctx, ctx)?;
         let body = lower_ast_body(
             body.iter().map(|f| ASTNode::clone(f)).collect(),
             local_ctx.clone(),
             true,
             &node,
             file_ctx,
+            ctx,
         )?;
 
         let node = HIRNode::new(
@@ -195,7 +206,7 @@ pub fn lower_ast_while_loop(
             node.end.clone(),
         );
 
-        Ok(node.push())
+        Ok(node.push(ctx))
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
@@ -205,6 +216,7 @@ pub fn lower_ast_loop(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::Loop { body } = node.kind.clone() {
         let body = lower_ast_body(
@@ -213,6 +225,7 @@ pub fn lower_ast_loop(
             true,
             &node,
             file_ctx,
+            ctx,
         )?;
 
         let node = HIRNode::new(
@@ -221,7 +234,7 @@ pub fn lower_ast_loop(
             node.end.clone(),
         );
 
-        Ok(node.push())
+        Ok(node.push(ctx))
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }

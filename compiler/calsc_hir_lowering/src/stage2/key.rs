@@ -1,10 +1,6 @@
 use calsc_ast::path::ElementPath;
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
-use calsc_hir::{
-    HIR_CONTEXT,
-    file::{self, HIRFileContext},
-    globalctx::key::GlobalContextKey,
-};
+use calsc_hir::{HIRContext, file::HIRFileContext, globalctx::key::GlobalContextKey};
 use calsc_modules::path::ModulePath;
 
 pub fn lower_ast_module_path(path: &ElementPath) -> ModulePath {
@@ -27,37 +23,36 @@ pub fn lower_ast_key<S: DiagnosticSource>(
     source: &S,
     check: bool,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<GlobalContextKey> {
     let everything_but_last = path.everything_but_last();
     let last = path.last();
 
     if check && everything_but_last.members.len() > 1 {
-        let key = lower_ast_key(everything_but_last, source, false, file_ctx)?;
+        let key = lower_ast_key(everything_but_last, source, false, file_ctx, ctx)?;
 
-        let is_type = HIR_CONTEXT.with_borrow(|ctx| {
-            Ok(ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_type())
-        })?;
+        let is_type =
+            ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_type();
 
-        let is_module = HIR_CONTEXT.with_borrow(|ctx| {
-            Ok(ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_module())
-        })?;
+        let is_module =
+            ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_module();
 
         if is_type {
-            let ty = HIR_CONTEXT.with_borrow(|ctx| {
-                Ok(ctx.scope.get_entry(key.clone(), source)?.as_type(source))
-            })??;
+            let ty = ctx.scope.get_entry(key.clone(), source)?.as_type(source)?;
 
             return Ok(GlobalContextKey::new(last).associated_type(ty));
         }
 
         if is_module {
-            let module = HIR_CONTEXT
-                .with_borrow(|ctx| ctx.scope.get_entry(key.clone(), source)?.as_module(source))?;
+            let module = ctx
+                .scope
+                .get_entry(key.clone(), source)?
+                .as_module(source)?;
 
             return Ok(GlobalContextKey::new(last).module_path(module));
         }
 
-        return lower_ast_key(path, source, false, file_ctx);
+        return lower_ast_key(path, source, false, file_ctx, ctx);
     }
 
     let mut module_path;
@@ -70,7 +65,7 @@ pub fn lower_ast_key<S: DiagnosticSource>(
             let key = GlobalContextKey::new(last.clone())
                 .module_path(ModulePath::new_prelude_path(vec![]));
 
-            if HIR_CONTEXT.with_borrow(|f| f.scope.has_entry(&key)) {
+            if ctx.scope.has_entry(&key) {
                 return Ok(key);
             }
         }

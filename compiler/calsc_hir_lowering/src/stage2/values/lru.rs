@@ -7,6 +7,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
+    HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
@@ -20,14 +21,16 @@ pub fn lower_ast_lru(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::StructLRUsage {
         left_expr,
         right_expr,
     } = node.kind.clone()
     {
-        let left_expr = lower_ast_value(ASTNode::clone(&left_expr), curr_ctx.clone(), file_ctx)?;
-        let left_ty = left_expr.get_type(curr_ctx.clone())?;
+        let left_expr =
+            lower_ast_value(ASTNode::clone(&left_expr), curr_ctx.clone(), file_ctx, ctx)?;
+        let left_ty = left_expr.get_type(curr_ctx.clone(), ctx)?;
 
         match &right_expr.kind {
             ASTNodeKind::FunctionCall { name, arguments: _ } => {
@@ -52,6 +55,7 @@ pub fn lower_ast_lru(
                     Some(left_ty.get_transparent_real().ty),
                     curr_ctx.clone(),
                     file_ctx,
+                    ctx,
                 )?;
 
                 let ret = HIRNode::clone(&ret);
@@ -67,7 +71,7 @@ pub fn lower_ast_lru(
                         ret.end.clone(),
                     );
 
-                    return Ok(ret.push());
+                    return Ok(ret.push(ctx));
                 } else {
                     return Err(build_internal_hir_node_leaked(&ret, &ret).into());
                 }
@@ -90,7 +94,7 @@ pub fn lower_ast_lru(
                     node.end.clone(),
                 );
 
-                return Ok(node.push());
+                return Ok(node.push(ctx));
             }
 
             _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),

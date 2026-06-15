@@ -6,6 +6,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
+    HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
@@ -19,6 +20,7 @@ pub fn lower_ast_binary_expression(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::BinaryExpression {
         left_expr,
@@ -26,8 +28,9 @@ pub fn lower_ast_binary_expression(
         operator,
     } = &node.kind
     {
-        let left_expr = lower_ast_value(ASTNode::clone(left_expr), local_ctx.clone(), file_ctx)?;
-        let left_expr_type = left_expr.get_type(local_ctx.clone())?;
+        let left_expr =
+            lower_ast_value(ASTNode::clone(left_expr), local_ctx.clone(), file_ctx, ctx)?;
+        let left_expr_type = left_expr.get_type(local_ctx.clone(), ctx)?;
 
         if left_expr_type == Type::Void || !left_expr_type.is_direct_numeric_generic() {
             return Err(build_expected_type_error(
@@ -38,15 +41,17 @@ pub fn lower_ast_binary_expression(
             .into());
         }
 
-        let right_expr = lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone(), file_ctx)?;
+        let right_expr =
+            lower_ast_value(ASTNode::clone(right_expr), local_ctx.clone(), file_ctx, ctx)?;
         let right_expr = right_expr
             .use_as(
                 left_expr_type.clone(),
                 right_expr.clone(),
                 Some(left_expr.clone()),
                 local_ctx,
+                ctx,
             )?
-            .push();
+            .push(ctx);
 
         if let BinaryOperator::Math(operator) = operator {
             if operator.assigns && !left_expr.represents_mutable_variable() {
@@ -63,7 +68,7 @@ pub fn lower_ast_binary_expression(
                 node.end.clone(),
             );
 
-            return Ok(node.push());
+            return Ok(node.push(ctx));
         }
 
         if let BinaryOperator::Compare(operator) = operator {
@@ -77,7 +82,7 @@ pub fn lower_ast_binary_expression(
                 node.end.clone(),
             );
 
-            return Ok(node.push());
+            return Ok(node.push(ctx));
         }
 
         return Err(build_internal_hir_node_leaked(&node, &node).into());

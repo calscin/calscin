@@ -178,7 +178,7 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
 ) -> DiagResult<Type> {
-    let key = lower_ast_key(name, origin, true, file_ctx)?;
+    let key = lower_ast_key(name, origin, true, file_ctx, ctx)?;
 
     let ty =
         ctx.scope
