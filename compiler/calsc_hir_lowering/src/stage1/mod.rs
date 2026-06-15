@@ -60,6 +60,8 @@ pub fn lower_hir_stage_1(ast_context: ASTContext, ctx: &mut HIRContext) -> DiagP
             apply_prelude(&mut ctx.scope, &**node)?;
         }
 
+        println!("{:#?}", node);
+
         lower_hir_stage_1_node(ASTNode::clone(&node), &mut file_ctx, ctx)?;
     }
 

@@ -22,7 +22,7 @@ pub mod types;
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)] // For MIR
 pub struct HIRContext {
-    pub nodes: ArenaAllocator<HIRNode, HIRArenaReference>,
+    pub nodes: ArenaAllocator<HIRNode>,
     pub scope: GlobalContext,
 }
 
