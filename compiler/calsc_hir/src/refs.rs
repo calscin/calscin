@@ -3,9 +3,7 @@ use std::fmt::Debug;
 
 use std::ops::Deref;
 
-use calsc_utils::alloc::arena::ArenaAllocatorReference;
-
-use crate::{HIR_CONTEXT, nodes::HIRNode};
+use crate::nodes::HIRNode;
 
 #[must_use]
 #[derive(Clone)]

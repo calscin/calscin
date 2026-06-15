@@ -197,19 +197,19 @@ impl HIRNode {
     pub fn get_type(
         &self,
         local_func_key: Option<GlobalContextKey>,
-        ctx: &mut HIRContext,
+        ctx: &HIRContext,
     ) -> DiagResult<Type> {
         if self.stronger_type.is_some() {
             return Ok(self.stronger_type.clone().unwrap());
         }
 
         let ty = match self.kind.clone() {
-            HIRNodeKind::IntLiteral(_, size, signed) => make_int_type(signed, size, self),
-            HIRNodeKind::FloatLiteral(_, size, signed) => make_float_type(signed, size, self),
-            HIRNodeKind::StringLiteral(_) => make_string_type(self),
-            HIRNodeKind::CharLiteral(_) => make_char_type(self),
-            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self),
-            HIRNodeKind::InverseCondition(_) => make_bool_type(self),
+            HIRNodeKind::IntLiteral(_, size, signed) => make_int_type(signed, size, self, ctx),
+            HIRNodeKind::FloatLiteral(_, size, signed) => make_float_type(signed, size, self, ctx),
+            HIRNodeKind::StringLiteral(_) => make_string_type(self, ctx),
+            HIRNodeKind::CharLiteral(_) => make_char_type(self, ctx),
+            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self, ctx),
+            HIRNodeKind::InverseCondition(_) => make_bool_type(self, ctx),
 
             HIRNodeKind::Range {
                 start,
@@ -252,7 +252,7 @@ impl HIRNode {
                 }
             }
 
-            HIRNodeKind::CompareExpression { .. } => make_bool_type(self),
+            HIRNodeKind::CompareExpression { .. } => make_bool_type(self, ctx),
 
             HIRNodeKind::VariableReference {
                 name: _,
