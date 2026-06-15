@@ -1,12 +1,11 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{forms::parse_ast_body_form, types::parse_ast_type, values::parse_ast_value},
-    refs::ASTArenaReference,
 };
 
 #[inline(always)]
@@ -14,7 +13,7 @@ pub fn parse_ast_for_loop(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // for

@@ -1,6 +1,6 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
@@ -8,7 +8,6 @@ use crate::{
     nodes::{ASTNode, ASTNodeKind},
     parser::utils::parse_ast_list,
     path::ElementPath,
-    refs::ASTArenaReference,
 };
 
 pub fn parse_ast_import_path(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ElementPath> {
@@ -64,7 +63,7 @@ pub fn parse_ast_import_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // import

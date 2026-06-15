@@ -15,7 +15,7 @@ pub struct ArenaAllocator<T> {
     pub arena: RefCell<Vec<T>>,
 }
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct ArenaHandle {
     index: usize,
 }
@@ -56,5 +56,11 @@ impl<'a, T> Deref for ArenaRef<'a, T> {
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl Debug for ArenaHandle {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Node located at {}", self.index)
     }
 }

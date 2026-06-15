@@ -2,7 +2,7 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{Either, hash::HashedString};
+use calsc_utils::{Either, alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
@@ -13,7 +13,6 @@ use crate::{
         utils::parse_ast_list,
         values::parse_ast_value,
     },
-    refs::ASTArenaReference,
     types::ASTType,
 };
 
@@ -38,7 +37,7 @@ pub fn parse_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // func
@@ -82,7 +81,7 @@ pub fn parse_function_call(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     let name = parse_element_path_form(tokens, ind)?;
@@ -139,7 +138,7 @@ pub fn parse_extern_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // externfunc

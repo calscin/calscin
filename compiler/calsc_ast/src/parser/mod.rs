@@ -5,7 +5,7 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
@@ -21,7 +21,6 @@ use crate::{
         values::parse_ast_value,
         vars::parse_ast_variable_declaration,
     },
-    refs::ASTArenaReference,
 };
 
 pub mod control;
@@ -60,7 +59,7 @@ pub fn parse_ast_node_body_member(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     match tokens[*ind].kind {
         TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind, ctx),
         TokenKind::For => parse_ast_for_loop(tokens, ind, ctx),
@@ -76,7 +75,7 @@ pub fn parse_ast_return_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // return
@@ -102,13 +101,13 @@ pub fn parse_ast_body(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<Vec<ASTArenaReference>> {
-    let mut members: Vec<ASTArenaReference> = vec![];
+) -> DiagResult<Vec<ArenaHandle>> {
+    let mut members: Vec<ArenaHandle> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
         let member = parse_ast_node_body_member(tokens, ind, ctx)?; // Auto increments
 
-        if !member.kind.is_body() {
+        if !ctx.nodes.get(member).kind.is_body() {
             tokens[*ind].expects(TokenKind::SemiColon)?;
             *ind += 1; // ;
         }
@@ -126,7 +125,7 @@ pub fn parse_ast_top_level(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     match tokens[*ind].kind {
         TokenKind::Function => parse_function_declaration(tokens, ind, ctx),
         TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind, ctx),
@@ -143,7 +142,7 @@ pub fn parse_ast_module(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // module

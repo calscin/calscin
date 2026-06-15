@@ -2,13 +2,12 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
     parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
     path::ElementPath,
-    refs::ASTArenaReference,
     types::ASTType,
 };
 
@@ -18,7 +17,7 @@ pub fn parse_ast_condition_form(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     tokens[*ind].expects(TokenKind::ParenOpen)?;
     *ind += 1; // (
 
@@ -36,7 +35,7 @@ pub fn parse_ast_body_form(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<Vec<ASTArenaReference>> {
+) -> DiagResult<Vec<ArenaHandle>> {
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 

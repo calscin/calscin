@@ -1,8 +1,9 @@
 //! Parsing of if statements & else statements
 
-use crate::{ASTContext, refs::ASTArenaReference};
+use crate::ASTContext;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     ifs::IfStatementBranch,
@@ -61,7 +62,7 @@ pub fn parse_ast_if_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     let mut statements: Vec<IfStatementBranch> = vec![];

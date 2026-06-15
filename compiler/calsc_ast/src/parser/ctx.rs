@@ -1,4 +1,4 @@
-use calsc_diagnostics::{DiagPossible, DiagResult};
+use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{ASTContext, parser::parse_ast_top_level};

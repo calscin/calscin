@@ -1,6 +1,7 @@
-use crate::{ASTContext, refs::ASTArenaReference};
+use crate::ASTContext;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::Token;
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -12,7 +13,7 @@ pub fn parse_ast_while_loop(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // while

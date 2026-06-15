@@ -1,19 +1,18 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::pos::FilePosition;
+use calsc_utils::{alloc::arena::ArenaHandle, pos::FilePosition};
 
 use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{func::parse_function_call, vars::parse_ast_element_reference},
-    refs::ASTArenaReference,
 };
 
 pub(crate) fn parse_ast_struct_lru_member(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     tokens[*ind].expects_keyword()?;
 
     if tokens[*ind + 1].kind == TokenKind::ParenOpen {
@@ -28,10 +27,10 @@ pub(crate) fn parse_ast_struct_lru_member(
 pub fn parse_ast_struct_lru(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    original: ASTArenaReference,
+    original: ArenaHandle,
     start_pos: FilePosition,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     *ind += 1; // .
 
     let right_expr = parse_ast_struct_lru_member(tokens, ind, ctx)?; // Auto increments

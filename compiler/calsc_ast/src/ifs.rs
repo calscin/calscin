@@ -1,19 +1,19 @@
-use crate::refs::ASTArenaReference;
+use calsc_utils::alloc::arena::ArenaHandle;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(PartialEq, Clone)]
 pub enum IfStatementBranch {
     If {
-        condition: ASTArenaReference,
-        body: Vec<ASTArenaReference>,
+        condition: ArenaHandle,
+        body: Vec<ArenaHandle>,
     },
 
     IfElse {
-        condition: ASTArenaReference,
-        body: Vec<ASTArenaReference>,
+        condition: ArenaHandle,
+        body: Vec<ArenaHandle>,
     },
 
     Else {
-        body: Vec<ASTArenaReference>,
+        body: Vec<ArenaHandle>,
     },
 }
