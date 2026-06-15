@@ -1,71 +1,60 @@
 //! Arena allocator definitions
 
-use std::{fmt::Debug, ops::Deref};
+use std::{
+    cell::{Ref, RefCell},
+    fmt::Debug,
+    ops::Deref,
+};
 
 /// An arena allocator. Handles storing elements and handing out a reference index
 ///
 /// https://en.wikipedia.org/wiki/Region-based_memory_management
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
-pub struct ArenaAllocator<V> {
-    pub arena: Vec<V>,
+pub struct ArenaAllocator<T> {
+    pub arena: RefCell<Vec<T>>,
 }
 
-#[derive(Clone)]
-pub struct ArenaAllocatorKey<V: 'static> {
-    arena_ref: &'static ArenaAllocator<V>, // This is supposed to be okay since normally the arena allocator doesn't move
-    pub ind: usize,                        // The index inside of the arena allocator
+#[derive(Clone, Copy)]
+pub struct ArenaHandle {
+    index: usize,
 }
 
-impl<V: 'static> ArenaAllocator<V> {
-    /// Creates a new instance of an [`ArenaAllocator`]
-    pub const fn new() -> Self {
-        Self { arena: vec![] }
-    }
+pub struct ArenaRef<'a, T> {
+    inner: Ref<'a, T>,
+}
 
-    /// Creates a new [`ArenaAllocator`] with a given capacity.
-    pub fn with_capacity(capacity: usize) -> Self {
+impl<T> ArenaAllocator<T> {
+    pub fn new() -> Self {
         Self {
-            arena: Vec::with_capacity(capacity),
+            arena: RefCell::new(vec![]),
         }
     }
 
-    /// Appends a new element of type `K` inside of the Arena allocator and hands out a given reference index.
-    pub fn append(&mut self, item: V) -> ArenaAllocatorKey<V> {
-        let reference = self.arena.len();
+    pub fn append(&self, value: T) -> ArenaHandle {
+        let mut data = self.arena.borrow_mut();
+        let idx = data.len();
 
-        self.arena.push(item);
+        data.push(value);
 
-        ArenaAllocatorKey {
-            arena_ref: unsafe { std::mem::transmute::<&Self, &'static Self>(self) }, // This is generally safe since the arena allocator doesn't move
-            ind: reference,
+        ArenaHandle { index: idx }
+    }
+
+    fn borrow(&self, idx: usize) -> Ref<T> {
+        Ref::map(self.arena.borrow(), |v| &v[idx])
+    }
+
+    pub fn get(&self, handle: ArenaHandle) -> ArenaRef<'_, T> {
+        ArenaRef {
+            inner: self.borrow(handle.index),
         }
     }
 }
 
-impl<V: Clone> ArenaAllocator<V> {
-    /// Clones the stored object of the given reference index
-    pub fn get_cloned(&self, refer: usize) -> V {
-        self.arena[refer].clone()
-    }
-}
-
-impl<V: 'static> Deref for ArenaAllocatorKey<V> {
-    type Target = V;
+impl<'a, T> Deref for ArenaRef<'a, T> {
+    type Target = T;
 
     fn deref(&self) -> &Self::Target {
-        &self.arena_ref.arena[self.ind]
-    }
-}
-
-impl<V: 'static + Debug> Debug for ArenaAllocatorKey<V> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        self.arena_ref.arena[self.ind].fmt(f)
-    }
-}
-
-impl<V: 'static + PartialEq> PartialEq for ArenaAllocatorKey<V> {
-    fn eq(&self, other: &Self) -> bool {
-        self.arena_ref.arena[self.ind].eq(&other.arena_ref.arena[other.ind])
+        &self.inner
     }
 }
