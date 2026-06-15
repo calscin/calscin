@@ -14,7 +14,7 @@ pub struct ArenaAllocator<V, Key> {
 
 pub type ArenaAllocatorReference = usize;
 
-impl<V: 'static, Key: From<&'static V>> ArenaAllocator<V, Key> {
+impl<V: 'static, Key: From<(&'static V, usize)>> ArenaAllocator<V, Key> {
     /// Creates a new instance of an [`ArenaAllocator`]
     pub const fn new() -> Self {
         Self {
@@ -37,7 +37,11 @@ impl<V: 'static, Key: From<&'static V>> ArenaAllocator<V, Key> {
 
         self.arena.push(item);
 
-        unsafe { std::mem::transmute::<&V, &'static V>(&self.arena[reference]) }.into()
+        (
+            unsafe { std::mem::transmute::<&V, &'static V>(&self.arena[reference]) },
+            reference,
+        )
+            .into()
     }
 }
 

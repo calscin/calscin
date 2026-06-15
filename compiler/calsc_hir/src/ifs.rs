@@ -2,7 +2,7 @@ use crate::refs::HIRArenaReference;
 
 /// Represents a branch on an if statement.
 #[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub enum IfStatementBranch {
     If {
         condition: HIRArenaReference,

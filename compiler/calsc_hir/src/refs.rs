@@ -8,12 +8,16 @@ use crate::nodes::HIRNode;
 #[must_use]
 #[derive(Clone)]
 pub struct HIRArenaReference {
+    pub ind: usize,
     pub refer: &'static HIRNode,
 }
 
-impl From<&'static HIRNode> for HIRArenaReference {
-    fn from(value: &'static HIRNode) -> Self {
-        Self { refer: value }
+impl From<(&'static HIRNode, usize)> for HIRArenaReference {
+    fn from(value: (&'static HIRNode, usize)) -> Self {
+        Self {
+            refer: value.0,
+            ind: value.1,
+        }
     }
 }
 

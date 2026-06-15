@@ -7,9 +7,9 @@ pub struct ASTArenaReference {
     reference: &'static ASTNode,
 }
 
-impl From<&'static ASTNode> for ASTArenaReference {
-    fn from(value: &'static ASTNode) -> Self {
-        ASTArenaReference { reference: value }
+impl From<(&'static ASTNode, usize)> for ASTArenaReference {
+    fn from(value: (&'static ASTNode, usize)) -> Self {
+        ASTArenaReference { reference: value.0 }
     }
 }
 
