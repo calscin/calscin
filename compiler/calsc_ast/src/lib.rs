@@ -18,10 +18,6 @@ pub mod types;
 #[cfg(feature = "parser")]
 pub mod parser;
 
-thread_local! {
-    pub static AST_CONTEXT: RefCell<ASTContext> = RefCell::new(ASTContext::new());
-}
-
 /// The context of the AST, is used to share things around inside of the AST process
 #[derive(Clone)]
 #[cfg_attr(feature = "debug", derive(Debug))]
