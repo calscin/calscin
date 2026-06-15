@@ -11,7 +11,7 @@ use calsc_utils::{
 };
 
 use crate::{
-    AST_CONTEXT, ifs::IfStatementBranch, imports::ImportKind, path::ElementPath,
+    ASTContext, ifs::IfStatementBranch, imports::ImportKind, path::ElementPath,
     refs::ASTArenaReference, types::ASTType,
 };
 
@@ -174,8 +174,8 @@ impl ASTNode {
     }
 
     /// Pushes the node into the arena allocator and consumes it
-    pub fn push(self) -> ASTArenaReference {
-        AST_CONTEXT.with(|f| f.borrow_mut().nodes.append(self))
+    pub fn push(self, ctx: &mut ASTContext) -> ASTArenaReference {
+        ctx.nodes.append(self)
     }
 
     pub fn get_top_level_name(&self) -> HashedString {

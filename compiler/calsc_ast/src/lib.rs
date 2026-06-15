@@ -2,9 +2,7 @@
 
 //! The main AST declarations of Calscin. AST is used to lower the lexer tokens into parsed structures.
 
-use std::{cell::RefCell, collections::HashMap};
-
-use calsc_utils::{alloc::arena::ArenaAllocator, hash::HashedString};
+use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{nodes::ASTNode, refs::ASTArenaReference};
 
