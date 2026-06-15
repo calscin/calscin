@@ -3,6 +3,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{
         forms::parse_ast_field_form, func::parse_function_declaration, types::parse_ast_type,
@@ -15,6 +16,7 @@ use crate::{
 pub fn parse_ast_struct_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
@@ -62,13 +64,14 @@ pub fn parse_ast_struct_declaration(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline(always)]
 pub fn parse_ast_struct_decl_block(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
@@ -85,7 +88,7 @@ pub fn parse_ast_struct_decl_block(
         tokens[*ind].expects(TokenKind::Function)?;
         // No need for increment there since the function parsing function handles that
 
-        let func = parse_function_declaration(tokens, ind)?; // Auto increments
+        let func = parse_function_declaration(tokens, ind, ctx)?; // Auto increments
 
         functions.push(func);
     }
@@ -100,5 +103,5 @@ pub fn parse_ast_struct_decl_block(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

@@ -5,6 +5,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{utils::parse_ast_list, values::parse_ast_value},
     refs::ASTArenaReference,
@@ -13,6 +14,7 @@ use crate::{
 pub(crate) fn parse_structured_init_field(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<(HashedString, ASTArenaReference)> {
     let name = tokens[*ind].expects_keyword()?;
     *ind += 1; // keyword
@@ -20,7 +22,7 @@ pub(crate) fn parse_structured_init_field(
     tokens[*ind].expects(TokenKind::Colon)?;
     *ind += 1; // :
 
-    let value = parse_ast_value(tokens, ind, true, false, true)?;
+    let value = parse_ast_value(tokens, ind, true, false, true, ctx)?;
 
     Ok((HashedString::new(name), value))
 }
@@ -28,6 +30,7 @@ pub(crate) fn parse_structured_init_field(
 pub fn parse_ast_structured_init(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
@@ -36,7 +39,7 @@ pub fn parse_ast_structured_init(
     let fields = parse_ast_list(
         tokens,
         ind,
-        &mut parse_structured_init_field,
+        &mut |tokens, ind| parse_structured_init_field(tokens, ind, ctx),
         TokenKind::BraceClose,
         true,
         false,
@@ -58,5 +61,5 @@ pub fn parse_ast_structured_init(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

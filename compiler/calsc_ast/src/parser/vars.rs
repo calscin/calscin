@@ -5,6 +5,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::{hash::HashedString, pos::FilePosition};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{forms::parse_ast_field_form, values::parse_ast_value},
     refs::ASTArenaReference,
@@ -15,6 +16,7 @@ use crate::{
 pub fn parse_ast_variable_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
@@ -35,7 +37,7 @@ pub fn parse_ast_variable_declaration(
     if tokens[*ind].kind == TokenKind::Equal {
         *ind += 1; // =
 
-        val = Some(parse_ast_value(tokens, ind, true, false, true)?); // Auto increments
+        val = Some(parse_ast_value(tokens, ind, true, false, true, ctx)?); // Auto increments
     } else {
         val = None;
     }
@@ -53,13 +55,14 @@ pub fn parse_ast_variable_declaration(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline]
 pub fn parse_ast_element_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
@@ -70,7 +73,7 @@ pub fn parse_ast_element_reference(
 
     let node = ASTNode::new(ASTNodeKind::ElementReference(name), start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline]
@@ -79,10 +82,11 @@ pub fn parse_ast_assign(
     ind: &mut usize,
     first: ASTArenaReference,
     start: FilePosition,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     *ind += 1; // =
 
-    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 
@@ -95,5 +99,5 @@ pub fn parse_ast_assign(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

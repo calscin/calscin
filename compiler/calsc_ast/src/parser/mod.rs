@@ -8,6 +8,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{
         control::{
@@ -58,21 +59,23 @@ pub mod vars;
 pub fn parse_ast_node_body_member(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     match tokens[*ind].kind {
-        TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind),
-        TokenKind::For => parse_ast_for_loop(tokens, ind),
-        TokenKind::Loop => parse_ast_loop(tokens, ind),
-        TokenKind::While => parse_ast_while_loop(tokens, ind),
-        TokenKind::If => parse_ast_if_statement(tokens, ind),
-        TokenKind::Return => parse_ast_return_statement(tokens, ind),
-        _ => parse_ast_value(tokens, ind, true, true, true),
+        TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind, ctx),
+        TokenKind::For => parse_ast_for_loop(tokens, ind, ctx),
+        TokenKind::Loop => parse_ast_loop(tokens, ind, ctx),
+        TokenKind::While => parse_ast_while_loop(tokens, ind, ctx),
+        TokenKind::If => parse_ast_if_statement(tokens, ind, ctx),
+        TokenKind::Return => parse_ast_return_statement(tokens, ind, ctx),
+        _ => parse_ast_value(tokens, ind, true, true, true, ctx),
     }
 }
 
 pub fn parse_ast_return_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
@@ -84,22 +87,26 @@ pub fn parse_ast_return_statement(
         val = None;
         *ind += 1; // ;
     } else {
-        val = Some(parse_ast_value(tokens, ind, true, false, true)?);
+        val = Some(parse_ast_value(tokens, ind, true, false, true, ctx)?);
     }
 
     let end = tokens[*ind - 1].end.clone();
 
     let node = ASTNode::new(ASTNodeKind::ReturnStatement { val }, start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 /// Parses an AST body
-pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<ASTArenaReference>> {
+pub fn parse_ast_body(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<Vec<ASTArenaReference>> {
     let mut members: Vec<ASTArenaReference> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
-        let member = parse_ast_node_body_member(tokens, ind)?; // Auto increments
+        let member = parse_ast_node_body_member(tokens, ind, ctx)?; // Auto increments
 
         if !member.kind.is_body() {
             tokens[*ind].expects(TokenKind::SemiColon)?;
@@ -115,20 +122,28 @@ pub fn parse_ast_body(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<Vec<AS
 }
 
 /// Parses a top level node
-pub fn parse_ast_top_level(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_ast_top_level(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ASTArenaReference> {
     match tokens[*ind].kind {
-        TokenKind::Function => parse_function_declaration(tokens, ind),
-        TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind),
-        TokenKind::Struct => parse_ast_struct_declaration(tokens, ind),
-        TokenKind::Decl => parse_ast_struct_decl_block(tokens, ind),
-        TokenKind::Import => parse_ast_import_statement(tokens, ind),
-        TokenKind::Module => parse_ast_module(tokens, ind),
+        TokenKind::Function => parse_function_declaration(tokens, ind, ctx),
+        TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind, ctx),
+        TokenKind::Struct => parse_ast_struct_declaration(tokens, ind, ctx),
+        TokenKind::Decl => parse_ast_struct_decl_block(tokens, ind, ctx),
+        TokenKind::Import => parse_ast_import_statement(tokens, ind, ctx),
+        TokenKind::Module => parse_ast_module(tokens, ind, ctx),
 
         _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     }
 }
 
-pub fn parse_ast_module(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_ast_module(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // module
@@ -142,7 +157,7 @@ pub fn parse_ast_module(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTA
     *ind += 1; // {
 
     while tokens[*ind].kind != TokenKind::BraceClose {
-        body.push(parse_ast_top_level(tokens, ind)?);
+        body.push(parse_ast_top_level(tokens, ind, ctx)?);
     }
 
     let end = tokens[*ind].end.clone();
@@ -151,5 +166,5 @@ pub fn parse_ast_module(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTA
 
     let node = ASTNode::new(ASTNodeKind::Module { name, body }, start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

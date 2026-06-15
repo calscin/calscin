@@ -5,6 +5,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::{math::MathOperation, pos::FilePosition};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind, BinaryOperator},
     parser::{
         utils::peek_ahead,
@@ -86,6 +87,7 @@ pub fn parse_ast_binary_operation(
     mut left: ASTArenaReference,
     start: FilePosition,
     min_precedence: Precedence,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let min_precedence = min_precedence as usize;
 
@@ -106,7 +108,7 @@ pub fn parse_ast_binary_operation(
 
         let binary_operator = parse_binary_operator(tokens, ind)?;
 
-        let mut right = parse_ast_value(tokens, ind, true, false, false)?;
+        let mut right = parse_ast_value(tokens, ind, true, false, false, ctx)?;
 
         if is_binary_operator(tokens, *ind) {
             if let Ok(next_operator) = peek_ahead(tokens, *ind, parse_binary_operator).0 {
@@ -119,6 +121,7 @@ pub fn parse_ast_binary_operation(
                         right,
                         operator_start.clone(),
                         next_precedence,
+                        ctx,
                     )?;
                 }
             }
@@ -135,7 +138,7 @@ pub fn parse_ast_binary_operation(
             start.clone(),
             end,
         )
-        .push();
+        .push(ctx);
     }
 
     Ok(left)

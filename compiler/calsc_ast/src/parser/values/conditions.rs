@@ -3,6 +3,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::cmp::{CompareOperator, ComparePredicate};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::values::parse_ast_value,
     refs::ASTArenaReference,
@@ -11,19 +12,20 @@ use crate::{
 pub fn parse_ast_inverse_condition(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // !
 
-    let val = parse_ast_value(tokens, ind, false, false, true)?; // Does not parse post. The parse_ast_value statement of parse_inverse_condition has priority
+    let val = parse_ast_value(tokens, ind, false, false, true, ctx)?; // Does not parse post. The parse_ast_value statement of parse_inverse_condition has priority
     // Auto increments
 
     let end = tokens[*ind - 1].end.clone(); // Counters the auto increment to get the end
 
     let node = ASTNode::new(ASTNodeKind::InverseCondition(val), start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline(always)]

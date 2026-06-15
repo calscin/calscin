@@ -5,6 +5,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    ASTContext,
     parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
     path::ElementPath,
     refs::ASTArenaReference,
@@ -16,11 +17,12 @@ use crate::{
 pub fn parse_ast_condition_form(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     tokens[*ind].expects(TokenKind::ParenOpen)?;
     *ind += 1; // (
 
-    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::ParenClose)?;
     *ind += 1; // )
@@ -33,11 +35,12 @@ pub fn parse_ast_condition_form(
 pub fn parse_ast_body_form(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<Vec<ASTArenaReference>> {
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
-    let body = parse_ast_body(tokens, ind)?; // Auto increments
+    let body = parse_ast_body(tokens, ind, ctx)?; // Auto increments
 
     Ok(body)
 }

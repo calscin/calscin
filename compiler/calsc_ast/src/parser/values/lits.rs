@@ -1,8 +1,9 @@
 //! Literal parsing
 
+use crate::ASTContext;
+use crate::refs::ASTArenaReference;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use crate::refs::ASTArenaReference;
 
 use crate::nodes::{ASTNode, ASTNodeKind};
 
@@ -31,7 +32,11 @@ use crate::nodes::{ASTNode, ASTNodeKind};
 /// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
 /// ```
 ///
-pub fn parse_ast_literal(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_ast_literal(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 
@@ -49,5 +54,5 @@ pub fn parse_ast_literal(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<AST
     *ind += 1; // Post increment
 
     let node = ASTNode::new(kind, start, end);
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

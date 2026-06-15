@@ -3,13 +3,18 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{forms::parse_ast_body_form, types::parse_ast_type, values::parse_ast_value},
     refs::ASTArenaReference,
 };
 
 #[inline(always)]
-pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_ast_for_loop(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // for
@@ -25,9 +30,9 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<AS
     tokens[*ind].expects(TokenKind::AngelBracketClose)?;
     *ind += 1; // >
 
-    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
 
-    let body = parse_ast_body_form(tokens, ind)?; // Auto increments
+    let body = parse_ast_body_form(tokens, ind, ctx)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone(); // Removes the auto increment to grab the end
 
@@ -42,5 +47,5 @@ pub fn parse_ast_for_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<AS
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

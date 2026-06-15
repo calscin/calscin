@@ -3,6 +3,7 @@ use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    ASTContext,
     imports::ImportKind,
     nodes::{ASTNode, ASTNodeKind},
     parser::utils::parse_ast_list,
@@ -62,6 +63,7 @@ pub fn parse_ast_import_path(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult
 pub fn parse_ast_import_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<ASTArenaReference> {
     let start = tokens[*ind].start.clone();
 
@@ -101,5 +103,5 @@ pub fn parse_ast_import_statement(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

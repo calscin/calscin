@@ -1,19 +1,19 @@
-use crate::nodes::ASTNode;
+use crate::refs::ASTArenaReference;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(PartialEq, Clone)]
 pub enum IfStatementBranch {
     If {
-        condition: &'static ASTNode,
-        body: Vec<&'static ASTNode>,
+        condition: ASTArenaReference,
+        body: Vec<ASTArenaReference>,
     },
 
     IfElse {
-        condition: &'static ASTNode,
-        body: Vec<&'static ASTNode>,
+        condition: ASTArenaReference,
+        body: Vec<ASTArenaReference>,
     },
 
     Else {
-        body: Vec<&'static ASTNode>,
+        body: Vec<ASTArenaReference>,
     },
 }
