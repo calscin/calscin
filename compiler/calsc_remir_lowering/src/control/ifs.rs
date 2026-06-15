@@ -1,6 +1,7 @@
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{
-    ifs::IfStatementBranch, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference,
+    HIRContext, ifs::IfStatementBranch, localctx::LocalContext, nodes::HIRNodeKind,
+    refs::HIRArenaReference,
 };
 
 use remir::{
@@ -65,10 +66,11 @@ pub fn lower_hir_if_statement_branch(
     node: &HIRArenaReference,
     merge_ref: &BlockReference,
     branch_blocks: &Vec<BlockReference>,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     match branch {
         IfStatementBranch::If { condition, body } => {
-            let condition = lower_hir_value(condition, local_ctx, module)?;
+            let condition = lower_hir_value(condition, local_ctx, module, ctx)?;
             let condition =
                 SSAIntValue::try_from(condition).convert(node.start.clone(), node.end.clone())?;
 
@@ -85,7 +87,7 @@ pub fn lower_hir_if_statement_branch(
                 module.pos_function.clone().unwrap(),
             );
 
-            lower_hir_body(body, local_ctx, module)?;
+            lower_hir_body(body, local_ctx, module, ctx)?;
 
             build_unconditional_branch(module, merge_ref.clone());
 
@@ -100,7 +102,7 @@ pub fn lower_hir_if_statement_branch(
                 module.pos_function.clone().unwrap(),
             );
 
-            let condition = lower_hir_value(condition, local_ctx, module)?;
+            let condition = lower_hir_value(condition, local_ctx, module, ctx)?;
             let condition =
                 SSAIntValue::try_from(condition).convert(node.start.clone(), node.end.clone())?;
 
@@ -119,7 +121,7 @@ pub fn lower_hir_if_statement_branch(
                 module.pos_function.clone().unwrap(),
             );
 
-            lower_hir_body(body, local_ctx, module)?;
+            lower_hir_body(body, local_ctx, module, ctx)?;
 
             build_unconditional_branch(module, merge_ref.clone());
 
@@ -132,7 +134,7 @@ pub fn lower_hir_if_statement_branch(
                 module.pos_function.clone().unwrap(),
             );
 
-            lower_hir_body(body, local_ctx, module)?;
+            lower_hir_body(body, local_ctx, module, ctx)?;
 
             build_unconditional_branch(module, merge_ref.clone());
 
@@ -145,6 +147,7 @@ pub fn lower_hir_if_statement(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::IfStatement { branches } = node.kind.clone() {
         module.set_sync_point(module.pos_block.clone().unwrap());
@@ -171,6 +174,7 @@ pub fn lower_hir_if_statement(
                 &node,
                 &merge_block,
                 &branch_blocks,
+                ctx,
             )?;
         }
 

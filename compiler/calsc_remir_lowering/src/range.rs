@@ -1,5 +1,5 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{builders::build_const_int, module::Module, values::int::SSAIntValue};
 
 use crate::{result::CalscinRemirResult, values::lower_hir_value};
@@ -14,6 +14,7 @@ pub fn lower_hir_range(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    ctx: &HIRContext,
 ) -> DiagResult<MIRRange> {
     if let HIRNodeKind::Range {
         start,
@@ -21,11 +22,11 @@ pub fn lower_hir_range(
         increment,
     } = node.kind.clone()
     {
-        let start: SSAIntValue = lower_hir_value(start, local_ctx, module)?
+        let start: SSAIntValue = lower_hir_value(start, local_ctx, module, ctx)?
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
 
-        let end: SSAIntValue = lower_hir_value(end, local_ctx, module)?
+        let end: SSAIntValue = lower_hir_value(end, local_ctx, module, ctx)?
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
 
@@ -35,7 +36,7 @@ pub fn lower_hir_range(
             incr = build_const_int(module, 1, start.size, start.signed)
                 .convert(node.start.clone(), node.end.clone())?;
         } else {
-            incr = lower_hir_value(increment.unwrap(), local_ctx, module)?
+            incr = lower_hir_value(increment.unwrap(), local_ctx, module, ctx)?
                 .try_into()
                 .convert(node.start.clone(), node.end.clone())?;
         }

@@ -2,7 +2,7 @@ use calsc_diagnostics::{
     DiagResult,
     diags::errors::{build_expected_type_error, build_internal_hir_node_leaked},
 };
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_extract_value, build_load, build_struct_gep},
     module::Module,
@@ -31,26 +31,31 @@ pub fn lower_hir_value(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     match &node.kind {
         HIRNodeKind::IntLiteral(_, _, _)
         | HIRNodeKind::FloatLiteral(_, _, _)
         | HIRNodeKind::StringLiteral(_)
         | HIRNodeKind::BooleanLiteral(_)
-        | HIRNodeKind::TypedStructuredInit { .. } => lower_hir_literal(node, ctx, module),
+        | HIRNodeKind::TypedStructuredInit { .. } => lower_hir_literal(node, ctx, module, hirctx),
 
         HIRNodeKind::InverseCondition(_) => {
-            Ok(lower_hir_inverse_condition(node, ctx, module)?.into())
+            Ok(lower_hir_inverse_condition(node, ctx, module, hirctx)?.into())
         }
 
         HIRNodeKind::PointerReference(_) => lower_hir_pointer_reference(node, ctx, module),
-        HIRNodeKind::PointerDereference(_) => lower_hir_pointer_dereference(node, ctx, module),
+        HIRNodeKind::PointerDereference(_) => {
+            lower_hir_pointer_dereference(node, ctx, module, hirctx)
+        }
 
-        HIRNodeKind::MathExpression { .. } => lower_hir_math_operation(node, ctx, module),
-        HIRNodeKind::CompareExpression { .. } => Ok(lower_hir_compare(node, ctx, module)?.into()),
+        HIRNodeKind::MathExpression { .. } => lower_hir_math_operation(node, ctx, module, hirctx),
+        HIRNodeKind::CompareExpression { .. } => {
+            Ok(lower_hir_compare(node, ctx, module, hirctx)?.into())
+        }
 
         HIRNodeKind::FunctionCall { .. } => {
-            let val = lower_hir_function_call(node.clone(), ctx, module)?;
+            let val = lower_hir_function_call(node.clone(), ctx, module, hirctx)?;
 
             if val.is_some() {
                 Ok(val.unwrap())
@@ -66,11 +71,11 @@ pub fn lower_hir_value(
             lower_hir_variable_reference_val(node, ctx, module)
         }
 
-        HIRNodeKind::FieldReference { .. } => lower_hir_field_reference(node, ctx, module),
+        HIRNodeKind::FieldReference { .. } => lower_hir_field_reference(node, ctx, module, hirctx),
 
-        HIRNodeKind::IndexUsage { .. } => lower_hir_index_usage(node, ctx, module),
+        HIRNodeKind::IndexUsage { .. } => lower_hir_index_usage(node, ctx, module, hirctx),
 
-        HIRNodeKind::ArrayInit { .. } => lower_hir_array_const(node, ctx, module),
+        HIRNodeKind::ArrayInit { .. } => lower_hir_array_const(node, ctx, module, hirctx),
 
         _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
     }
@@ -80,6 +85,7 @@ pub fn lower_hir_field_reference(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     if let HIRNodeKind::FieldReference {
         val,
@@ -87,7 +93,7 @@ pub fn lower_hir_field_reference(
         name: _,
     } = node.kind.clone()
     {
-        let val = lower_hir_value(val, ctx, module)?;
+        let val = lower_hir_value(val, ctx, module, hirctx)?;
 
         let field_val;
 

@@ -1,5 +1,5 @@
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     block::sync::VariableSynchronizer,
     builders::{build_conditional_branch, build_unconditional_branch},
@@ -14,6 +14,7 @@ pub fn lower_hir_while_loop(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::WhileLoop { condition, body } = node.kind.clone() {
         // We use the following technique to lower a while loop:
@@ -49,7 +50,7 @@ pub fn lower_hir_while_loop(
         // Filling the body block
         module.move_end(body_block.clone(), module.pos_function.clone().unwrap());
 
-        lower_hir_body(body, local_ctx, module)?;
+        lower_hir_body(body, local_ctx, module, ctx)?;
 
         // Build the unconditional branch jump to header
         build_unconditional_branch(module, header_block.clone());
@@ -59,7 +60,7 @@ pub fn lower_hir_while_loop(
 
         // Write condition and branch
         {
-            let condition = lower_hir_value(condition, local_ctx, module)?;
+            let condition = lower_hir_value(condition, local_ctx, module, ctx)?;
             let condition: SSAIntValue = condition
                 .try_into()
                 .convert(node.start.clone(), node.end.clone())?;

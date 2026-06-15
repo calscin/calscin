@@ -1,5 +1,5 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_utils::math::MathOperation;
 use remir::{
     builders::{build_math_op_float, build_math_op_int},
@@ -29,6 +29,7 @@ pub fn lower_hir_math_operation(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     if let HIRNodeKind::MathExpression {
         left_expr,
@@ -36,9 +37,9 @@ pub fn lower_hir_math_operation(
         operator,
     } = node.kind.clone()
     {
-        let ty = left_expr.get_type(Some(ctx.local_key.clone()))?;
-        let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module)?;
-        let right_expr_val = lower_hir_value(right_expr, ctx, module)?;
+        let ty = left_expr.get_type(Some(ctx.local_key.clone()), hirctx)?;
+        let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module, hirctx)?;
+        let right_expr_val = lower_hir_value(right_expr, ctx, module, hirctx)?;
 
         let res: BaseSSAValue;
 
@@ -81,7 +82,7 @@ pub fn lower_hir_math_operation(
         }
 
         if operator.assigns {
-            lower_hir_writable(left_expr, ctx, module, res.clone())?;
+            lower_hir_writable(left_expr, ctx, module, res.clone(), hirctx)?;
         }
 
         Ok(res)

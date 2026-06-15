@@ -4,7 +4,7 @@ use calsc_diagnostics::{
         InternalErrors, build_internal_hir_node_leaked, build_internal_singleton_error,
     },
 };
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_typing::FieldHavingType;
 use remir::{
     builders::{
@@ -21,6 +21,7 @@ pub fn lower_hir_literal(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     let master_type = node.stronger_type.clone();
 
@@ -97,7 +98,12 @@ pub fn lower_hir_literal(
             let mir_ty = lower_type(ty.clone())?;
 
             for field in ty.get_fields() {
-                vals.push(lower_hir_value(values[&field].clone(), ctx, module)?)
+                vals.push(lower_hir_value(
+                    values[&field].clone(),
+                    ctx,
+                    module,
+                    hirctx,
+                )?)
             }
 
             let val = build_const_struct(module, mir_ty, vals)
@@ -114,12 +120,13 @@ pub fn lower_hir_array_const(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     if let HIRNodeKind::ArrayInit { vals } = node.kind.clone() {
         let mut mir_vals = vec![]; // This cannot use iter.map due to the ? operator
 
         for val in vals {
-            mir_vals.push(lower_hir_value(val, ctx, module)?);
+            mir_vals.push(lower_hir_value(val, ctx, module, hirctx)?);
         }
 
         let val =

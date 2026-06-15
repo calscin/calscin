@@ -1,7 +1,7 @@
 use std::mem::transmute;
 
 use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     block::vars::BlockVariable,
     builders::{build_alloca, build_const_int},
@@ -53,11 +53,12 @@ pub fn lower_hir_variable_assign(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::Assignment { variable, value } = node.kind.clone() {
-        let value = lower_hir_value(value, ctx, module)?;
+        let value = lower_hir_value(value, ctx, module, hirctx)?;
 
-        lower_hir_writable(variable, ctx, module, value)
+        lower_hir_writable(variable, ctx, module, value, hirctx)
     } else {
         return Err(build_internal_hir_node_leaked(&node, &*node).into());
     }
@@ -67,6 +68,7 @@ pub fn lower_hir_variable_declaration(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::VariableDeclaration {
         mutable,
@@ -100,7 +102,7 @@ pub fn lower_hir_variable_declaration(
 
         if value.is_some() {
             let value = value.unwrap();
-            let value = lower_hir_value(value, ctx, module)?;
+            let value = lower_hir_value(value, ctx, module, hirctx)?;
 
             variable
                 .write(module, value)

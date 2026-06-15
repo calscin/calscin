@@ -2,7 +2,7 @@ use calsc_diagnostics::{
     DiagResult,
     diags::errors::{build_expected_referencable, build_internal_hir_node_leaked},
 };
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::build_load,
     module::Module,
@@ -35,9 +35,10 @@ pub fn lower_hir_pointer_dereference(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     if let HIRNodeKind::PointerDereference(inner) = node.kind.clone() {
-        let inner = lower_hir_value(inner, local_ctx, module)?;
+        let inner = lower_hir_value(inner, local_ctx, module, hirctx)?;
         let inner =
             SSAPointerValue::try_from(inner).convert(node.start.clone(), node.end.clone())?;
 

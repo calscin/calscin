@@ -23,6 +23,7 @@ pub fn lower_hir_function_call(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<Option<BaseSSAValue>> {
     if let HIRNodeKind::FunctionCall { func, arguments } = node.kind.clone() {
         let name = format!("{}", func);
@@ -34,7 +35,7 @@ pub fn lower_hir_function_call(
         let mut lowered_arguments = vec![];
 
         for argument in arguments {
-            let v = lower_hir_value(argument, local_ctx, module)?;
+            let v = lower_hir_value(argument, local_ctx, module, hirctx)?;
 
             lowered_arguments.push(v);
         }
@@ -129,7 +130,7 @@ pub fn lower_hir_function_decl(
             }
         }
 
-        lower_hir_body(body, &local_context, module)?;
+        lower_hir_body(body, &local_context, module, &context)?;
 
         if append_terminator {
             let return_type = build_const_int(module, 0, 32, true).unwrap();
@@ -147,12 +148,13 @@ pub fn lower_hir_function_return(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::ReturnStatement { val } = node.kind.clone() {
         let mir_val;
 
         if val.is_some() {
-            mir_val = Some(lower_hir_value(val.unwrap(), local_ctx, module)?);
+            mir_val = Some(lower_hir_value(val.unwrap(), local_ctx, module, hirctx)?);
         } else {
             mir_val = None;
         }

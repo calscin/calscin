@@ -1,5 +1,5 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use calsc_utils::cmp::{CompareOperator, ComparePredicate};
 use remir::{
     builders::{build_float_compare, build_int_compare, build_int_not},
@@ -36,6 +36,7 @@ pub fn lower_hir_compare(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<SSAIntValue> {
     if let HIRNodeKind::CompareExpression {
         left_expr,
@@ -43,8 +44,8 @@ pub fn lower_hir_compare(
         operator,
     } = node.kind.clone()
     {
-        let left_expr_val = lower_hir_value(left_expr, ctx, module)?;
-        let right_expr_val = lower_hir_value(right_expr, ctx, module)?;
+        let left_expr_val = lower_hir_value(left_expr, ctx, module, hirctx)?;
+        let right_expr_val = lower_hir_value(right_expr, ctx, module, hirctx)?;
 
         let res: SSAIntValue;
 
@@ -87,9 +88,10 @@ pub fn lower_hir_inverse_condition(
     node: HIRArenaReference,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<SSAIntValue> {
     if let HIRNodeKind::InverseCondition(inner) = node.kind.clone() {
-        let inner = lower_hir_value(inner, ctx, module)?;
+        let inner = lower_hir_value(inner, ctx, module, hirctx)?;
         let inner = SSAIntValue::try_from(inner).convert(node.start.clone(), node.end.clone())?;
 
         let val = build_int_not(module, inner).convert(node.start.clone(), node.end.clone())?;

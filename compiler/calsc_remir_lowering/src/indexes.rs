@@ -1,5 +1,5 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_array_gep, build_load},
     module::Module,
@@ -14,6 +14,7 @@ pub fn lower_hir_index_usage(
     node: HIRArenaReference,
     local_context: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     if let HIRNodeKind::IndexUsage {
         val,
@@ -21,8 +22,8 @@ pub fn lower_hir_index_usage(
         output_type: _,
     } = node.kind.clone()
     {
-        let val = lower_hir_readable_pointer(val, local_context, module)?;
-        let index = lower_hir_value(index, local_context, module)?;
+        let val = lower_hir_readable_pointer(val, local_context, module, hirctx)?;
+        let index = lower_hir_value(index, local_context, module, hirctx)?;
 
         let index: SSAIntValue = index
             .try_into()

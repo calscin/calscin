@@ -1,5 +1,5 @@
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     block::{Block, sync::VariableSynchronizer, vars::BlockVariable},
     builders::{
@@ -21,6 +21,7 @@ pub fn lower_hir_for_loop(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::ForLoop {
         iterator_type,
@@ -30,7 +31,7 @@ pub fn lower_hir_for_loop(
         body,
     } = node.kind.clone()
     {
-        let iterated = lower_hir_range(iterated, local_ctx, module)?;
+        let iterated = lower_hir_range(iterated, local_ctx, module, ctx)?;
         let iterator_type = lower_type(iterator_type)?;
 
         // We use the following technique to lower a for loop:
@@ -87,7 +88,7 @@ pub fn lower_hir_for_loop(
         // Filling the body block
         module.move_end(body_block.clone(), module.pos_function.clone().unwrap());
 
-        lower_hir_body(body, local_ctx, module)?;
+        lower_hir_body(body, local_ctx, module, ctx)?;
 
         // Increment the iterator
         {

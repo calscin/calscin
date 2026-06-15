@@ -1,5 +1,5 @@
 use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
 use remir::{
     builders::{build_array_gep, build_insert_value, build_store, build_struct_gep},
     module::Module,
@@ -18,6 +18,7 @@ pub fn lower_hir_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     val: BaseSSAValue,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     match node.kind {
         HIRNodeKind::VariableReference { .. } => {
@@ -30,14 +31,16 @@ pub fn lower_hir_writable(
         }
 
         HIRNodeKind::FieldReference { .. } => {
-            lower_hir_field_writable(node, local_ctx, module, val)
+            lower_hir_field_writable(node, local_ctx, module, val, ctx)
         }
 
         HIRNodeKind::PointerDereference(_) => {
-            lower_hir_pointer_writable(node, local_ctx, module, val)
+            lower_hir_pointer_writable(node, local_ctx, module, val, ctx)
         }
 
-        HIRNodeKind::IndexUsage { .. } => lower_hir_index_writable(node, local_ctx, module, val),
+        HIRNodeKind::IndexUsage { .. } => {
+            lower_hir_index_writable(node, local_ctx, module, val, ctx)
+        }
 
         _ => panic!(),
     }
@@ -47,6 +50,7 @@ pub fn lower_hir_writable_value(
     node: HIRArenaReference,
     local_ctx: &LocalContext,
     module: &mut Module,
+    ctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     match node.kind {
         HIRNodeKind::VariableReference { .. } => {
@@ -55,7 +59,7 @@ pub fn lower_hir_writable_value(
             return Ok(var.held_value.clone().unwrap());
         }
 
-        _ => Ok(lower_hir_readable_pointer(node, local_ctx, module)?.into()),
+        _ => Ok(lower_hir_readable_pointer(node, local_ctx, module, ctx)?.into()),
     }
 }
 
@@ -64,6 +68,7 @@ pub fn lower_hir_field_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::FieldReference {
         val,
@@ -71,7 +76,7 @@ pub fn lower_hir_field_writable(
         name: _,
     } = node.kind.clone()
     {
-        let val = lower_hir_value(val, local_ctx, module)?;
+        let val = lower_hir_value(val, local_ctx, module, ctx)?;
 
         if let ValueType::Pointer(_) = &val.value_type {
             let val: SSAPointerValue = val
@@ -100,9 +105,10 @@ pub fn lower_hir_pointer_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::PointerDereference(inner) = node.kind.clone() {
-        let inner = lower_hir_readable_pointer(inner, local_ctx, module)?;
+        let inner = lower_hir_readable_pointer(inner, local_ctx, module, ctx)?;
 
         build_store(module, inner, write_into).convert(node.start.clone(), node.end.clone())
     } else {
@@ -115,6 +121,7 @@ pub fn lower_hir_index_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
+    ctx: &HIRContext,
 ) -> DiagPossible {
     if let HIRNodeKind::IndexUsage {
         val,
@@ -122,9 +129,9 @@ pub fn lower_hir_index_writable(
         output_type: _,
     } = node.kind.clone()
     {
-        let val = lower_hir_readable_pointer(val, local_ctx, module)?;
+        let val = lower_hir_readable_pointer(val, local_ctx, module, ctx)?;
 
-        let index = lower_hir_value(index, local_ctx, module)?;
+        let index = lower_hir_value(index, local_ctx, module, ctx)?;
         let index: SSAIntValue = index
             .try_into()
             .convert(node.start.clone(), node.end.clone())?;
