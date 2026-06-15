@@ -2,7 +2,7 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{math::MathOperation, pos::FilePosition};
+use calsc_utils::{alloc::arena::ArenaHandle, math::MathOperation, pos::FilePosition};
 
 use crate::{
     ASTContext,
@@ -14,7 +14,6 @@ use crate::{
             parse_ast_value,
         },
     },
-    refs::ASTArenaReference,
 };
 
 /// Represents the precedence or weight of an operator. The bigger it is the more it will be picked up before another one.
@@ -84,11 +83,11 @@ pub fn is_binary_operator(tokens: &Vec<Token>, ind: usize) -> bool {
 pub fn parse_ast_binary_operation(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    mut left: ASTArenaReference,
+    mut left: ArenaHandle,
     start: FilePosition,
     min_precedence: Precedence,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let min_precedence = min_precedence as usize;
 
     loop {

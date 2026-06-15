@@ -1,9 +1,9 @@
 //! Literal parsing
 
 use crate::ASTContext;
-use crate::refs::ASTArenaReference;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::nodes::{ASTNode, ASTNodeKind};
 
@@ -36,7 +36,7 @@ pub fn parse_ast_literal(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 

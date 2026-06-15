@@ -4,7 +4,7 @@ use calsc_diagnostics::{
     DiagResult, PosDiagnosticSource, diags::errors::build_unexpected_token_error,
 };
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::pos::FilePosition;
+use calsc_utils::{alloc::arena::ArenaHandle, pos::FilePosition};
 
 use crate::{
     ASTContext,
@@ -24,7 +24,6 @@ use crate::{
         },
         vars::{parse_ast_assign, parse_ast_element_reference},
     },
-    refs::ASTArenaReference,
 };
 
 pub mod arrays;
@@ -67,7 +66,7 @@ pub fn parse_ast_value(
     invoked_from_body: bool, // Used to determine if parse assigns
     allow_ops: bool,         // Used to determine if operations are allowed
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let first = match tokens[*ind].kind {
         TokenKind::IntLiteral(_)
         | TokenKind::FloatLiteral(_)
@@ -123,7 +122,7 @@ pub fn parse_ast_value(
         }
     };
 
-    let start = first.start.clone();
+    let start = ctx.nodes.get(first).start.clone();
 
     if allow_post {
         parse_ast_post(tokens, ind, first, start, invoked_from_body, allow_ops, ctx)
@@ -135,12 +134,12 @@ pub fn parse_ast_value(
 pub fn parse_ast_post(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first_node: ASTArenaReference,
+    first_node: ArenaHandle,
     start: FilePosition,
     invoked_from_body: bool,
     allow_ops: bool,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let mut modified_node = true;
     let start_two = start.clone();
 

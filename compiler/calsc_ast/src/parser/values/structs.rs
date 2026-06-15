@@ -2,20 +2,19 @@ use std::collections::HashMap;
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{utils::parse_ast_list, values::parse_ast_value},
-    refs::ASTArenaReference,
 };
 
 pub(crate) fn parse_structured_init_field(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<(HashedString, ASTArenaReference)> {
+) -> DiagResult<(HashedString, ArenaHandle)> {
     let name = tokens[*ind].expects_keyword()?;
     *ind += 1; // keyword
 
@@ -31,7 +30,7 @@ pub fn parse_ast_structured_init(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // {

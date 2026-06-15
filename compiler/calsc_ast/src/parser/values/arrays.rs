@@ -1,21 +1,20 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::pos::FilePosition;
+use calsc_utils::{alloc::arena::ArenaHandle, pos::FilePosition};
 
 use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{utils::parse_ast_list, values::parse_ast_value},
-    refs::ASTArenaReference,
 };
 
 pub fn parse_ast_index_usage(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first_node: ASTArenaReference,
+    first_node: ArenaHandle,
     start: FilePosition,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     *ind += 1; // [
 
     let index = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
@@ -41,7 +40,7 @@ pub fn parse_ast_array_init(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // [

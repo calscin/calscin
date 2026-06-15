@@ -1,19 +1,21 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::cmp::{CompareOperator, ComparePredicate};
+use calsc_utils::{
+    alloc::arena::ArenaHandle,
+    cmp::{CompareOperator, ComparePredicate},
+};
 
 use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::values::parse_ast_value,
-    refs::ASTArenaReference,
 };
 
 pub fn parse_ast_inverse_condition(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ASTArenaReference> {
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // !
