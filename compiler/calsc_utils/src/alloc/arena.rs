@@ -1,7 +1,7 @@
 //! Arena allocator definitions
 
 use std::{
-    cell::{Ref, RefCell},
+    cell::{Ref, RefCell, RefMut},
     fmt::Debug,
     ops::Deref,
 };
@@ -17,11 +17,15 @@ pub struct ArenaAllocator<T> {
 
 #[derive(Clone, Copy, PartialEq)]
 pub struct ArenaHandle {
-    index: usize,
+    pub index: usize,
 }
 
 pub struct ArenaRef<'a, T> {
     inner: Ref<'a, T>,
+}
+
+pub struct ArenaRefMut<'a, T> {
+    inner: RefMut<'a, T>,
 }
 
 impl<T> ArenaAllocator<T> {
@@ -44,14 +48,32 @@ impl<T> ArenaAllocator<T> {
         Ref::map(self.arena.borrow(), |v| &v[idx])
     }
 
+    fn borrow_mut(&self, idx: usize) -> RefMut<T> {
+        RefMut::map(self.arena.borrow_mut(), |v| &mut v[idx])
+    }
+
     pub fn get(&self, handle: &ArenaHandle) -> ArenaRef<'_, T> {
         ArenaRef {
             inner: self.borrow(handle.index),
         }
     }
+
+    pub fn get_mut(&self, handle: &ArenaHandle) -> ArenaRefMut<'_, T> {
+        ArenaRefMut {
+            inner: self.borrow_mut(handle.index),
+        }
+    }
 }
 
 impl<'a, T> Deref for ArenaRef<'a, T> {
+    type Target = T;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
+    }
+}
+
+impl<'a, T> Deref for ArenaRefMut<'a, T> {
     type Target = T;
 
     fn deref(&self) -> &Self::Target {
