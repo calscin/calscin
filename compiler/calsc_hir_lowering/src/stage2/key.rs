@@ -31,14 +31,23 @@ pub fn lower_ast_key<S: DiagnosticSource>(
     if check && everything_but_last.members.len() > 1 {
         let key = lower_ast_key(everything_but_last, source, false, file_ctx, ctx)?;
 
-        let is_type =
-            ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_type();
+        let is_type = ctx.scope.has_entry(&key)
+            && ctx
+                .scope
+                .get_entry(key.clone(), &file_ctx.current_module, source)?
+                .is_type();
 
-        let is_module =
-            ctx.scope.has_entry(&key) && ctx.scope.get_entry(key.clone(), source)?.is_module();
+        let is_module = ctx.scope.has_entry(&key)
+            && ctx
+                .scope
+                .get_entry(key.clone(), &file_ctx.current_module, source)?
+                .is_module();
 
         if is_type {
-            let ty = ctx.scope.get_entry(key.clone(), source)?.as_type(source)?;
+            let ty = ctx
+                .scope
+                .get_entry(key.clone(), &file_ctx.current_module, source)?
+                .as_type(source)?;
 
             return Ok(GlobalContextKey::new(last).associated_type(ty));
         }
@@ -46,7 +55,7 @@ pub fn lower_ast_key<S: DiagnosticSource>(
         if is_module {
             let module = ctx
                 .scope
-                .get_entry(key.clone(), source)?
+                .get_entry(key.clone(), &file_ctx.current_module, source)?
                 .as_module(source)?;
 
             return Ok(GlobalContextKey::new(last).module_path(module));

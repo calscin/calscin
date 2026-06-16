@@ -35,11 +35,12 @@ pub fn lower_hir_inverse_condition(
         let val_ref = ctx.nodes.get(&val).clone();
 
         let val = val_ref.use_as(
-            make_bool_type(&node, ctx),
+            make_bool_type(&node, ctx, file_ctx),
             val.clone(),
             None,
             local_ctx.clone(),
             ctx,
+            file_ctx,
         )?;
 
         let node = HIRNode::new(
