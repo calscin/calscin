@@ -154,8 +154,6 @@ pub fn parse_ast_module(
 ) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
-    let visibility = parse_visibility_form(tokens, ind);
-
     *ind += 1; // module
 
     let name: HashedString = tokens[*ind].expects_keyword()?.into(); // Auto increments
@@ -174,15 +172,7 @@ pub fn parse_ast_module(
 
     *ind += 1; // }
 
-    let node = ASTNode::new(
-        ASTNodeKind::Module {
-            name,
-            body,
-            visibility,
-        },
-        start,
-        end,
-    );
+    let node = ASTNode::new(ASTNodeKind::Module { name, body }, start, end);
 
     Ok(node.push(ctx))
 }

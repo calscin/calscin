@@ -18,7 +18,7 @@ use calsc_typing::{
     tree::Type,
 };
 
-use crate::stage1::types::lower_ast_type;
+use crate::{convert_visibility, stage1::types::lower_ast_type};
 
 pub fn lower_ast_function_decl_first_stage(
     node: ASTNode,
@@ -31,8 +31,11 @@ pub fn lower_ast_function_decl_first_stage(
         arguments,
         return_type,
         body: _,
+        visibility,
     } = node.kind.clone()
     {
+        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+
         let mut key =
             GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
@@ -102,7 +105,7 @@ pub fn lower_ast_function_decl_first_stage(
 
         let _ = ctx
             .scope
-            .append(key, GlobalContextValue::Function(func), &node)?;
+            .append(key, GlobalContextValue::Function(func), visibility, &node)?;
 
         Ok(())
     } else {
@@ -120,8 +123,11 @@ pub fn lower_ast_extern_function(
         arguments,
         return_type,
         triple_dot_position,
+        visibility,
     } = node.kind.clone()
     {
+        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+
         let key = GlobalContextKey::new(name.clone());
 
         let mut args = vec![];
@@ -144,7 +150,7 @@ pub fn lower_ast_extern_function(
 
         let _ = ctx
             .scope
-            .append(key, GlobalContextValue::Function(func), &node)?;
+            .append(key, GlobalContextValue::Function(func), visibility, &node)?;
 
         Ok(())
     } else {

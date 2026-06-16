@@ -157,7 +157,6 @@ pub enum ASTNodeKind {
     Module {
         name: HashedString,
         body: Vec<ArenaHandle>,
-        visibility: Option<Visibility>,
     },
 
     None,
