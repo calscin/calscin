@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calsc_typing::tree::Type;
 use calsc_utils::hash::HashedString;
 
@@ -11,5 +13,17 @@ pub enum ModuleTreeEntry {
 #[derive(Debug)]
 pub struct TreeModule {
     pub name: HashedString,
-    pub children: Vec<ModuleTreeEntry>,
+    pub children: HashMap<HashedString, ModuleTreeEntry>,
+}
+
+impl ModuleTreeEntry {
+    /// Checks if the given [`ModuleTreeEntry`] can contain children.
+    /// This is used for traversing
+    pub fn has_children(&self) -> bool {
+        match self {
+            Self::Module(_) => true,
+
+            _ => false,
+        }
+    }
 }
