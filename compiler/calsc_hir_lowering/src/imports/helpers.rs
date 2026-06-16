@@ -7,6 +7,7 @@ use calsc_hir::{
     funcs::HIRFunction,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
+use calsc_modules::path::ModulePath;
 use calsc_typing::{base::BaseType, tree::Type};
 use calsc_utils::hash::HashedString;
 
@@ -18,9 +19,9 @@ pub fn import_function<S: DiagnosticSource>(
     file_ctx: &mut HIRFileContext,
     source: &S,
     ctx: &mut HIRContext,
+    target_module: ModulePath,
 ) -> DiagPossible {
-    let target_key =
-        GlobalContextKey::new(func_name.clone()).module_path(file_ctx.current_module.clone());
+    let target_key = GlobalContextKey::new(func_name.clone()).module_path(target_module);
 
     if !ctx.scope.has_entry(&key) {
         let function =
@@ -45,9 +46,9 @@ pub fn import_type<S: DiagnosticSource>(
     file_ctx: &mut HIRFileContext,
     source: &S,
     ctx: &mut HIRContext,
+    target_module: ModulePath,
 ) -> DiagPossible {
-    let target_key =
-        GlobalContextKey::new(key.name.clone()).module_path(file_ctx.current_module.clone());
+    let target_key = GlobalContextKey::new(key.name.clone()).module_path(target_module);
 
     if !ctx.scope.has_entry(&target_key) {
         let entry = GlobalContextValue::Type(base);
