@@ -323,6 +323,7 @@ version = "0.1.0"
 dependencies = [
  "calsc_diagnostics",
  "calsc_hir",
+ "calsc_modules",
  "calsc_typing",
  "calsc_utils",
 ]
