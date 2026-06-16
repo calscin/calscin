@@ -47,6 +47,14 @@ impl ModulePath {
             self.path.push(entry);
         }
     }
+
+    pub fn get(&self, ind: usize) -> HashedString {
+        if ind == 0 {
+            self.package.clone()
+        } else {
+            self.path[ind - 1].clone()
+        }
+    }
 }
 
 impl Default for ModulePath {
