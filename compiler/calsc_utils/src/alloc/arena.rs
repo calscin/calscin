@@ -3,7 +3,7 @@
 use std::{
     cell::{Ref, RefCell, RefMut},
     fmt::Debug,
-    ops::Deref,
+    ops::{Deref, DerefMut},
 };
 
 /// An arena allocator. Handles storing elements and handing out a reference index
@@ -78,6 +78,12 @@ impl<'a, T> Deref for ArenaRefMut<'a, T> {
 
     fn deref(&self) -> &Self::Target {
         &self.inner
+    }
+}
+
+impl<'a, T> DerefMut for ArenaRefMut<'a, T> {
+    fn deref_mut(&mut self) -> &mut Self::Target {
+        &mut self.inner
     }
 }
 
