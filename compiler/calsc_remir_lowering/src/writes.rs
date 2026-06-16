@@ -1,5 +1,6 @@
 use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     builders::{build_array_gep, build_insert_value, build_store, build_struct_gep},
     module::Module,
@@ -14,18 +15,20 @@ use crate::{
 };
 
 pub fn lower_hir_writable(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
     val: BaseSSAValue,
     ctx: &HIRContext,
 ) -> DiagPossible {
-    match node.kind {
+    let node_ref = ctx.nodes.get(&node);
+
+    match &node_ref.kind {
         HIRNodeKind::VariableReference { .. } => {
             let r = lower_hir_variable_reference(node.clone(), local_ctx, module)?;
 
             r.write(module, val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             Ok(())
         }
@@ -47,12 +50,14 @@ pub fn lower_hir_writable(
 }
 
 pub fn lower_hir_writable_value(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
     ctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    match node.kind {
+    let node_ref = ctx.nodes.get(&node);
+
+    match node_ref.kind {
         HIRNodeKind::VariableReference { .. } => {
             let var = lower_hir_variable_reference(node.clone(), local_ctx, module)?;
 
@@ -64,83 +69,90 @@ pub fn lower_hir_writable_value(
 }
 
 pub fn lower_hir_field_writable(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
     ctx: &HIRContext,
 ) -> DiagPossible {
+    let node_ref = ctx.nodes.get(&node);
+
     if let HIRNodeKind::FieldReference {
         val,
         field_ind,
         name: _,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
         let val = lower_hir_value(val, local_ctx, module, ctx)?;
 
         if let ValueType::Pointer(_) = &val.value_type {
             let val: SSAPointerValue = val
                 .try_into()
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             let ptr = build_struct_gep(module, val, field_ind)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
-            build_store(module, ptr, write_into).convert(node.start.clone(), node.end.clone())
+            build_store(module, ptr, write_into)
+                .convert(node_ref.start.clone(), node_ref.end.clone())
         } else {
             let val: SSAStructValue = val
                 .try_into()
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             build_insert_value(module, val, field_ind, write_into)
-                .convert(node.start.clone(), node.end.clone())
+                .convert(node_ref.start.clone(), node_ref.end.clone())
         }
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
     }
 }
 
 pub fn lower_hir_pointer_writable(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
     ctx: &HIRContext,
 ) -> DiagPossible {
-    if let HIRNodeKind::PointerDereference(inner) = node.kind.clone() {
+    let node_ref = ctx.nodes.get(&node);
+
+    if let HIRNodeKind::PointerDereference(inner) = node_ref.kind.clone() {
         let inner = lower_hir_readable_pointer(inner, local_ctx, module, ctx)?;
 
-        build_store(module, inner, write_into).convert(node.start.clone(), node.end.clone())
+        build_store(module, inner, write_into).convert(node_ref.start.clone(), node_ref.end.clone())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
     }
 }
 
 pub fn lower_hir_index_writable(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
     ctx: &HIRContext,
 ) -> DiagPossible {
+    let node_ref = ctx.nodes.get(&node);
+
     if let HIRNodeKind::IndexUsage {
         val,
         index,
         output_type: _,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
         let val = lower_hir_readable_pointer(val, local_ctx, module, ctx)?;
 
         let index = lower_hir_value(index, local_ctx, module, ctx)?;
         let index: SSAIntValue = index
             .try_into()
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
-        let ptr =
-            build_array_gep(module, val, index).convert(node.start.clone(), node.end.clone())?;
+        let ptr = build_array_gep(module, val, index)
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
-        build_store(module, ptr, write_into).convert(node.start.clone(), node.end.clone())
+        build_store(module, ptr, write_into).convert(node_ref.start.clone(), node_ref.end.clone())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
     }
 }

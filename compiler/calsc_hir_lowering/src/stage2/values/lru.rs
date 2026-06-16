@@ -1,4 +1,7 @@
-use calsc_ast::nodes::{ASTNode, ASTNodeKind};
+use calsc_ast::{
+    ASTContext,
+    nodes::{ASTNode, ASTNodeKind},
+};
 use calsc_diagnostics::{
     DiagResult,
     diags::errors::{
@@ -22,15 +25,21 @@ pub fn lower_ast_lru(
     curr_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
 ) -> DiagResult<HIRArenaReference> {
     if let ASTNodeKind::StructLRUsage {
         left_expr,
         right_expr,
     } = node.kind.clone()
     {
-        let left_expr =
-            lower_ast_value(ASTNode::clone(&left_expr), curr_ctx.clone(), file_ctx, ctx)?;
-        let left_ty = left_expr.get_type(curr_ctx.clone(), ctx)?;
+        let left_expr = lower_ast_value(
+            ASTNode::clone(&ast_ctx.nodes.get(&left_expr)),
+            curr_ctx.clone(),
+            file_ctx,
+            ctx,
+        )?;
+
+        let left_ty = ctx.nodes.get(&left_expr).get_type(curr_ctx.clone(), ctx)?;
 
         match &right_expr.kind {
             ASTNodeKind::FunctionCall { name, arguments: _ } => {
