@@ -1,6 +1,9 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
-use calsc_utils::cmp::{CompareOperator, ComparePredicate};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
+use calsc_utils::{
+    alloc::arena::ArenaHandle,
+    cmp::{CompareOperator, ComparePredicate},
+};
 use remir::{
     builders::{build_float_compare, build_int_compare, build_int_not},
     module::Module,
@@ -33,16 +36,18 @@ pub fn convert_compare_operator(operation: CompareOperator) -> remir::misc::Comp
 }
 
 pub fn lower_hir_compare(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagResult<SSAIntValue> {
+    let node_ref = hirctx.nodes.get(&node);
+
     if let HIRNodeKind::CompareExpression {
         left_expr,
         right_expr,
         operator,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
         let left_expr_val = lower_hir_value(left_expr, ctx, module, hirctx)?;
         let right_expr_val = lower_hir_value(right_expr, ctx, module, hirctx)?;
@@ -51,9 +56,9 @@ pub fn lower_hir_compare(
 
         if let ValueType::Int(signed, _) = left_expr_val.value_type.clone() {
             let left_expr_val = SSAIntValue::try_from(left_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
             let right_expr_val = SSAIntValue::try_from(right_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             res = build_int_compare(
                 module,
@@ -62,12 +67,12 @@ pub fn lower_hir_compare(
                 convert_compare_operator(operator),
                 signed,
             )
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
         } else {
             let left_expr_val = SSAFloatValue::try_from(left_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
             let right_expr_val = SSAFloatValue::try_from(right_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             res = build_float_compare(
                 module,
@@ -75,29 +80,33 @@ pub fn lower_hir_compare(
                 right_expr_val,
                 convert_compare_operator(operator),
             )
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
         }
 
         Ok(res)
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
     }
 }
 
 pub fn lower_hir_inverse_condition(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagResult<SSAIntValue> {
-    if let HIRNodeKind::InverseCondition(inner) = node.kind.clone() {
-        let inner = lower_hir_value(inner, ctx, module, hirctx)?;
-        let inner = SSAIntValue::try_from(inner).convert(node.start.clone(), node.end.clone())?;
+    let node_ref = hirctx.nodes.get(&node);
 
-        let val = build_int_not(module, inner).convert(node.start.clone(), node.end.clone())?;
+    if let HIRNodeKind::InverseCondition(inner) = node_ref.kind.clone() {
+        let inner = lower_hir_value(inner, ctx, module, hirctx)?;
+        let inner =
+            SSAIntValue::try_from(inner).convert(node_ref.start.clone(), node_ref.end.clone())?;
+
+        let val =
+            build_int_not(module, inner).convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         Ok(val.into())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
     }
 }

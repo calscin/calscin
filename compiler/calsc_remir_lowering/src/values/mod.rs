@@ -2,7 +2,8 @@ use calsc_diagnostics::{
     DiagResult,
     diags::errors::{build_expected_type_error, build_internal_hir_node_leaked},
 };
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     builders::{build_extract_value, build_load, build_struct_gep},
     module::Module,
@@ -28,12 +29,14 @@ pub mod math;
 pub mod ptrs;
 
 pub fn lower_hir_value(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    match &node.kind {
+    let node_ref = hirctx.nodes.get(&node);
+
+    match &node_ref.kind {
         HIRNodeKind::IntLiteral(_, _, _)
         | HIRNodeKind::FloatLiteral(_, _, _)
         | HIRNodeKind::StringLiteral(_)
@@ -44,7 +47,7 @@ pub fn lower_hir_value(
             Ok(lower_hir_inverse_condition(node, ctx, module, hirctx)?.into())
         }
 
-        HIRNodeKind::PointerReference(_) => lower_hir_pointer_reference(node, ctx, module),
+        HIRNodeKind::PointerReference(_) => lower_hir_pointer_reference(node, ctx, module, hirctx),
         HIRNodeKind::PointerDereference(_) => {
             lower_hir_pointer_dereference(node, ctx, module, hirctx)
         }
@@ -60,15 +63,17 @@ pub fn lower_hir_value(
             if val.is_some() {
                 Ok(val.unwrap())
             } else {
-                Err(
-                    build_expected_type_error(&"void".to_string(), &"non-void".to_string(), &*node)
-                        .into(),
+                Err(build_expected_type_error(
+                    &"void".to_string(),
+                    &"non-void".to_string(),
+                    node_ref,
                 )
+                .into())
             }
         }
 
         HIRNodeKind::VariableReference { .. } => {
-            lower_hir_variable_reference_val(node, ctx, module)
+            lower_hir_variable_reference_val(node, ctx, module, hirctx)
         }
 
         HIRNodeKind::FieldReference { .. } => lower_hir_field_reference(node, ctx, module, hirctx),
@@ -77,21 +82,23 @@ pub fn lower_hir_value(
 
         HIRNodeKind::ArrayInit { .. } => lower_hir_array_const(node, ctx, module, hirctx),
 
-        _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
+        _ => return Err(build_internal_hir_node_leaked(&node, node_ref).into()),
     }
 }
 
 pub fn lower_hir_field_reference(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
+    let node_ref = hirctx.nodes.get(&node);
+
     if let HIRNodeKind::FieldReference {
         val,
         field_ind,
         name: _,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
         let val = lower_hir_value(val, ctx, module, hirctx)?;
 
@@ -100,22 +107,23 @@ pub fn lower_hir_field_reference(
         if let ValueType::Pointer(_) = &val.value_type {
             let val: SSAPointerValue = val
                 .try_into()
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
             let ptr = build_struct_gep(module, val, field_ind)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
-            field_val = build_load(module, ptr).convert(node.start.clone(), node.end.clone())?;
+            field_val =
+                build_load(module, ptr).convert(node_ref.start.clone(), node_ref.end.clone())?;
         } else {
             let val: SSAStructValue = val
                 .try_into()
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             field_val = build_extract_value(module, val, field_ind)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
         }
 
         Ok(field_val)
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
     }
 }

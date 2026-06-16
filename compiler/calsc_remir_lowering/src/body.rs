@@ -1,5 +1,6 @@
 use calsc_diagnostics::DiagPossible;
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 use remir::module::Module;
 
 use crate::{
@@ -10,12 +11,14 @@ use crate::{
 };
 
 pub fn lower_hir_body_node(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagPossible {
-    match &node.kind {
+    let node_ref = hirctx.nodes.get(&node);
+
+    match &node_ref.kind {
         HIRNodeKind::FunctionCall { .. } => {
             let _ = lower_hir_function_call(node, ctx, module, hirctx)?;
             Ok(())
@@ -42,7 +45,7 @@ pub fn lower_hir_body_node(
 }
 
 pub fn lower_hir_body(
-    nodes: Vec<HIRArenaReference>,
+    nodes: Vec<ArenaHandle>,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,

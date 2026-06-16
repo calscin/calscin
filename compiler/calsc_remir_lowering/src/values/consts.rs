@@ -4,8 +4,9 @@ use calsc_diagnostics::{
         InternalErrors, build_internal_hir_node_leaked, build_internal_singleton_error,
     },
 };
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
 use calsc_typing::FieldHavingType;
+use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     builders::{
         build_const_array, build_const_float, build_const_int, build_const_string,
@@ -18,14 +19,16 @@ use remir::{
 use crate::{result::CalscinRemirResult, types::lower_type, values::lower_hir_value};
 
 pub fn lower_hir_literal(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    let master_type = node.stronger_type.clone();
+    let node_ref = hirctx.nodes.get(&node);
 
-    match node.kind.clone() {
+    let master_type = node_ref.stronger_type.clone();
+
+    match node_ref.kind.clone() {
         HIRNodeKind::IntLiteral(value, size, signed) => {
             let mut size = size;
             let mut signed = signed;
@@ -36,7 +39,7 @@ pub fn lower_hir_literal(
                 if !master_type.ty.kind.is_int() {
                     return Err(build_internal_singleton_error(
                         InternalErrors::StrongerTypeLiterals,
-                        &*node,
+                        node_ref,
                     )
                     .into());
                 }
@@ -46,7 +49,7 @@ pub fn lower_hir_literal(
             }
 
             let val = build_const_int(module, value, size, signed)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             Ok(val.into())
         }
@@ -60,7 +63,7 @@ pub fn lower_hir_literal(
                 if !master_type.ty.kind.is_float() {
                     return Err(build_internal_singleton_error(
                         InternalErrors::StrongerTypeLiterals,
-                        &*node,
+                        node_ref,
                     )
                     .into());
                 }
@@ -69,7 +72,7 @@ pub fn lower_hir_literal(
             }
 
             let val = build_const_float(module, value, size)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             Ok(val.into())
         }
@@ -82,7 +85,7 @@ pub fn lower_hir_literal(
             }
 
             let val = build_const_int(module, value, 1, false)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             Ok(val.into())
         }
@@ -107,33 +110,35 @@ pub fn lower_hir_literal(
             }
 
             let val = build_const_struct(module, mir_ty, vals)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             Ok(val.into())
         }
 
-        _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
+        _ => return Err(build_internal_hir_node_leaked(node_ref, node_ref).into()),
     }
 }
 
 pub fn lower_hir_array_const(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    if let HIRNodeKind::ArrayInit { vals } = node.kind.clone() {
+    let node_ref = hirctx.nodes.get(&node);
+
+    if let HIRNodeKind::ArrayInit { vals } = node_ref.kind.clone() {
         let mut mir_vals = vec![]; // This cannot use iter.map due to the ? operator
 
         for val in vals {
             mir_vals.push(lower_hir_value(val, ctx, module, hirctx)?);
         }
 
-        let val =
-            build_const_array(module, mir_vals).convert(node.start.clone(), node.end.clone())?;
+        let val = build_const_array(module, mir_vals)
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         Ok(val.into())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
     }
 }
