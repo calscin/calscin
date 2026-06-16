@@ -59,6 +59,14 @@ impl ModulePath {
     pub fn get_size(&self) -> usize {
         self.path.len() + 1
     }
+
+    pub fn last(&self) -> HashedString {
+        if self.path.is_empty() {
+            self.package.clone()
+        } else {
+            self.path[self.path.len() - 1].clone()
+        }
+    }
 }
 
 impl Default for ModulePath {

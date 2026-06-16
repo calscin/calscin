@@ -43,6 +43,40 @@ impl ModuleTree {
 
         Ok(curr.clone())
     }
+
+    pub fn traverse_mutably_to<S: DiagnosticSource>(
+        &mut self,
+        path: ModulePath,
+        source: &S,
+    ) -> DiagResult<&mut ModuleTreeEntry> {
+        let mut curr = self.traverse_mut(&path, 0, source)?;
+
+        for i in 1..path.get_size() {
+            curr = curr.traverse_mut(&path, i, source)?;
+        }
+
+        Ok(curr)
+    }
+
+    pub fn traverse_to_append<S: DiagnosticSource>(
+        &mut self,
+        path: ModulePath,
+        val: ModuleTreeEntry,
+        source: &S,
+    ) -> DiagPossible {
+        if path.get_size() <= 1 {
+            self.set(path.last(), val, source)?;
+            return Ok(());
+        }
+
+        let mut curr = self.traverse_mut(&path, 0, source)?;
+
+        for i in 1..path.get_size() - 1 {
+            curr = curr.traverse_mut(&path, i, source)?;
+        }
+
+        curr.set(path.last(), val, source)
+    }
 }
 
 impl ModuleTreeTraversal for ModuleTree {
