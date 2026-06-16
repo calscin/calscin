@@ -58,10 +58,8 @@ pub fn lower_hir_stage_1(ast_context: ASTContext, ctx: &mut HIRContext) -> DiagP
         if !first {
             first = true;
 
-            apply_prelude(&mut ctx.scope, ctx.nodes.get(node))?;
+            apply_prelude(&mut ctx.scope, ast_context.nodes.get(node))?;
         }
-
-        println!("{:#?}", node);
 
         lower_hir_stage_1_node(
             ASTNode::clone(&ast_context.nodes.get(node)),
