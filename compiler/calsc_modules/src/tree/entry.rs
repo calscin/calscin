@@ -36,7 +36,7 @@ impl ModuleTreeEntry {
 impl ModuleTreeTraversal for TreeModule {
     fn traverse<S: DiagnosticSource>(
         &self,
-        path: ModulePath,
+        path: &ModulePath,
         ind: usize,
         source: &S,
     ) -> DiagResult<&ModuleTreeEntry> {
@@ -53,7 +53,7 @@ impl ModuleTreeTraversal for TreeModule {
 impl ModuleTreeTraversal for ModuleTreeEntry {
     fn traverse<S: DiagnosticSource>(
         &self,
-        path: ModulePath,
+        path: &ModulePath,
         ind: usize,
         source: &S,
     ) -> DiagResult<&ModuleTreeEntry> {

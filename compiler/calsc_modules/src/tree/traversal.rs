@@ -9,7 +9,7 @@ pub trait ModuleTreeTraversal {
     /// Traverses the element inside of the module tree
     fn traverse<S: DiagnosticSource>(
         &self,
-        path: ModulePath,
+        path: &ModulePath,
         ind: usize,
         source: &S,
     ) -> DiagResult<&ModuleTreeEntry>;

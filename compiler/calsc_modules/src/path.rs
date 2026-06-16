@@ -55,6 +55,10 @@ impl ModulePath {
             self.path[ind - 1].clone()
         }
     }
+
+    pub fn get_size(&self) -> usize {
+        self.path.len() + 1
+    }
 }
 
 impl Default for ModulePath {

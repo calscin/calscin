@@ -27,12 +27,27 @@ impl ModuleTree {
             entries: HashMap::new(),
         }
     }
+
+    /// Traverses to the given destination
+    pub fn traverse_to<S: DiagnosticSource>(
+        &self,
+        path: ModulePath,
+        source: &S,
+    ) -> DiagResult<ModuleTreeEntry> {
+        let mut curr = self.traverse(&path, 0, source)?;
+
+        for i in 1..path.get_size() {
+            curr = curr.traverse(&path, i, source)?;
+        }
+
+        Ok(curr.clone())
+    }
 }
 
 impl ModuleTreeTraversal for ModuleTree {
     fn traverse<S: DiagnosticSource>(
         &self,
-        path: ModulePath,
+        path: &ModulePath,
         ind: usize,
         source: &S,
     ) -> DiagResult<&ModuleTreeEntry> {
