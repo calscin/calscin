@@ -1,9 +1,6 @@
 //! The error declarations
 
-use std::{
-    fmt::{Debug, Display},
-    path,
-};
+use std::fmt::{Debug, Display};
 
 use calsc_utils::pos::FilePosition;
 
