@@ -43,4 +43,12 @@ impl Visibility {
             _ => true,
         }
     }
+
+    pub fn should_be_added_to_tree(&self) -> bool {
+        match self {
+            Self::Private(_) | Self::Uncopiable => false,
+
+            _ => true,
+        }
+    }
 }

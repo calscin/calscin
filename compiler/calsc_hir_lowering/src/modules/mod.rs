@@ -7,6 +7,7 @@ use calsc_lexer::lexer_tokenize;
 use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, entry::ModuleTreeEntry},
+    visibility::Visibility,
 };
 
 use crate::stage1::lower_hir_stage_1;
@@ -32,6 +33,12 @@ pub fn module_tree_append_file<S: DiagnosticSource>(
 
     for entry in &hir_ctx.scope.key_to_ind {
         let key = entry.0.clone();
+
+        let visibility = &hir_ctx.scope.visibilities[*entry.1];
+
+        if !visibility.should_be_added_to_tree() {
+            continue;
+        }
 
         let entry = &hir_ctx.scope.values[*entry.1];
 
