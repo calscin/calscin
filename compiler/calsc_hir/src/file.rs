@@ -23,6 +23,13 @@ impl HIRFileContext {
         }
     }
 
+    pub fn new_with_package(package: HashedString) -> Self {
+        Self {
+            current_module: ModulePath::new(package, vec![]),
+            lazy_imports: vec![],
+        }
+    }
+
     pub fn advance_module(&mut self, path: HashedString) {
         self.current_module.path.push(path);
     }
