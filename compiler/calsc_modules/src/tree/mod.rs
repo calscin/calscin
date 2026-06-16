@@ -4,7 +4,8 @@
 use std::collections::HashMap;
 
 use calsc_diagnostics::{
-    DiagResult, DiagnosticSource, diags::errors::build_cannot_find_element_no_closest,
+    DiagPossible, DiagResult, DiagnosticSource,
+    diags::errors::{build_already_in_scope, build_cannot_find_element_no_closest},
 };
 use calsc_utils::hash::HashedString;
 
@@ -58,5 +59,34 @@ impl ModuleTreeTraversal for ModuleTree {
         }
 
         Ok(&self.entries[&val])
+    }
+
+    fn traverse_mut<S: DiagnosticSource>(
+        &mut self,
+        path: &ModulePath,
+        ind: usize,
+        source: &S,
+    ) -> DiagResult<&mut ModuleTreeEntry> {
+        let val = path.get(ind);
+
+        if !self.entries.contains_key(&val) {
+            return Err(build_cannot_find_element_no_closest(&path, source).into());
+        }
+
+        Ok(self.entries.get_mut(&val).unwrap())
+    }
+
+    fn set<S: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        val: ModuleTreeEntry,
+        source: &S,
+    ) -> DiagPossible {
+        if self.entries.contains_key(&name) {
+            return Err(build_already_in_scope(&name, source).into());
+        }
+
+        self.entries.insert(name, val);
+        Ok(())
     }
 }

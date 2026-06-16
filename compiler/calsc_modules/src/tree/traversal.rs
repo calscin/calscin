@@ -1,6 +1,7 @@
 //! Definitions related to the traversal of the module tree
 
-use calsc_diagnostics::{DiagResult, DiagnosticSource};
+use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
+use calsc_utils::hash::HashedString;
 
 use crate::{path::ModulePath, tree::entry::ModuleTreeEntry};
 
@@ -13,4 +14,19 @@ pub trait ModuleTreeTraversal {
         ind: usize,
         source: &S,
     ) -> DiagResult<&ModuleTreeEntry>;
+
+    /// Traverses the element inside of the module tree or creates it if needed
+    fn traverse_mut<S: DiagnosticSource>(
+        &mut self,
+        path: &ModulePath,
+        ind: usize,
+        source: &S,
+    ) -> DiagResult<&mut ModuleTreeEntry>;
+
+    fn set<S: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        val: ModuleTreeEntry,
+        source: &S,
+    ) -> DiagPossible;
 }
