@@ -27,7 +27,7 @@ pub fn make_int_type<K: DiagnosticSource>(
 
     let base_type = ctx
         .scope
-        .get_entry(key, origin)
+        .get_entry_no_visibility(key, origin)
         .unwrap_cleanly()
         .as_type(origin)
         .unwrap_cleanly();
@@ -49,7 +49,7 @@ pub fn make_float_type<K: DiagnosticSource>(
 
     let base_type = ctx
         .scope
-        .get_entry(key, origin)
+        .get_entry_no_visibility(key, origin)
         .unwrap_cleanly()
         .as_type(origin)
         .unwrap_cleanly();
@@ -62,7 +62,7 @@ pub fn make_bool_type<K: DiagnosticSource>(origin: &K, ctx: &HIRContext) -> Type
 
     let base_type = ctx
         .scope
-        .get_entry(key, origin)
+        .get_entry_no_visibility(key, origin)
         .unwrap_cleanly()
         .as_type(origin)
         .unwrap_cleanly();
@@ -75,7 +75,7 @@ pub fn make_string_type<K: DiagnosticSource>(origin: &K, ctx: &HIRContext) -> Ty
 
     let base_type = ctx
         .scope
-        .get_entry(key, origin)
+        .get_entry_no_visibility(key, origin)
         .unwrap_cleanly()
         .as_type(origin)
         .unwrap_cleanly();
@@ -88,7 +88,7 @@ pub fn make_char_type<K: DiagnosticSource>(origin: &K, ctx: &HIRContext) -> Type
 
     let base_type = ctx
         .scope
-        .get_entry(key, origin)
+        .get_entry_no_visibility(key, origin)
         .unwrap_cleanly()
         .as_type(origin)
         .unwrap_cleanly();

@@ -103,7 +103,7 @@ pub fn lower_hir_function_decl(
     {
         let local_context = context
             .scope
-            .get_entry(key.clone(), node_ref)?
+            .get_entry_no_visibility(key.clone(), node_ref)?
             .as_function(node_ref)?
             .local_context
             .clone()

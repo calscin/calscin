@@ -161,6 +161,7 @@ pub fn lower_ast_for_loop(
                 None,
                 local_ctx.clone(),
                 ctx,
+                file_ctx,
             )?
             .push(ctx);
 

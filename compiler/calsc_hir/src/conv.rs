@@ -16,6 +16,7 @@ use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     HIRContext,
+    file::{self, HIRFileContext},
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
@@ -33,12 +34,20 @@ impl HIRNode {
         other_node: Option<ArenaHandle>,
         local_func_key: Option<GlobalContextKey>,
         ctx: &mut HIRContext,
+        file_ctx: &HIRFileContext,
     ) -> DiagResult<HIRNode> {
         if let HIRNodeKind::StructuredInit { .. } = self.kind.clone() {
-            return convert_structured_init_into(self.clone(), ty, local_func_key, self, ctx);
+            return convert_structured_init_into(
+                self.clone(),
+                ty,
+                local_func_key,
+                self,
+                ctx,
+                file_ctx,
+            );
         }
 
-        if self.get_type(local_func_key.clone(), ctx)? == Type::Void {
+        if self.get_type(local_func_key.clone(), ctx, Some(file_ctx))? == Type::Void {
             return Err(build_unexpected_type_error(&"void".to_string(), self).into());
         }
 
@@ -46,7 +55,7 @@ impl HIRNode {
             return convert_numerical_literal_into(self.clone(), ty.as_base());
         }
 
-        let self_type: Type = self.get_type(local_func_key.clone(), ctx)?;
+        let self_type: Type = self.get_type(local_func_key.clone(), ctx, Some(file_ctx))?;
 
         if self_type == ty {
             return Ok(self.clone());
@@ -91,6 +100,7 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
     local_func_key: Option<GlobalContextKey>,
     origin: &K,
     ctx: &mut HIRContext,
+    file_ctx: &HIRFileContext,
 ) -> DiagResult<HIRNode> {
     if let HIRNodeKind::StructuredInit { values } = structured_init.kind {
         let mut vals = HashMap::new();
@@ -111,6 +121,7 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
                         None,
                         local_func_key.clone(),
                         ctx,
+                        file_ctx,
                     )?
                     .push(ctx),
             );

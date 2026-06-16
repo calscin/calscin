@@ -1,9 +1,11 @@
 #[cfg(test)]
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 
+use calsc_hir::file::HIRFileContext;
 #[cfg(test)]
 use calsc_hir::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalContextValue};
 
+use calsc_modules::{path::ModulePath, visibility::Visibility};
 #[cfg(test)]
 use calsc_typing::base::{BaseType, kind::BaseTypeKind};
 
@@ -22,10 +24,12 @@ fn globalctx_entry_retrival_test() {
     let entry = GlobalContextValue::Type(type_entry.clone());
 
     globalctx
-        .append(key.clone(), entry, &origin)
+        .append(key.clone(), entry, Visibility::Public, &origin)
         .unwrap_cleanly();
 
-    let entry = globalctx.get_entry(key, &origin).unwrap_cleanly();
+    let entry = globalctx
+        .get_entry_no_visibility(key, &origin)
+        .unwrap_cleanly();
 
     assert_eq!(entry.as_type(&origin).unwrap_cleanly(), type_entry);
 }
@@ -37,7 +41,7 @@ fn globalctx_entry_retrival_none_test() {
     let globalctx = GlobalContext::new();
 
     let key = GlobalContextKey::new("test".into());
-    let _ = globalctx.get_entry(key, &origin).unwrap_err();
+    let _ = globalctx.get_entry_no_visibility(key, &origin).unwrap_err();
 }
 
 #[test]
@@ -53,12 +57,12 @@ fn globalctx_type_mutation_test() {
     let entry = GlobalContextValue::Type(type_entry.clone());
 
     globalctx
-        .append(key.clone(), entry, &origin)
+        .append(key.clone(), entry, Visibility::Public, &origin)
         .unwrap_cleanly();
 
     assert_eq!(
         globalctx
-            .get_entry(key.clone(), &origin)
+            .get_entry(key.clone(), &HIRFileContext::new().current_module, &origin)
             .unwrap_cleanly()
             .as_type(&origin)
             .unwrap_cleanly(),
@@ -82,7 +86,7 @@ fn globalctx_type_mutation_test() {
 
     assert_eq!(
         globalctx
-            .get_entry(key, &origin)
+            .get_entry_no_visibility(key, &origin)
             .unwrap_cleanly()
             .as_type(&origin)
             .unwrap_cleanly(),

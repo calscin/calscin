@@ -6,7 +6,9 @@ use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        forms::parse_ast_field_form, func::parse_function_declaration, types::parse_ast_type,
+        forms::{parse_ast_field_form, parse_visibility_form},
+        func::parse_function_declaration,
+        types::parse_ast_type,
         utils::parse_ast_list,
     },
 };
@@ -18,6 +20,8 @@ pub fn parse_ast_struct_declaration(
     ctx: &mut ASTContext,
 ) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
+
+    let visibility = parse_visibility_form(tokens, ind);
 
     *ind += 1; // struct
 
@@ -58,6 +62,7 @@ pub fn parse_ast_struct_declaration(
             name,
             type_params,
             fields,
+            visibility,
         },
         start,
         end,

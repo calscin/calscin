@@ -42,7 +42,7 @@ pub fn lower_ast_binary_expression(
 
         let left_expr_ref = ctx.nodes.get(&left_expr).clone();
 
-        let left_expr_type = left_expr_ref.get_type(local_ctx.clone(), ctx)?;
+        let left_expr_type = left_expr_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
         if left_expr_type == Type::Void || !left_expr_type.is_direct_numeric_generic() {
             return Err(build_expected_type_error(
@@ -70,6 +70,7 @@ pub fn lower_ast_binary_expression(
                 Some(left_expr.clone()),
                 local_ctx,
                 ctx,
+                file_ctx,
             )?
             .push(ctx);
 

@@ -15,6 +15,7 @@ use crate::{
             for_loop::parse_ast_for_loop, ifelse::parse_ast_if_statement, loops::parse_ast_loop,
             while_loop::parse_ast_while_loop,
         },
+        forms::parse_visibility_form,
         func::{parse_extern_function_declaration, parse_function_declaration},
         import::parse_ast_import_statement,
         structs::{parse_ast_struct_decl_block, parse_ast_struct_declaration},
@@ -129,7 +130,12 @@ pub fn parse_ast_top_level(
     ind: &mut usize,
     ctx: &mut ASTContext,
 ) -> DiagResult<ArenaHandle> {
-    match tokens[*ind].kind {
+    let i = match tokens[*ind].kind {
+        TokenKind::Public | TokenKind::Private | TokenKind::Protected => *ind + 1,
+        _ => *ind,
+    };
+
+    match tokens[i].kind {
         TokenKind::Function => parse_function_declaration(tokens, ind, ctx),
         TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind, ctx),
         TokenKind::Struct => parse_ast_struct_declaration(tokens, ind, ctx),

@@ -22,7 +22,10 @@ use calsc_typing::{
     tree::Type,
 };
 
-use crate::{stage1::funcs::lower_ast_function_decl_first_stage, stage2::key::lower_ast_key};
+use crate::{
+    convert_visibility, stage1::funcs::lower_ast_function_decl_first_stage,
+    stage2::key::lower_ast_key,
+};
 
 pub fn lower_ast_struct_declaration(
     node: ASTNode,
@@ -33,8 +36,11 @@ pub fn lower_ast_struct_declaration(
         name,
         type_params,
         fields,
+        visibility,
     } = node.kind.clone()
     {
+        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+
         let key = GlobalContextKey::new(name.clone());
 
         let mut base_type = BaseType::new(BaseTypeKind::Struct(BaseStructContainer::new(name)));
@@ -52,7 +58,7 @@ pub fn lower_ast_struct_declaration(
         }
 
         ctx.scope
-            .append(key, GlobalContextValue::Type(base_type), &node)?;
+            .append(key, GlobalContextValue::Type(base_type), visibility, &node)?;
 
         Ok(())
     } else {
@@ -181,10 +187,10 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
 ) -> DiagResult<Type> {
     let key = lower_ast_key(name, origin, true, file_ctx, ctx)?;
 
-    let ty =
-        ctx.scope
-            .get_entry(key, origin)?
-            .craft_type(origin, size_specifiers, type_parameters)?;
+    let ty = ctx
+        .scope
+        .get_entry(key, &file_ctx.current_module, origin)?
+        .craft_type(origin, size_specifiers, type_parameters)?;
 
     Ok(ty)
 }

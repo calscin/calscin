@@ -12,9 +12,12 @@ use calsc_ast::{
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIRContext, file::HIRFileContext, prelude::apply_prelude};
 
-use crate::stage1::{
-    funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
-    types::{lower_ast_decl_block, lower_ast_struct_declaration},
+use crate::{
+    convert_visibility,
+    stage1::{
+        funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
+        types::{lower_ast_decl_block, lower_ast_struct_declaration},
+    },
 };
 
 pub mod funcs;

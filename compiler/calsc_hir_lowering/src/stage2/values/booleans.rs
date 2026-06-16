@@ -40,6 +40,7 @@ pub fn lower_hir_inverse_condition(
             None,
             local_ctx.clone(),
             ctx,
+            file_ctx,
         )?;
 
         let node = HIRNode::new(

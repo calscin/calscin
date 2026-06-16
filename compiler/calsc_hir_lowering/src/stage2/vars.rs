@@ -22,11 +22,12 @@ pub fn lower_ast_variable_reference(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
     ctx: &mut HIRContext,
+    file_ctx: &HIRFileContext,
 ) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::ElementReference(val) = &node.kind {
         let ind = ctx
             .scope
-            .get_entry(curr_ctx.unwrap(), &node)
+            .get_entry(curr_ctx.unwrap(), &file_ctx.current_module, &node)
             .unwrap()
             .as_function(&node)
             .unwrap()
@@ -100,7 +101,14 @@ pub fn lower_ast_variable_declaration(
 
             v = Some(
                 value_ref
-                    .use_as(var_type.clone(), value.clone(), None, curr_ctx.clone(), ctx)?
+                    .use_as(
+                        var_type.clone(),
+                        value.clone(),
+                        None,
+                        curr_ctx.clone(),
+                        ctx,
+                        file_ctx,
+                    )?
                     .push(ctx),
             );
         }
@@ -170,7 +178,7 @@ pub fn lower_ast_variable_assign(
         )?;
 
         let variable_ref = ctx.nodes.get(&variable).clone();
-        let variable_type = variable_ref.get_type(curr_ctx.clone(), ctx)?;
+        let variable_type = variable_ref.get_type(curr_ctx.clone(), ctx, Some(file_ctx))?;
 
         let value = lower_ast_value(
             ast_ctx.nodes.get(&value).clone(),
@@ -183,7 +191,14 @@ pub fn lower_ast_variable_assign(
         let value_ref = ctx.nodes.get(&value).clone();
 
         let value = value_ref
-            .use_as(variable_type, value.clone(), None, curr_ctx.clone(), ctx)?
+            .use_as(
+                variable_type,
+                value.clone(),
+                None,
+                curr_ctx.clone(),
+                ctx,
+                file_ctx,
+            )?
             .push(ctx);
 
         if !ctx.nodes.get(&variable).represents_mutable_variable(ctx) {

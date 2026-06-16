@@ -11,6 +11,7 @@ pub mod imports;
 pub mod nodes;
 pub mod path;
 pub mod types;
+pub mod visibility;
 
 #[cfg(feature = "parser")]
 pub mod parser;

@@ -80,7 +80,7 @@ pub fn lower_ast_body<K: DiagnosticSource>(
 
     let previous_branch = ctx
         .scope
-        .get_entry(local_ctx.clone().unwrap(), origin)?
+        .get_entry(local_ctx.clone().unwrap(), &file_ctx.current_module, origin)?
         .as_function(origin)?
         .local_context
         .as_ref()
@@ -158,7 +158,10 @@ pub fn lower_ast_function_call(
             )?);
         }
 
-        let is_function = ctx.scope.get_entry(key.clone(), &node)?.is_function();
+        let is_function = ctx
+            .scope
+            .get_entry(key.clone(), &file_ctx.current_module, &node)?
+            .is_function();
 
         if !is_function {
             return Err(build_expected_entry_type(&"function", &"?? TODO", &node).into());
@@ -191,7 +194,7 @@ pub fn lower_ast_return_statement(
 
         let expected_return_type = ctx
             .scope
-            .get_entry(local_ctx.clone().unwrap(), &node)?
+            .get_entry(local_ctx.clone().unwrap(), &file_ctx.current_module, &node)?
             .as_function(&node)?
             .local_context
             .as_ref()
@@ -221,6 +224,7 @@ pub fn lower_ast_return_statement(
                     None,
                     local_ctx.clone(),
                     ctx,
+                    file_ctx,
                 )?
                 .push(ctx);
 
@@ -264,6 +268,7 @@ pub fn lower_ast_function_decl(
         arguments,
         return_type,
         body,
+        visibility: _,
     } = node.kind.clone()
     {
         let mut key = GlobalContextKey::new(name.clone());
@@ -304,7 +309,7 @@ pub fn lower_ast_function_decl(
 
         let meets_ending_point = ctx
             .scope
-            .get_entry(key.clone(), &node)?
+            .get_entry(key.clone(), &file_ctx.current_module, &node)?
             .as_function(&node)?
             .local_context
             .as_ref()

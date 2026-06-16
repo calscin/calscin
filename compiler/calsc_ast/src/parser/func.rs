@@ -8,7 +8,10 @@ use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        forms::{parse_ast_body_form, parse_ast_return_type_form, parse_element_path_form},
+        forms::{
+            parse_ast_body_form, parse_ast_return_type_form, parse_element_path_form,
+            parse_visibility_form,
+        },
         types::parse_ast_type,
         utils::parse_ast_list,
         values::parse_ast_value,
@@ -40,6 +43,8 @@ pub fn parse_function_declaration(
 ) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
+    let visibility = parse_visibility_form(tokens, ind);
+
     *ind += 1; // func
 
     let func_name = tokens[*ind].expects_keyword()?;
@@ -69,6 +74,7 @@ pub fn parse_function_declaration(
             return_type,
             arguments,
             body,
+            visibility,
         },
         start,
         end,
@@ -141,6 +147,8 @@ pub fn parse_extern_function_declaration(
 ) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
+    let visibility = parse_visibility_form(tokens, ind);
+
     *ind += 1; // externfunc
 
     let name = HashedString::new(tokens[*ind].expects_keyword()?);
@@ -187,6 +195,7 @@ pub fn parse_extern_function_declaration(
             arguments: args,
             return_type,
             triple_dot_position: triple_dot_pos,
+            visibility,
         },
         start,
         end,

@@ -75,7 +75,9 @@ pub fn lower_ast_value(
             lower_ast_function_call(node, None, local_ctx, file_ctx, ctx, ast_ctx)
         }
 
-        ASTNodeKind::ElementReference(_) => lower_ast_variable_reference(node, local_ctx, ctx),
+        ASTNodeKind::ElementReference(_) => {
+            lower_ast_variable_reference(node, local_ctx, ctx, file_ctx)
+        }
 
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx, file_ctx, ctx, ast_ctx),
 
@@ -116,7 +118,7 @@ pub fn lower_ast_range(
 
         let start_ref = ctx.nodes.get(&start);
 
-        let start_type = start_ref.get_type(local_ctx.clone(), ctx)?;
+        let start_type = start_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
         if start_type == Type::Void {
             return Err(build_unexpected_type_error(&Type::Void, start_ref).into());
@@ -139,6 +141,7 @@ pub fn lower_ast_range(
                 Some(start.clone()),
                 local_ctx.clone(),
                 ctx,
+                file_ctx,
             )?
             .push(ctx);
 
@@ -223,7 +226,10 @@ pub fn lower_ast_array_init(
             ast_ctx,
         )?;
 
-        let first_val_type = ctx.nodes.get(&first_val).get_type(local_ctx.clone(), ctx)?;
+        let first_val_type =
+            ctx.nodes
+                .get(&first_val)
+                .get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
         hir_vals.push(first_val.clone());
 
@@ -247,6 +253,7 @@ pub fn lower_ast_array_init(
                     Some(first_val.clone()),
                     local_ctx.clone(),
                     ctx,
+                    file_ctx,
                 )?
                 .push(ctx);
 

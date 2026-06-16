@@ -1,7 +1,7 @@
 //! The environment in which the real barebones are loaded. This is were compiler builtins are loaded into the HIR
 
 use calsc_diagnostics::{DiagPossible, DiagnosticSource};
-use calsc_modules::path::ModulePath;
+use calsc_modules::{path::ModulePath, visibility::Visibility};
 use calsc_typing::base::{BaseType, kind::BaseTypeKind};
 
 use crate::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalContextValue};
@@ -26,40 +26,51 @@ pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K)
     let string_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::String));
     let char_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::Char));
 
-    scope.append(GlobalContextKey::new("bool".into()), bool_type, origin)?;
+    scope.append(
+        GlobalContextKey::new("bool".into()),
+        bool_type,
+        Visibility::Uncopiable,
+        origin,
+    )?;
 
     scope.append(
         GlobalContextKey::new("s".into()).module_path(module_path.clone()),
         signed_integer_type,
+        Visibility::Uncopiable,
         origin,
     )?;
 
     scope.append(
         GlobalContextKey::new("u".into()).module_path(module_path.clone()),
         unsigned_integer_type,
+        Visibility::Uncopiable,
         origin,
     )?;
 
     scope.append(
         GlobalContextKey::new("f".into()).module_path(module_path.clone()),
         signed_float_type,
+        Visibility::Uncopiable,
         origin,
     )?;
 
     scope.append(
         GlobalContextKey::new("uf".into()).module_path(module_path.clone()),
         unsigned_float_type,
+        Visibility::Uncopiable,
         origin,
     )?;
 
     scope.append(
         GlobalContextKey::new("str".into()).module_path(module_path.clone()),
         string_type,
+        Visibility::Uncopiable,
         origin,
     )?;
     scope.append(
         GlobalContextKey::new("char".into()).module_path(module_path.clone()),
         char_type,
+        Visibility::Uncopiable,
         origin,
     )?;
 

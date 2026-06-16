@@ -35,7 +35,7 @@ pub fn lower_ast_index_usage(
 
         let val_ref = ctx.nodes.get(&val);
 
-        let val_type = val_ref.get_type(local_ctx.clone(), ctx)?;
+        let val_type = val_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
         if !val_type.is_iterable_at_all() {
             return Err(build_not_iterable(None, &val_type, val_ref).into());
@@ -58,6 +58,7 @@ pub fn lower_ast_index_usage(
                 None,
                 local_ctx.clone(),
                 ctx,
+                file_ctx,
             )?
             .push(ctx);
 

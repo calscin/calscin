@@ -40,7 +40,10 @@ pub fn lower_ast_lru(
             ast_ctx,
         )?;
 
-        let left_ty = ctx.nodes.get(&left_expr).get_type(curr_ctx.clone(), ctx)?;
+        let left_ty = ctx
+            .nodes
+            .get(&left_expr)
+            .get_type(curr_ctx.clone(), ctx, Some(file_ctx))?;
 
         let right_expr_ref = ast_ctx.nodes.get(&right_expr);
 

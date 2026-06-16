@@ -28,7 +28,7 @@ pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
 
     // First round: registering functions
     for key in ctx.scope.key_to_ind.keys() {
-        let entry = ctx.scope.get_entry(key.clone(), &dummy_pos)?;
+        let entry = ctx.scope.get_entry_no_visibility(key.clone(), &dummy_pos)?;
 
         if entry.is_function() {
             let func = entry.as_function(&dummy_pos)?;
@@ -45,7 +45,7 @@ pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
 
     // Second round: lowering bodies
     for key in ctx.scope.key_to_ind.keys() {
-        let entry = ctx.scope.get_entry(key.clone(), &dummy_pos)?;
+        let entry = ctx.scope.get_entry_no_visibility(key.clone(), &dummy_pos)?;
 
         if entry.is_function() {
             let func = entry.as_function(&dummy_pos)?;

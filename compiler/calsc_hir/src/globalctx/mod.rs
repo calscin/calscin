@@ -10,9 +10,11 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
         build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
+        build_unreadable_element_visibility,
     },
 };
 
+use calsc_modules::{path::ModulePath, visibility::Visibility};
 use calsc_utils::str::levenshtein;
 
 use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
@@ -25,6 +27,7 @@ pub mod vals;
 pub struct GlobalContext {
     pub key_to_ind: HashMap<GlobalContextKey, usize>,
     pub values: Vec<GlobalContextValue>,
+    pub visibilities: Vec<Visibility>,
 }
 
 impl GlobalContext {
@@ -32,6 +35,7 @@ impl GlobalContext {
         Self {
             key_to_ind: HashMap::new(),
             values: vec![],
+            visibilities: vec![],
         }
     }
 
@@ -44,6 +48,7 @@ impl GlobalContext {
         &mut self,
         key: GlobalContextKey,
         value: GlobalContextValue,
+        visibility: Visibility,
         origin: &K,
     ) -> DiagResult<usize> {
         if self.key_to_ind.contains_key(&key) {
@@ -54,16 +59,12 @@ impl GlobalContext {
 
         self.key_to_ind.insert(key, ind);
         self.values.push(value);
+        self.visibilities.push(visibility);
 
         Ok(ind)
     }
 
-    /// Gets the entry at the given key as a [`GlobalContextValue`] reference
-    ///
-    /// # Error
-    /// This function will error at the given origin if there is no entry related to the given key.
-    ///
-    pub fn get_entry<K: DiagnosticSource>(
+    pub fn get_entry_no_visibility<K: DiagnosticSource>(
         &self,
         key: GlobalContextKey,
         origin: &K,
@@ -78,10 +79,48 @@ impl GlobalContext {
             }
         }
 
-        let val = &self.values[self.key_to_ind[&key]];
+        let ind = self.key_to_ind[&key];
+
+        let val = &self.values[ind];
 
         if let GlobalContextValue::AnotherReference(key) = &val {
-            return self.get_entry(key.clone(), origin);
+            return self.get_entry_no_visibility(key.clone(), origin);
+        }
+
+        Ok(val)
+    }
+
+    /// Gets the entry at the given key as a [`GlobalContextValue`] reference
+    ///
+    /// # Error
+    /// This function will error at the given origin if there is no entry related to the given key.
+    ///
+    pub fn get_entry<K: DiagnosticSource>(
+        &self,
+        key: GlobalContextKey,
+        source: &ModulePath,
+        origin: &K,
+    ) -> DiagResult<&GlobalContextValue> {
+        if !self.key_to_ind.contains_key(&key) {
+            let closest = get_closest_key(self, key.clone());
+
+            if closest.is_some() {
+                return Err(build_cannot_find_element(&key, &closest.unwrap(), origin).into());
+            } else {
+                return Err(build_cannot_find_element_no_closest(&*key.name, origin).into());
+            }
+        }
+
+        let ind = self.key_to_ind[&key];
+
+        let val = &self.values[ind];
+
+        if let GlobalContextValue::AnotherReference(key) = &val {
+            return self.get_entry(key.clone(), source, origin);
+        }
+
+        if !self.visibilities[ind].can_view(&source) {
+            return Err(build_unreadable_element_visibility(&key, source, origin).into());
         }
 
         Ok(val)

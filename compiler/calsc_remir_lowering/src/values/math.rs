@@ -39,10 +39,11 @@ pub fn lower_hir_math_operation(
         operator,
     } = node_ref.kind.clone()
     {
-        let ty = hirctx
-            .nodes
-            .get(&left_expr)
-            .get_type(Some(ctx.local_key.clone()), hirctx)?;
+        let ty =
+            hirctx
+                .nodes
+                .get(&left_expr)
+                .get_type(Some(ctx.local_key.clone()), hirctx, None)?;
 
         let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module, hirctx)?;
         let right_expr_val = lower_hir_value(right_expr, ctx, module, hirctx)?;
