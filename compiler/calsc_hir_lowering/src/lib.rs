@@ -3,6 +3,7 @@
 use calsc_modules::path::ModulePath;
 use calsc_modules::visibility::Visibility;
 
+pub mod modules;
 pub mod stage1;
 pub mod stage2;
 

@@ -4,7 +4,7 @@ use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{build_already_in_scope, build_cannot_find_element_no_closest},
 };
-use calsc_typing::tree::Type;
+use calsc_typing::{base::BaseType, tree::Type};
 use calsc_utils::hash::HashedString;
 
 use crate::{path::ModulePath, tree::traversal::ModuleTreeTraversal};
@@ -12,6 +12,7 @@ use crate::{path::ModulePath, tree::traversal::ModuleTreeTraversal};
 #[derive(Debug, Clone)]
 pub enum ModuleTreeEntry {
     Function(Type, Vec<(HashedString, Type)>),
+    Type(BaseType),
     Module(TreeModule),
 }
 
