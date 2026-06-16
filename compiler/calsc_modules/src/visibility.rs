@@ -18,6 +18,9 @@ pub enum Visibility {
 
     /// The element is only accessible inside of the module
     Private(ModulePath),
+
+    /// The element can be access but not copied
+    Uncopiable,
 }
 
 impl Visibility {
@@ -25,10 +28,19 @@ impl Visibility {
     pub fn can_view(&self, path: &ModulePath) -> bool {
         match self {
             Self::Public => true,
+            Self::Uncopiable => true,
             Self::Protected(inner_path) => path.package == inner_path.package,
             Self::Private(inner_path) => {
                 path.package == inner_path.package && path.path == inner_path.path
             }
+        }
+    }
+
+    pub fn can_be_imported(&self) -> bool {
+        match self {
+            Self::Uncopiable => false,
+
+            _ => true,
         }
     }
 }
