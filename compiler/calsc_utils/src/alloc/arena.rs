@@ -44,7 +44,7 @@ impl<T> ArenaAllocator<T> {
         Ref::map(self.arena.borrow(), |v| &v[idx])
     }
 
-    pub fn get(&self, handle: ArenaHandle) -> ArenaRef<'_, T> {
+    pub fn get(&self, handle: &ArenaHandle) -> ArenaRef<'_, T> {
         ArenaRef {
             inner: self.borrow(handle.index),
         }

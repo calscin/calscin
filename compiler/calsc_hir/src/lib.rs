@@ -2,11 +2,9 @@
 
 #![deny(unsafe_code)]
 
-use std::cell::RefCell;
-
 use calsc_utils::alloc::arena::ArenaAllocator;
 
-use crate::{globalctx::GlobalContext, nodes::HIRNode, refs::HIRArenaReference};
+use crate::{globalctx::GlobalContext, nodes::HIRNode};
 
 pub mod conv;
 pub mod file;
@@ -16,7 +14,6 @@ pub mod ifs;
 pub mod localctx;
 pub mod nodes;
 pub mod prelude;
-pub mod refs;
 pub mod types;
 
 #[cfg_attr(feature = "debug", derive(Debug))]

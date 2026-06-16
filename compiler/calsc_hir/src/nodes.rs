@@ -8,14 +8,14 @@ use calsc_diagnostics::{
 };
 use calsc_typing::{FieldHavingType, tree::Type};
 use calsc_utils::{
-    cmp::CompareOperator, hash::HashedString, math::MathOperator, pos::FilePosition,
+    alloc::arena::ArenaHandle, cmp::CompareOperator, hash::HashedString, math::MathOperator,
+    pos::FilePosition,
 };
 
 use crate::{
     HIRContext,
     globalctx::key::GlobalContextKey,
     ifs::IfStatementBranch,
-    refs::HIRArenaReference,
     types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
 };
 
@@ -38,26 +38,26 @@ pub enum HIRNodeKind {
     /// A boolean literal
     BooleanLiteral(bool),
 
-    InverseCondition(HIRArenaReference),
+    InverseCondition(ArenaHandle),
 
-    PointerReference(HIRArenaReference),
-    PointerDereference(HIRArenaReference),
+    PointerReference(ArenaHandle),
+    PointerDereference(ArenaHandle),
 
     Range {
-        start: HIRArenaReference,
-        end: HIRArenaReference,
-        increment: Option<HIRArenaReference>,
+        start: ArenaHandle,
+        end: ArenaHandle,
+        increment: Option<ArenaHandle>,
     },
 
     MathExpression {
-        left_expr: HIRArenaReference,
-        right_expr: HIRArenaReference,
+        left_expr: ArenaHandle,
+        right_expr: ArenaHandle,
         operator: MathOperator,
     },
 
     CompareExpression {
-        left_expr: HIRArenaReference,
-        right_expr: HIRArenaReference,
+        left_expr: ArenaHandle,
+        right_expr: ArenaHandle,
         operator: CompareOperator,
     },
 
@@ -65,7 +65,7 @@ pub enum HIRNodeKind {
         mutable: bool,
         var_type: Type,
 
-        value: Option<HIRArenaReference>,
+        value: Option<ArenaHandle>,
 
         name: HashedString,
 
@@ -82,14 +82,14 @@ pub enum HIRNodeKind {
     },
 
     FieldReference {
-        val: HIRArenaReference,
+        val: ArenaHandle,
         field_ind: usize,
         name: HashedString,
     },
 
     IndexUsage {
-        val: HIRArenaReference,
-        index: HIRArenaReference,
+        val: ArenaHandle,
+        index: ArenaHandle,
         output_type: Type,
     },
 
@@ -98,21 +98,21 @@ pub enum HIRNodeKind {
     },
 
     StructuredInit {
-        values: HashMap<HashedString, HIRArenaReference>,
+        values: HashMap<HashedString, ArenaHandle>,
     },
 
     TypedStructuredInit {
         ty: Type,
-        values: HashMap<HashedString, HIRArenaReference>,
+        values: HashMap<HashedString, ArenaHandle>,
     },
 
     ArrayInit {
-        vals: Vec<HIRArenaReference>,
+        vals: Vec<ArenaHandle>,
     },
 
     Assignment {
-        variable: HIRArenaReference,
-        value: HIRArenaReference,
+        variable: ArenaHandle,
+        value: ArenaHandle,
     },
 
     ForLoop {
@@ -122,34 +122,34 @@ pub enum HIRNodeKind {
         /// The actual index representing the index inside of the local context
         iterator_variable_index: usize,
 
-        iterated: HIRArenaReference,
-        body: Vec<HIRArenaReference>,
+        iterated: ArenaHandle,
+        body: Vec<ArenaHandle>,
     },
 
     FunctionCall {
         func: GlobalContextKey,
-        arguments: Vec<HIRArenaReference>,
+        arguments: Vec<ArenaHandle>,
     },
 
     FunctionDeclaration {
         key: GlobalContextKey,
         arguments: Vec<(Type, HashedString)>,
-        body: Vec<HIRArenaReference>,
+        body: Vec<ArenaHandle>,
         return_type: Type,
         append_terminator: bool,
     },
 
     ReturnStatement {
-        val: Option<HIRArenaReference>,
+        val: Option<ArenaHandle>,
     },
 
     Loop {
-        body: Vec<HIRArenaReference>,
+        body: Vec<ArenaHandle>,
     },
 
     WhileLoop {
-        condition: HIRArenaReference,
-        body: Vec<HIRArenaReference>,
+        condition: ArenaHandle,
+        body: Vec<ArenaHandle>,
     },
 
     IfStatement {
@@ -157,7 +157,7 @@ pub enum HIRNodeKind {
     },
 
     CastNode {
-        original: HIRArenaReference,
+        original: ArenaHandle,
         into: Type,
     },
 }
@@ -182,7 +182,7 @@ impl HIRNode {
         }
     }
 
-    pub fn push(self, ctx: &mut HIRContext) -> HIRArenaReference {
+    pub fn push(self, ctx: &mut HIRContext) -> ArenaHandle {
         ctx.nodes.append(self)
     }
 
@@ -215,15 +215,18 @@ impl HIRNode {
                 start,
                 end: _,
                 increment: _,
-            } => start.get_type(local_func_key, ctx)?,
+            } => ctx.nodes.get(&start).get_type(local_func_key, ctx)?,
 
             HIRNodeKind::PointerReference(val) => Type::Reference {
                 mutable: true, // Mutable by default, will change
-                inner: Box::new(val.get_type(local_func_key, ctx)?),
+                inner: Box::new(ctx.nodes.get(&val).get_type(local_func_key, ctx)?),
             },
 
             HIRNodeKind::PointerDereference(val) => {
-                val.get_type(local_func_key, ctx)?.get_inner() // Assumes the container of a pointer reference is a pointer.
+                ctx.nodes
+                    .get(&val)
+                    .get_type(local_func_key, ctx)?
+                    .get_inner() // Assumes the container of a pointer reference is a pointer.
             }
 
             HIRNodeKind::MathExpression {
@@ -234,7 +237,7 @@ impl HIRNode {
                 if operator.assigns {
                     Type::Void
                 } else {
-                    left_expr.get_type(local_func_key, ctx)?
+                    ctx.nodes.get(&left_expr).get_type(local_func_key, ctx)?
                 }
             }
 
@@ -243,7 +246,7 @@ impl HIRNode {
                 field_ind: _,
                 name,
             } => {
-                let ty = val.get_type(local_func_key, ctx)?;
+                let ty = ctx.nodes.get(&val).get_type(local_func_key, ctx)?;
 
                 if ty.has_field(name.clone()) {
                     ty.get_field_type(name)
@@ -288,7 +291,7 @@ impl HIRNode {
 
             HIRNodeKind::ArrayInit { vals } => Type::Array {
                 size: Some(vals.len()),
-                inner: Box::new(vals[0].get_type(local_func_key, ctx)?),
+                inner: Box::new(ctx.nodes.get(&vals[0]).get_type(local_func_key, ctx)?),
             },
 
             _ => Type::Void,
@@ -306,47 +309,49 @@ impl HIRNode {
     }
 
     /// Does the node represent a pointer referencable
-    pub fn represents_pointer_referencable(&self) -> bool {
+    pub fn represents_pointer_referencable(&self, ctx: &HIRContext) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
             HIRNodeKind::FieldReference {
                 val,
                 field_ind: _,
                 name: _,
-            } => val.represents_pointer_referencable(),
+            } => ctx.nodes.get(val).represents_pointer_referencable(ctx),
 
             HIRNodeKind::IndexUsage {
                 val,
                 index: _,
                 output_type: _,
-            } => val.represents_pointer_referencable(),
+            } => ctx.nodes.get(val).represents_pointer_referencable(ctx),
 
             _ => false,
         }
     }
 
     /// Does the node represent a mutable variable-like
-    pub fn represents_mutable_variable(&self) -> bool {
+    pub fn represents_mutable_variable(&self, ctx: &HIRContext) -> bool {
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
             HIRNodeKind::FieldReference {
                 val,
                 field_ind: _,
                 name: _,
-            } => val.represents_mutable_variable(),
-            HIRNodeKind::PointerDereference(inner) => inner.represents_mutable_variable(),
+            } => ctx.nodes.get(val).represents_mutable_variable(ctx),
+            HIRNodeKind::PointerDereference(inner) => {
+                ctx.nodes.get(inner).represents_mutable_variable(ctx)
+            }
             HIRNodeKind::IndexUsage {
                 val,
                 index: _,
                 output_type: _,
-            } => val.represents_mutable_variable(),
+            } => ctx.nodes.get(val).represents_mutable_variable(ctx),
 
             _ => false,
         }
     }
 
     /// Gets the root variable index of the node
-    pub fn get_root_variable_reference_index(&self) -> usize {
+    pub fn get_root_variable_reference_index(&self, ctx: &HIRContext) -> usize {
         match &self.kind {
             HIRNodeKind::VariableReference {
                 name: _,
@@ -357,15 +362,17 @@ impl HIRNode {
                 val,
                 field_ind: _,
                 name: _,
-            } => val.get_root_variable_reference_index(),
+            } => ctx.nodes.get(val).get_root_variable_reference_index(ctx),
 
-            HIRNodeKind::PointerDereference(inner) => inner.get_root_variable_reference_index(),
+            HIRNodeKind::PointerDereference(inner) => {
+                ctx.nodes.get(inner).get_root_variable_reference_index(ctx)
+            }
 
             HIRNodeKind::IndexUsage {
                 val,
                 index: _,
                 output_type: _,
-            } => val.get_root_variable_reference_index(),
+            } => ctx.nodes.get(val).get_root_variable_reference_index(ctx),
 
             #[cfg(feature = "debug")]
             kind => panic!("Unexpected variable reference kind {:#?}", kind),
@@ -375,7 +382,7 @@ impl HIRNode {
         }
     }
 
-    pub fn is_weakly_typed(&self) -> bool {
+    pub fn is_weakly_typed(&self, ctx: &HIRContext) -> bool {
         match &self.kind {
             HIRNodeKind::IntLiteral(_, _, _) => true,
             HIRNodeKind::FloatLiteral(_, _, _) => true,
@@ -383,21 +390,28 @@ impl HIRNode {
                 left_expr,
                 right_expr,
                 operator: _,
-            } => left_expr.is_weakly_typed() && right_expr.is_weakly_typed(),
+            } => {
+                ctx.nodes.get(left_expr).is_weakly_typed(ctx)
+                    && ctx.nodes.get(right_expr).is_weakly_typed(ctx)
+            }
 
             HIRNodeKind::Range {
                 start,
                 end,
                 increment,
             } => {
-                start.is_weakly_typed()
-                    && end.is_weakly_typed()
-                    && (increment.is_none() || increment.as_ref().unwrap().is_weakly_typed())
+                ctx.nodes.get(start).is_weakly_typed(ctx)
+                    && ctx.nodes.get(end).is_weakly_typed(ctx)
+                    && (increment.is_none()
+                        || ctx
+                            .nodes
+                            .get(increment.as_ref().unwrap())
+                            .is_weakly_typed(ctx))
             }
 
             HIRNodeKind::ArrayInit { vals } => {
                 for val in vals {
-                    if !val.is_weakly_typed() {
+                    if !ctx.nodes.get(val).is_weakly_typed(ctx) {
                         return false;
                     }
                 }
