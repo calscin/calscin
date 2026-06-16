@@ -3,14 +3,20 @@
 //!
 //! The stage 2 should propagate the function body implementations
 
+use std::path::PathBuf;
+
 use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
 };
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIRContext, file::HIRFileContext};
+use calsc_modules::{path::ModulePath, tree::ModuleTree};
 
-use crate::stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_decl};
+use crate::{
+    modules::module_tree_append_file,
+    stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_decl},
+};
 
 pub mod control;
 pub mod funcs;
@@ -24,6 +30,17 @@ pub fn lower_hir_stage_2(
     ctx: &mut HIRContext,
     file_ctx: &mut HIRFileContext,
 ) -> DiagPossible {
+    let mut tree = ModuleTree::new();
+
+    module_tree_append_file(
+        PathBuf::from("meow.cal"),
+        ModulePath::new("test_package".into(), vec!["meow".into()]),
+        &mut tree,
+        &ASTNode::clone(ast_context.nodes.get(&ast_context.tree[0])),
+    )?;
+
+    println!("{:#?}", tree);
+
     for node in &ast_context.tree {
         lower_hir_stage_2_node(
             ASTNode::clone(ast_context.nodes.get(node)),

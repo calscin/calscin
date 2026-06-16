@@ -11,13 +11,17 @@ use calsc_utils::hash::HashedString;
 
 use crate::{
     path::ModulePath,
-    tree::{entry::ModuleTreeEntry, traversal::ModuleTreeTraversal},
+    tree::{
+        entry::{ModuleTreeEntry, TreeModule},
+        traversal::ModuleTreeTraversal,
+    },
 };
 
 pub mod entry;
 pub mod traversal;
 
 /// The module tree
+#[derive(Debug)]
 pub struct ModuleTree {
     pub entries: HashMap<HashedString, ModuleTreeEntry>,
 }
@@ -99,12 +103,15 @@ impl ModuleTreeTraversal for ModuleTree {
         &mut self,
         path: &ModulePath,
         ind: usize,
-        source: &S,
+        _source: &S,
     ) -> DiagResult<&mut ModuleTreeEntry> {
         let val = path.get(ind);
 
         if !self.entries.contains_key(&val) {
-            return Err(build_cannot_find_element_no_closest(&path, source).into());
+            self.entries.insert(
+                val.clone(),
+                ModuleTreeEntry::Module(TreeModule::new(val.clone())),
+            );
         }
 
         Ok(self.entries.get_mut(&val).unwrap())

@@ -23,6 +23,15 @@ pub struct TreeModule {
     pub children: HashMap<HashedString, ModuleTreeEntry>,
 }
 
+impl TreeModule {
+    pub fn new(name: HashedString) -> Self {
+        Self {
+            name,
+            children: HashMap::new(),
+        }
+    }
+}
+
 impl ModuleTreeEntry {
     /// Checks if the given [`ModuleTreeEntry`] can contain children.
     /// This is used for traversing
@@ -55,12 +64,16 @@ impl ModuleTreeTraversal for TreeModule {
         &mut self,
         path: &ModulePath,
         ind: usize,
-        source: &S,
+        _source: &S,
     ) -> DiagResult<&mut ModuleTreeEntry> {
         let val = path.get(ind);
 
         if !self.children.contains_key(&val) {
-            return Err(build_cannot_find_element_no_closest(&path, source).into());
+            self.children.insert(
+                val.clone(),
+                ModuleTreeEntry::Module(TreeModule::new(val.clone())),
+            );
+            //return Err(build_cannot_find_element_no_closest(&path, source).into());
         }
 
         Ok(self.children.get_mut(&val).unwrap())
