@@ -128,6 +128,7 @@ dependencies = [
  "calsc_ast",
  "calsc_diagnostics",
  "calsc_hir",
+ "calsc_lexer",
  "calsc_modules",
  "calsc_typing",
  "calsc_utils",

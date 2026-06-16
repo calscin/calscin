@@ -32,7 +32,8 @@ pub fn resolve_import_symbols<S: DiagnosticSource>(
 
     let mut hir_ctx = HIRContext::new();
     let mut hir_file_ctx = HIRFileContext::new_with_package(
-        path.file_name()
+        path.with_extension("")
+            .file_name()
             .unwrap()
             .to_str()
             .unwrap()
