@@ -35,7 +35,7 @@ pub fn lower_hir_inverse_condition(
         let val_ref = ctx.nodes.get(&val).clone();
 
         let val = val_ref.use_as(
-            make_bool_type(&node, ctx, file_ctx),
+            make_bool_type(&node, ctx),
             val.clone(),
             None,
             local_ctx.clone(),

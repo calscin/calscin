@@ -14,7 +14,7 @@ use calsc_utils::{
 
 use crate::{
     HIRContext,
-    file::HIRFileContext,
+    file::{self, HIRFileContext},
     globalctx::key::GlobalContextKey,
     ifs::IfStatementBranch,
     types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
@@ -199,23 +199,19 @@ impl HIRNode {
         &self,
         local_func_key: Option<GlobalContextKey>,
         ctx: &HIRContext,
-        file_ctx: &HIRFileContext,
+        file_ctx: Option<&HIRFileContext>,
     ) -> DiagResult<Type> {
         if self.stronger_type.is_some() {
             return Ok(self.stronger_type.clone().unwrap());
         }
 
         let ty = match self.kind.clone() {
-            HIRNodeKind::IntLiteral(_, size, signed) => {
-                make_int_type(signed, size, self, ctx, file_ctx)
-            }
-            HIRNodeKind::FloatLiteral(_, size, signed) => {
-                make_float_type(signed, size, self, ctx, file_ctx)
-            }
-            HIRNodeKind::StringLiteral(_) => make_string_type(self, ctx, file_ctx),
-            HIRNodeKind::CharLiteral(_) => make_char_type(self, ctx, file_ctx),
-            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self, ctx, file_ctx),
-            HIRNodeKind::InverseCondition(_) => make_bool_type(self, ctx, file_ctx),
+            HIRNodeKind::IntLiteral(_, size, signed) => make_int_type(signed, size, self, ctx),
+            HIRNodeKind::FloatLiteral(_, size, signed) => make_float_type(signed, size, self, ctx),
+            HIRNodeKind::StringLiteral(_) => make_string_type(self, ctx),
+            HIRNodeKind::CharLiteral(_) => make_char_type(self, ctx),
+            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self, ctx),
+            HIRNodeKind::InverseCondition(_) => make_bool_type(self, ctx),
 
             HIRNodeKind::Range {
                 start,
@@ -273,7 +269,7 @@ impl HIRNode {
                 }
             }
 
-            HIRNodeKind::CompareExpression { .. } => make_bool_type(self, ctx, file_ctx),
+            HIRNodeKind::CompareExpression { .. } => make_bool_type(self, ctx),
 
             HIRNodeKind::VariableReference {
                 name: _,
@@ -282,8 +278,21 @@ impl HIRNode {
                 if local_func_key.is_none() {
                     Type::Void
                 } else {
-                    ctx.scope
-                        .get_entry(local_func_key.unwrap(), &file_ctx.current_module, self)?
+                    let entry;
+
+                    if file_ctx.is_some() {
+                        entry = ctx.scope.get_entry(
+                            local_func_key.unwrap(),
+                            &file_ctx.unwrap().current_module,
+                            self,
+                        )?
+                    } else {
+                        entry = ctx
+                            .scope
+                            .get_entry_no_visibility(local_func_key.unwrap(), self)?
+                    }
+
+                    entry
                         .as_function(self)?
                         .local_context
                         .as_ref()
@@ -294,12 +303,19 @@ impl HIRNode {
                 }
             }
 
-            HIRNodeKind::FunctionCall { func, arguments: _ } => ctx
-                .scope
-                .get_entry(func, &file_ctx.current_module, self)?
-                .as_function(self)?
-                .return_type
-                .clone(),
+            HIRNodeKind::FunctionCall { func, arguments: _ } => {
+                let entry;
+
+                if file_ctx.is_some() {
+                    entry = ctx
+                        .scope
+                        .get_entry(func, &file_ctx.unwrap().current_module, self)?
+                } else {
+                    entry = ctx.scope.get_entry_no_visibility(func, self)?
+                }
+
+                entry.as_function(self)?.return_type.clone()
+            }
 
             HIRNodeKind::IndexUsage {
                 val: _,

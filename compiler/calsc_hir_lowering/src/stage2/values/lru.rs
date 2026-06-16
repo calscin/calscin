@@ -43,7 +43,7 @@ pub fn lower_ast_lru(
         let left_ty = ctx
             .nodes
             .get(&left_expr)
-            .get_type(curr_ctx.clone(), ctx, file_ctx)?;
+            .get_type(curr_ctx.clone(), ctx, Some(file_ctx))?;
 
         let right_expr_ref = ast_ctx.nodes.get(&right_expr);
 

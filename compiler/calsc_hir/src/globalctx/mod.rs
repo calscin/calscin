@@ -64,6 +64,32 @@ impl GlobalContext {
         Ok(ind)
     }
 
+    pub fn get_entry_no_visibility<K: DiagnosticSource>(
+        &self,
+        key: GlobalContextKey,
+        origin: &K,
+    ) -> DiagResult<&GlobalContextValue> {
+        if !self.key_to_ind.contains_key(&key) {
+            let closest = get_closest_key(self, key.clone());
+
+            if closest.is_some() {
+                return Err(build_cannot_find_element(&key, &closest.unwrap(), origin).into());
+            } else {
+                return Err(build_cannot_find_element_no_closest(&*key.name, origin).into());
+            }
+        }
+
+        let ind = self.key_to_ind[&key];
+
+        let val = &self.values[ind];
+
+        if let GlobalContextValue::AnotherReference(key) = &val {
+            return self.get_entry_no_visibility(key.clone(), origin);
+        }
+
+        Ok(val)
+    }
+
     /// Gets the entry at the given key as a [`GlobalContextValue`] reference
     ///
     /// # Error

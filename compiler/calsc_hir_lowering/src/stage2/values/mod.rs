@@ -118,7 +118,7 @@ pub fn lower_ast_range(
 
         let start_ref = ctx.nodes.get(&start);
 
-        let start_type = start_ref.get_type(local_ctx.clone(), ctx, file_ctx)?;
+        let start_type = start_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
         if start_type == Type::Void {
             return Err(build_unexpected_type_error(&Type::Void, start_ref).into());
@@ -229,7 +229,7 @@ pub fn lower_ast_array_init(
         let first_val_type =
             ctx.nodes
                 .get(&first_val)
-                .get_type(local_ctx.clone(), ctx, file_ctx)?;
+                .get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
         hir_vals.push(first_val.clone());
 

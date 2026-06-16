@@ -16,7 +16,7 @@ use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     HIRContext,
-    file::HIRFileContext,
+    file::{self, HIRFileContext},
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
@@ -47,7 +47,7 @@ impl HIRNode {
             );
         }
 
-        if self.get_type(local_func_key.clone(), ctx, file_ctx)? == Type::Void {
+        if self.get_type(local_func_key.clone(), ctx, Some(file_ctx))? == Type::Void {
             return Err(build_unexpected_type_error(&"void".to_string(), self).into());
         }
 
@@ -55,7 +55,7 @@ impl HIRNode {
             return convert_numerical_literal_into(self.clone(), ty.as_base());
         }
 
-        let self_type: Type = self.get_type(local_func_key.clone(), ctx, file_ctx)?;
+        let self_type: Type = self.get_type(local_func_key.clone(), ctx, Some(file_ctx))?;
 
         if self_type == ty {
             return Ok(self.clone());

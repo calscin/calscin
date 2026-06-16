@@ -178,7 +178,7 @@ pub fn lower_ast_variable_assign(
         )?;
 
         let variable_ref = ctx.nodes.get(&variable).clone();
-        let variable_type = variable_ref.get_type(curr_ctx.clone(), ctx, file_ctx)?;
+        let variable_type = variable_ref.get_type(curr_ctx.clone(), ctx, Some(file_ctx))?;
 
         let value = lower_ast_value(
             ast_ctx.nodes.get(&value).clone(),
