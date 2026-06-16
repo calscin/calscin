@@ -1,6 +1,9 @@
 //! The error declarations
 
-use std::fmt::{Debug, Display};
+use std::{
+    fmt::{Debug, Display},
+    path,
+};
 
 use calsc_utils::pos::FilePosition;
 
@@ -39,6 +42,7 @@ enum ErrorCode {
     CannotFind,
     ExpectedEntryType,
     AdditionalTypeAliasParameters,
+    ElementUnreadable,
 
     // HIR misc
     RestrictedArgumentTypes,
@@ -449,5 +453,26 @@ pub fn build_internal_singleton_error<S: DiagnosticSource>(
         vec![],
         vec!["please report this issue immediately".to_string()],
         vec!["https://github.com/calscin/calscin".to_string()],
+    )
+}
+
+pub fn build_unreadable_element_visibility<S: DiagnosticSource, E: Display, P: Display>(
+    element: &E,
+    path_trying: &P,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ElementUnreadable as usize),
+        format!(
+            "element {} unreadable in module {} due to visibility rules",
+            element, path_trying
+        ),
+        None,
+        vec![],
+        vec![format!(
+            "change the visibility specifier of {} to pub or prot",
+            element
+        )],
+        vec!["".to_string()],
     )
 }
