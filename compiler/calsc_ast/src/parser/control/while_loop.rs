@@ -1,6 +1,7 @@
-use crate::refs::ASTArenaReference;
+use crate::ASTContext;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::Token;
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -8,13 +9,17 @@ use crate::{
 };
 
 #[inline(always)]
-pub fn parse_ast_while_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_ast_while_loop(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // while
 
-    let condition_value = parse_ast_condition_form(tokens, ind)?; // Auto increments
-    let body = parse_ast_body_form(tokens, ind)?; // Auto increments
+    let condition_value = parse_ast_condition_form(tokens, ind, ctx)?; // Auto increments
+    let body = parse_ast_body_form(tokens, ind, ctx)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 
@@ -27,5 +32,5 @@ pub fn parse_ast_while_loop(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

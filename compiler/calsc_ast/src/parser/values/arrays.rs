@@ -1,22 +1,23 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::pos::FilePosition;
+use calsc_utils::{alloc::arena::ArenaHandle, pos::FilePosition};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{utils::parse_ast_list, values::parse_ast_value},
-    refs::ASTArenaReference,
 };
 
 pub fn parse_ast_index_usage(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first_node: ASTArenaReference,
+    first_node: ArenaHandle,
     start: FilePosition,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     *ind += 1; // [
 
-    let index = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
+    let index = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::BracketClose)?;
 
@@ -32,10 +33,14 @@ pub fn parse_ast_index_usage(
         start,
         end,
     )
-    .push())
+    .push(ctx))
 }
 
-pub fn parse_ast_array_init(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_ast_array_init(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // [
@@ -43,7 +48,7 @@ pub fn parse_ast_array_init(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<
     let values = parse_ast_list(
         tokens,
         ind,
-        &mut |tokens, ind| parse_ast_value(tokens, ind, true, false, true),
+        &mut |tokens, ind| parse_ast_value(tokens, ind, true, false, true, ctx),
         TokenKind::BracketClose,
         false,
         false,
@@ -53,5 +58,5 @@ pub fn parse_ast_array_init(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<
 
     let node = ASTNode::new(ASTNodeKind::ArrayInit(values), start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

@@ -1,21 +1,22 @@
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{
         forms::parse_ast_field_form, func::parse_function_declaration, types::parse_ast_type,
         utils::parse_ast_list,
     },
-    refs::ASTArenaReference,
 };
 
 #[inline(always)]
 pub fn parse_ast_struct_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // struct
@@ -62,14 +63,15 @@ pub fn parse_ast_struct_declaration(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline(always)]
 pub fn parse_ast_struct_decl_block(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // decl
@@ -79,13 +81,13 @@ pub fn parse_ast_struct_decl_block(
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
-    let mut functions: Vec<ASTArenaReference> = vec![];
+    let mut functions: Vec<ArenaHandle> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
         tokens[*ind].expects(TokenKind::Function)?;
         // No need for increment there since the function parsing function handles that
 
-        let func = parse_function_declaration(tokens, ind)?; // Auto increments
+        let func = parse_function_declaration(tokens, ind, ctx)?; // Auto increments
 
         functions.push(func);
     }
@@ -100,5 +102,5 @@ pub fn parse_ast_struct_decl_block(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

@@ -1,5 +1,7 @@
 use calsc_ast::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
+    path::ElementPath,
     types::ASTType,
 };
 use calsc_diagnostics::{
@@ -9,7 +11,8 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
-    HIR_CONTEXT,
+    HIRContext,
+    file::HIRFileContext,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 use calsc_typing::{
@@ -18,11 +21,14 @@ use calsc_typing::{
     params::TypeParameterHaving,
     tree::Type,
 };
-use calsc_utils::hash::HashedString;
 
-use crate::stage1::funcs::lower_ast_function_decl_first_stage;
+use crate::{stage1::funcs::lower_ast_function_decl_first_stage, stage2::key::lower_ast_key};
 
-pub fn lower_ast_struct_declaration(node: ASTNode) -> DiagPossible {
+pub fn lower_ast_struct_declaration(
+    node: ASTNode,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
         type_params,
@@ -40,16 +46,13 @@ pub fn lower_ast_struct_declaration(node: ASTNode) -> DiagPossible {
         for field in fields {
             base_type.add_field(
                 field.1,
-                lower_ast_type(field.0, &node, Some(base_type.clone()))?,
+                lower_ast_type(field.0, &node, Some(base_type.clone()), file_ctx, ctx)?,
                 &node,
             )?; // We can clone base_type to pass it to lower_ast_type since the base_type here wont be modified by lower_ast_type
         }
 
-        let _ = HIR_CONTEXT.with(|f| {
-            f.borrow_mut()
-                .scope
-                .append(key, GlobalContextValue::Type(base_type), &node)
-        })?;
+        ctx.scope
+            .append(key, GlobalContextValue::Type(base_type), &node)?;
 
         Ok(())
     } else {
@@ -61,13 +64,15 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
     ty: ASTType,
     origin: &K,
     _inst: Option<BaseType>,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<BaseType> {
     if let ASTType::Generic(a, b, c) = ty.clone() {
         if b.is_some() || !c.is_empty() {
             return Err(build_expected_simple_type(origin).into());
         }
 
-        let ty = lower_ast_generic_base(a, vec![], vec![], origin)?;
+        let ty = lower_ast_generic_base(a, vec![], vec![], origin, file_ctx, ctx)?;
 
         if ty.is_empty_base() {
             if let Type::Base(instance) = ty {
@@ -85,8 +90,10 @@ pub fn lower_ast_type<K: DiagnosticSource>(
     ty: ASTType,
     origin: &K,
     inst: Option<BaseType>,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<Type> {
-    lower_ast_type_complex(ty, origin, inst, false)
+    lower_ast_type_complex(ty, origin, inst, false, file_ctx, ctx)
 }
 
 pub fn lower_ast_type_complex<K: DiagnosticSource>(
@@ -94,6 +101,8 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
     origin: &K,
     inst: Option<BaseType>,
     allow_compile_time_uncertain_types: bool,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<Type> {
     match ty.clone() {
         ASTType::Array(size, b) => {
@@ -108,21 +117,29 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
                     origin,
                     inst,
                     allow_compile_time_uncertain_types,
+                    file_ctx,
+                    ctx,
                 )?),
             })
         }
 
         ASTType::Reference(mutable, b) => Ok(Type::Reference {
             mutable,
-            inner: Box::new(lower_ast_type_complex(*b, origin, inst, true)?),
+            inner: Box::new(lower_ast_type_complex(
+                *b, origin, inst, true, file_ctx, ctx,
+            )?),
         }),
 
         ASTType::Generic(a, b, c) => {
             if inst.is_some() {
                 let inst = inst.clone().unwrap();
 
-                if inst.has_type_parameter(a.clone()) && b.is_none() && c.is_empty() {
-                    return Ok(inst.get_type_parameter_type(a));
+                if a.members.len() == 1
+                    && inst.has_type_parameter(a.last())
+                    && b.is_none()
+                    && c.is_empty()
+                {
+                    return Ok(inst.get_type_parameter_type(a.last()));
                 }
             }
 
@@ -134,10 +151,18 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
             }
 
             for param in c {
-                type_params.push(lower_ast_type_complex(param, origin, inst.clone(), false)?);
+                type_params.push(lower_ast_type_complex(
+                    param,
+                    origin,
+                    inst.clone(),
+                    false,
+                    file_ctx,
+                    ctx,
+                )?);
             }
 
-            let ty = lower_ast_generic_base(a, size_specifiers, type_params, origin)?;
+            let ty =
+                lower_ast_generic_base(a, size_specifiers, type_params, origin, file_ctx, ctx)?;
 
             Ok(ty)
         }
@@ -147,30 +172,39 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
 }
 
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
-    name: HashedString,
+    name: ElementPath,
     size_specifiers: Vec<usize>,
     type_parameters: Vec<Type>,
     origin: &K,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<Type> {
-    let key = GlobalContextKey::new(name);
+    let key = lower_ast_key(name, origin, true, file_ctx, ctx)?;
 
-    let ty = HIR_CONTEXT.with(|f| {
-        f.borrow().scope.get_entry(key, origin)?.craft_type(
-            origin,
-            size_specifiers,
-            type_parameters,
-        )
-    })?;
+    let ty =
+        ctx.scope
+            .get_entry(key, origin)?
+            .craft_type(origin, size_specifiers, type_parameters)?;
 
     Ok(ty)
 }
 
-pub fn lower_ast_decl_block(node: ASTNode) -> DiagPossible {
+pub fn lower_ast_decl_block(
+    node: ASTNode,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagPossible {
     if let ASTNodeKind::StructDeclBlock { target, functions } = node.kind.clone() {
-        let target = lower_simple_ast_type(target, &node, None)?;
+        let target = lower_simple_ast_type(target, &node, None, file_ctx, ctx)?;
 
         for func in functions {
-            lower_ast_function_decl_first_stage(ASTNode::clone(&func), Some(target.clone()))?;
+            lower_ast_function_decl_first_stage(
+                ast_ctx.nodes.get(&func).clone(),
+                Some(target.clone()),
+                file_ctx,
+                ctx,
+            )?;
         }
 
         Ok(())

@@ -10,7 +10,7 @@ use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
 };
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{HIR_CONTEXT, prelude::apply_prelude};
+use calsc_hir::{HIRContext, file::HIRFileContext, prelude::apply_prelude};
 
 use crate::stage1::{
     funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
@@ -20,41 +20,83 @@ use crate::stage1::{
 pub mod funcs;
 pub mod types;
 
-pub fn lower_hir_stage_1(ast_context: ASTContext) -> DiagPossible {
+pub fn lower_hir_stage_1_node(
+    node: ASTNode,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagPossible {
+    match node.kind {
+        ASTNodeKind::FunctionDeclaration { .. } => {
+            lower_ast_function_decl_first_stage(ASTNode::clone(&node), None, file_ctx, ctx)?;
+        }
+
+        ASTNodeKind::ExternFunctionDeclaration { .. } => {
+            lower_ast_extern_function(ASTNode::clone(&node), file_ctx, ctx)?
+        }
+        ASTNodeKind::StructDeclaration { .. } => {
+            lower_ast_struct_declaration(ASTNode::clone(&node), file_ctx, ctx)?
+        }
+
+        ASTNodeKind::StructDeclBlock { .. } => {
+            lower_ast_decl_block(ASTNode::clone(&node), file_ctx, ctx, ast_ctx)?
+        }
+
+        ASTNodeKind::Module { .. } => lower_hir_stage_1_module(node, file_ctx, ctx, ast_ctx)?,
+
+        _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
+    };
+
+    Ok(())
+}
+
+pub fn lower_hir_stage_1(
+    ast_context: ASTContext,
+    ctx: &mut HIRContext,
+    file_ctx: &mut HIRFileContext,
+) -> DiagPossible {
     let mut first = false;
 
-    for iter in ast_context.tree_order {
-        let node = ast_context.tree[&iter].clone();
-
+    for node in &ast_context.tree {
         if !first {
             first = true;
 
-            HIR_CONTEXT.with(|f| apply_prelude(&mut f.borrow_mut().scope, &*node))?;
+            apply_prelude(&mut ctx.scope, ast_context.nodes.get(node))?;
         }
 
-        match node.kind {
-            ASTNodeKind::FunctionDeclaration { .. } => {
-                lower_ast_function_decl_first_stage(ASTNode::clone(&node), None)?;
-            }
-
-            ASTNodeKind::ExternFunctionDeclaration { .. } => {
-                lower_ast_extern_function(ASTNode::clone(&node))?
-            }
-            ASTNodeKind::StructDeclaration { .. } => {
-                lower_ast_struct_declaration(ASTNode::clone(&node))?
-            }
-
-            _ => return Err(build_internal_hir_node_leaked(&node, &*node).into()),
-        };
-    }
-
-    for iter in ast_context.additional_tree {
-        match &iter.kind {
-            ASTNodeKind::StructDeclBlock { .. } => lower_ast_decl_block(ASTNode::clone(&iter))?,
-
-            _ => return Err(build_internal_hir_node_leaked(&iter, &*iter).into()),
-        }
+        lower_hir_stage_1_node(
+            ASTNode::clone(&ast_context.nodes.get(node)),
+            file_ctx,
+            ctx,
+            &ast_context,
+        )?;
     }
 
     Ok(())
+}
+
+pub fn lower_hir_stage_1_module(
+    node: ASTNode,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagPossible {
+    if let ASTNodeKind::Module { name, body } = node.kind.clone() {
+        file_ctx.advance_module(name);
+
+        for element in body {
+            lower_hir_stage_1_node(
+                ASTNode::clone(&ast_ctx.nodes.get(&element)),
+                file_ctx,
+                ctx,
+                ast_ctx,
+            )?;
+        }
+
+        file_ctx.deadvance_module();
+
+        Ok(())
+    } else {
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
+    }
 }

@@ -6,9 +6,12 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_expected_entry_type, build_unexpected_type_alias_additional_parameters},
 };
+use calsc_modules::path::ModulePath;
 use calsc_typing::{base::BaseType, tree::Type};
 
-use crate::{funcs::HIRFunction, types::safely_make_type_instance};
+use crate::{
+    funcs::HIRFunction, globalctx::key::GlobalContextKey, types::safely_make_type_instance,
+};
 
 /// An entry / value inside of the global context.
 /// This shouldn't be clonable due to the inner data modification not being able to be synced
@@ -20,6 +23,11 @@ pub enum GlobalContextValue {
 
     /// Represents a type alias
     TypeAlias(Type),
+
+    AnotherReference(GlobalContextKey),
+
+    /// Represents an imported module
+    Module(ModulePath),
 
     Function(HIRFunction),
 }
@@ -56,6 +64,21 @@ impl GlobalContextValue {
                 return Err(
                     build_expected_entry_type(&"type alias".to_string(), self, origin).into(),
                 );
+            }
+        }
+    }
+
+    /// Converts the [`GlobalContextValue`] into a module import entry and returns the [`ModulePath`] associated with it.
+    ///
+    /// # Errors
+    /// This function will error on the given [`DiagnosticSource`] if the entry is not a module import
+    ///
+    pub fn as_module<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<ModulePath> {
+        match self {
+            Self::Module(path) => Ok(path.clone()),
+
+            _ => {
+                return Err(build_expected_entry_type(&"path".to_string(), self, origin).into());
             }
         }
     }
@@ -184,11 +207,26 @@ impl GlobalContextValue {
         }
     }
 
+    pub fn is_module(&self) -> bool {
+        match self {
+            Self::Module(_) => true,
+
+            _ => false,
+        }
+    }
+
     /// Checks whether the entry is a function or not
     pub fn is_function(&self) -> bool {
         match self {
             Self::Function(_) => true,
 
+            _ => false,
+        }
+    }
+
+    pub fn is_reference(&self) -> bool {
+        match self {
+            Self::AnotherReference(_) => true,
             _ => false,
         }
     }
@@ -198,8 +236,10 @@ impl Display for GlobalContextValue {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = match self {
             Self::Type(_) => "type",
+            Self::Module(_) => "module",
             Self::TypeAlias(_) => "type alias",
             Self::Function(_) => "function",
+            Self::AnotherReference(_) => "reference to another entry",
         };
 
         write!(f, "{}", s)

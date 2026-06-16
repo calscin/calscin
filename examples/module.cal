@@ -1,0 +1,18 @@
+module myTestModule {
+	func test() -> s.32 {
+		return 10;
+	}
+
+	module myInnerModule {
+		func test() -> s.32 {
+			return 11;
+		}
+	}
+}
+
+import myTestModule::myInnerModule
+
+
+func main() {
+	return myTestModule::test() + myInnerModule::test();
+}

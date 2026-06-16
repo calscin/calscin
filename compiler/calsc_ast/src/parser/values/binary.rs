@@ -2,9 +2,10 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{math::MathOperation, pos::FilePosition};
+use calsc_utils::{alloc::arena::ArenaHandle, math::MathOperation, pos::FilePosition};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind, BinaryOperator},
     parser::{
         utils::peek_ahead,
@@ -13,7 +14,6 @@ use crate::{
             parse_ast_value,
         },
     },
-    refs::ASTArenaReference,
 };
 
 /// Represents the precedence or weight of an operator. The bigger it is the more it will be picked up before another one.
@@ -77,16 +77,17 @@ pub fn parse_binary_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult
 }
 
 pub fn is_binary_operator(tokens: &Vec<Token>, ind: usize) -> bool {
-    peek_ahead(tokens, ind, parse_binary_operator).is_ok() // TODO: maybe make this better
+    peek_ahead(tokens, ind, parse_binary_operator).0.is_ok() // TODO: maybe make this better
 }
 
 pub fn parse_ast_binary_operation(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    mut left: ASTArenaReference,
+    mut left: ArenaHandle,
     start: FilePosition,
     min_precedence: Precedence,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let min_precedence = min_precedence as usize;
 
     loop {
@@ -94,7 +95,7 @@ pub fn parse_ast_binary_operation(
             break;
         }
 
-        let binary_operator = peek_ahead(tokens, *ind, parse_binary_operator)?;
+        let binary_operator = peek_ahead(tokens, *ind, parse_binary_operator).0?;
         let precedence = Precedence::get_from_operator(binary_operator) as usize;
 
         if precedence < min_precedence {
@@ -106,10 +107,10 @@ pub fn parse_ast_binary_operation(
 
         let binary_operator = parse_binary_operator(tokens, ind)?;
 
-        let mut right = parse_ast_value(tokens, ind, true, false, false)?;
+        let mut right = parse_ast_value(tokens, ind, true, false, false, ctx)?;
 
         if is_binary_operator(tokens, *ind) {
-            if let Ok(next_operator) = peek_ahead(tokens, *ind, parse_binary_operator) {
+            if let Ok(next_operator) = peek_ahead(tokens, *ind, parse_binary_operator).0 {
                 let next_precedence = Precedence::get_from_operator(next_operator);
 
                 if next_precedence.clone() as usize > precedence {
@@ -119,6 +120,7 @@ pub fn parse_ast_binary_operation(
                         right,
                         operator_start.clone(),
                         next_precedence,
+                        ctx,
                     )?;
                 }
             }
@@ -135,7 +137,7 @@ pub fn parse_ast_binary_operation(
             start.clone(),
             end,
         )
-        .push();
+        .push(ctx);
     }
 
     Ok(left)

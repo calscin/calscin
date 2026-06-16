@@ -53,9 +53,6 @@ pub enum TokenKind {
     /// `import`
     Import,
 
-    /// `std`
-    Std,
-
     /// `var`
     Var,
 
@@ -76,6 +73,9 @@ pub enum TokenKind {
 
     /// `while`
     While,
+
+    /// `module`
+    Module,
 
     /// ;
     SemiColon,
@@ -492,12 +492,12 @@ impl Display for TokenKind {
             Self::Loop => "loop",
             Self::ExternFunc => "externfunc",
             Self::Import => "import",
-            Self::Std => "std",
             Self::Var => "var",
             Self::Mut => "mut",
             Self::Struct => "struct",
             Self::Decl => "decl",
             Self::Return => "return",
+            Self::Module => "module",
             Self::SemiColon => ";",
             Self::Comma => ",",
             Self::Dot => ".",

@@ -12,12 +12,12 @@ use calsc_diagnostics::{
 use calsc_typing::{
     FieldHavingType, TransmutableType, base::instance::BaseTypeInstance, tree::Type,
 };
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
-    HIR_CONTEXT,
+    HIRContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
 };
 
 impl HIRNode {
@@ -29,15 +29,16 @@ impl HIRNode {
     pub fn use_as(
         &self,
         ty: Type,
-        curr_node: HIRArenaReference,
-        other_node: Option<HIRArenaReference>,
+        curr_node: ArenaHandle,
+        other_node: Option<ArenaHandle>,
         local_func_key: Option<GlobalContextKey>,
+        ctx: &mut HIRContext,
     ) -> DiagResult<HIRNode> {
         if let HIRNodeKind::StructuredInit { .. } = self.kind.clone() {
-            return convert_structured_init_into(self.clone(), ty, local_func_key, self);
+            return convert_structured_init_into(self.clone(), ty, local_func_key, self, ctx);
         }
 
-        if self.get_type(local_func_key.clone())? == Type::Void {
+        if self.get_type(local_func_key.clone(), ctx)? == Type::Void {
             return Err(build_unexpected_type_error(&"void".to_string(), self).into());
         }
 
@@ -45,7 +46,7 @@ impl HIRNode {
             return convert_numerical_literal_into(self.clone(), ty.as_base());
         }
 
-        let self_type: Type = self.get_type(local_func_key.clone())?;
+        let self_type: Type = self.get_type(local_func_key.clone(), ctx)?;
 
         if self_type == ty {
             return Ok(self.clone());
@@ -54,7 +55,7 @@ impl HIRNode {
         if self_type.can_transmute(ty.clone()) {
             let node = HIRNode::new(
                 HIRNodeKind::CastNode {
-                    original: self.clone().push(),
+                    original: self.clone().push(ctx),
                     into: ty,
                 },
                 self.start.clone(),
@@ -64,17 +65,20 @@ impl HIRNode {
             return Ok(node);
         }
 
-        if self.is_weakly_typed() && self_type.can_transmute_weakly(ty.clone()) {
-            weakly_transmute(curr_node, ty);
+        if self.is_weakly_typed(ctx) && self_type.can_transmute_weakly(ty.clone()) {
+            weakly_transmute(curr_node, ty, ctx);
 
             return Ok(self.clone());
         }
 
         if other_node.is_some()
-            && other_node.as_ref().unwrap().is_weakly_typed()
+            && ctx
+                .nodes
+                .get(other_node.as_ref().unwrap())
+                .is_weakly_typed(ctx)
             && ty.can_transmute_weakly(self_type.clone())
         {
-            weakly_transmute(other_node.unwrap(), self_type.clone());
+            weakly_transmute(other_node.unwrap(), self_type.clone(), ctx);
         }
 
         return Err(build_expected_type_error(&self_type, &ty, self).into());
@@ -86,6 +90,7 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
     ty: Type,
     local_func_key: Option<GlobalContextKey>,
     origin: &K,
+    ctx: &mut HIRContext,
 ) -> DiagResult<HIRNode> {
     if let HIRNodeKind::StructuredInit { values } = structured_init.kind {
         let mut vals = HashMap::new();
@@ -95,16 +100,19 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
                 return Err(build_missing_field(&field, origin).into());
             }
 
+            let field_node = ctx.nodes.get(&values[&field]).clone();
+
             vals.insert(
                 field.clone(),
-                values[&field]
+                field_node
                     .use_as(
                         ty.get_field_type(field.clone()),
                         values[&field].clone(),
                         None,
                         local_func_key.clone(),
+                        ctx,
                     )?
-                    .push(),
+                    .push(ctx),
             );
         }
 
@@ -143,8 +151,10 @@ pub fn convert_numerical_literal_into(lit: HIRNode, ty: BaseTypeInstance) -> Dia
     return Err(build_internal_hir_node_leaked(&lit, &lit).into());
 }
 
-pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
-    match &curr_node.kind {
+pub fn weakly_transmute(curr_node: ArenaHandle, ty: Type, ctx: &mut HIRContext) {
+    let node_kind = &ctx.nodes.get(&curr_node).kind.clone();
+
+    match node_kind {
         HIRNodeKind::IntLiteral(_, _, _) => {
             let base = ty.as_base();
 
@@ -152,8 +162,7 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
                 panic!()
             }
 
-            HIR_CONTEXT
-                .with(|f| f.borrow_mut().nodes.arena[curr_node.refer].stronger_type = Some(ty));
+            ctx.nodes.get_mut(&curr_node).stronger_type = Some(ty);
         }
 
         HIRNodeKind::FloatLiteral(_, _, _) => {
@@ -163,8 +172,7 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
                 panic!()
             }
 
-            HIR_CONTEXT
-                .with(|f| f.borrow_mut().nodes.arena[curr_node.refer].stronger_type = Some(ty));
+            ctx.nodes.get_mut(&curr_node).stronger_type = Some(ty);
         }
 
         HIRNodeKind::MathExpression {
@@ -172,8 +180,8 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             right_expr,
             operator: _,
         } => {
-            weakly_transmute(left_expr.clone(), ty.clone());
-            weakly_transmute(right_expr.clone(), ty);
+            weakly_transmute(left_expr.clone(), ty.clone(), ctx);
+            weakly_transmute(right_expr.clone(), ty, ctx);
         }
 
         HIRNodeKind::Range {
@@ -181,17 +189,17 @@ pub fn weakly_transmute(curr_node: HIRArenaReference, ty: Type) {
             end,
             increment,
         } => {
-            weakly_transmute(start.clone(), ty.clone());
-            weakly_transmute(end.clone(), ty.clone());
+            weakly_transmute(start.clone(), ty.clone(), ctx);
+            weakly_transmute(end.clone(), ty.clone(), ctx);
 
             if increment.is_some() {
-                weakly_transmute(increment.as_ref().unwrap().clone(), ty);
+                weakly_transmute(increment.as_ref().unwrap().clone(), ty, ctx);
             }
         }
 
         HIRNodeKind::ArrayInit { vals } => {
             for val in vals {
-                weakly_transmute(val.clone(), ty.get_inner());
+                weakly_transmute(val.clone(), ty.get_inner(), ctx);
             }
         }
 

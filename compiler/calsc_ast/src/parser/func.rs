@@ -2,17 +2,17 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{Either, hash::HashedString};
+use calsc_utils::{Either, alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        forms::{parse_ast_body_form, parse_ast_return_type_form},
+        forms::{parse_ast_body_form, parse_ast_return_type_form, parse_element_path_form},
         types::parse_ast_type,
         utils::parse_ast_list,
         values::parse_ast_value,
     },
-    refs::ASTArenaReference,
     types::ASTType,
 };
 
@@ -36,7 +36,8 @@ pub fn parse_function_argument(
 pub fn parse_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // func
@@ -58,7 +59,7 @@ pub fn parse_function_declaration(
 
     let return_type = parse_ast_return_type_form(tokens, ind)?; // Auto increments
 
-    let body = parse_ast_body_form(tokens, ind)?; // Auto increments
+    let body = parse_ast_body_form(tokens, ind, ctx)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 
@@ -73,14 +74,17 @@ pub fn parse_function_declaration(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
-pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_function_call(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
-    let name = HashedString::new(tokens[*ind].expects_keyword()?);
-    *ind += 1; // keyword
+    let name = parse_element_path_form(tokens, ind)?;
 
     tokens[*ind].expects(TokenKind::ParenOpen)?;
     *ind += 1; // (
@@ -88,7 +92,7 @@ pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<A
     let arguments = parse_ast_list(
         tokens,
         ind,
-        &mut |toks, ind| parse_ast_value(toks, ind, true, false, true),
+        &mut |toks, ind| parse_ast_value(toks, ind, true, false, true, ctx),
         TokenKind::ParenClose,
         false,
         false, // Doesn't post increment inside of the `parse_ast_list` function since `parse_ast_value` already does it
@@ -98,7 +102,7 @@ pub fn parse_function_call(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<A
 
     let node = ASTNode::new(ASTNodeKind::FunctionCall { name, arguments }, start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 /// Parses an extern function arguments.
@@ -133,7 +137,8 @@ pub fn parse_extern_function_argument(
 pub fn parse_extern_function_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // externfunc
@@ -187,5 +192,5 @@ pub fn parse_extern_function_declaration(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

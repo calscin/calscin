@@ -1,32 +1,60 @@
-use calsc_ast::nodes::{ASTNode, ASTNodeKind};
+use calsc_ast::{
+    ASTContext,
+    nodes::{ASTNode, ASTNodeKind},
+};
 use calsc_diagnostics::{
     DiagResult,
-    diags::errors::{build_cannot_find_element_no_closest, build_internal_hir_node_leaked},
+    diags::errors::{
+        build_cannot_find_element_no_closest, build_cannot_parse_error,
+        build_internal_hir_node_leaked,
+    },
 };
 use calsc_hir::{
+    HIRContext,
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
 };
 use calsc_typing::{FieldHavingType, func::DeclBlockAffectedType};
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::stage2::{funcs::lower_ast_function_call, values::lower_ast_value};
 
 pub fn lower_ast_lru(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
-) -> DiagResult<HIRArenaReference> {
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::StructLRUsage {
         left_expr,
         right_expr,
     } = node.kind.clone()
     {
-        let left_expr = lower_ast_value(ASTNode::clone(&left_expr), curr_ctx.clone())?;
-        let left_ty = left_expr.get_type(curr_ctx.clone())?;
+        let left_expr = lower_ast_value(
+            ASTNode::clone(&ast_ctx.nodes.get(&left_expr)),
+            curr_ctx.clone(),
+            file_ctx,
+            ctx,
+            ast_ctx,
+        )?;
 
-        match &right_expr.kind {
+        let left_ty = ctx.nodes.get(&left_expr).get_type(curr_ctx.clone(), ctx)?;
+
+        let right_expr_ref = ast_ctx.nodes.get(&right_expr);
+
+        match &right_expr_ref.kind {
             ASTNodeKind::FunctionCall { name, arguments: _ } => {
-                if !left_ty.clone().has_function(name.clone()) {
+                if name.members.len() != 1 {
+                    return Err(build_cannot_parse_error(
+                        &"LRU function call".to_string(),
+                        right_expr_ref,
+                    )
+                    .into());
+                }
+
+                if !left_ty.clone().has_function(name.last().clone()) {
                     return Err(build_cannot_find_element_no_closest(&name, &node).into());
                 }
 
@@ -38,9 +66,12 @@ pub fn lower_ast_lru(
                     node,
                     Some(left_ty.get_transparent_real().ty),
                     curr_ctx.clone(),
+                    file_ctx,
+                    ctx,
+                    ast_ctx,
                 )?;
 
-                let ret = HIRNode::clone(&ret);
+                let ret = ctx.nodes.get(&ret).clone();
 
                 if let HIRNodeKind::FunctionCall { func, arguments } = ret.kind.clone() {
                     let mut arguments = arguments;
@@ -53,7 +84,7 @@ pub fn lower_ast_lru(
                         ret.end.clone(),
                     );
 
-                    return Ok(ret.push());
+                    return Ok(ret.push(ctx));
                 } else {
                     return Err(build_internal_hir_node_leaked(&ret, &ret).into());
                 }
@@ -76,7 +107,7 @@ pub fn lower_ast_lru(
                     node.end.clone(),
                 );
 
-                return Ok(node.push());
+                return Ok(node.push(ctx));
             }
 
             _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),

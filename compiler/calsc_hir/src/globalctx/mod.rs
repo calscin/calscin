@@ -72,15 +72,23 @@ impl GlobalContext {
             let closest = get_closest_key(self, key.clone());
 
             if closest.is_some() {
-                return Err(
-                    build_cannot_find_element(&*key.name, &*closest.unwrap().name, origin).into(),
-                );
+                return Err(build_cannot_find_element(&key, &closest.unwrap(), origin).into());
             } else {
                 return Err(build_cannot_find_element_no_closest(&*key.name, origin).into());
             }
         }
 
-        Ok(&self.values[self.key_to_ind[&key]])
+        let val = &self.values[self.key_to_ind[&key]];
+
+        if let GlobalContextValue::AnotherReference(key) = &val {
+            return self.get_entry(key.clone(), origin);
+        }
+
+        Ok(val)
+    }
+
+    pub fn has_entry(&self, key: &GlobalContextKey) -> bool {
+        self.key_to_ind.contains_key(key)
     }
 
     /// Mutates the given entry at the given key according to the given mutation function.

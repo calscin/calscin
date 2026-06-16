@@ -4,9 +4,9 @@ use calsc_diagnostics::{
 };
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
-    refs::HIRArenaReference,
 };
 use calsc_typing::tree::Type;
+use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     block::vars::BlockVariable,
     builders::{build_argument_grab, build_call, build_const_int, build_ret},
@@ -20,21 +20,24 @@ use crate::{
 };
 
 pub fn lower_hir_function_call(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<Option<BaseSSAValue>> {
-    if let HIRNodeKind::FunctionCall { func, arguments } = node.kind.clone() {
+    let node_ref = hirctx.nodes.get(&node);
+
+    if let HIRNodeKind::FunctionCall { func, arguments } = node_ref.kind.clone() {
         let name = format!("{}", func);
         let reference_label = match module.get_function_by_name(name.clone()) {
             Some(v) => v,
-            None => return Err(build_cannot_find_element_no_closest(&name, &*node).into()),
+            None => return Err(build_cannot_find_element_no_closest(&name, node_ref).into()),
         };
 
         let mut lowered_arguments = vec![];
 
         for argument in arguments {
-            let v = lower_hir_value(argument, local_ctx, module)?;
+            let v = lower_hir_value(argument, local_ctx, module, hirctx)?;
 
             lowered_arguments.push(v);
         }
@@ -47,7 +50,7 @@ pub fn lower_hir_function_call(
             false,
             false,
         )
-        .convert(node.start.clone(), node.end.clone())?;
+        .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         Ok(val)
     } else {
@@ -84,22 +87,24 @@ pub fn lower_hir_function_decl_none(
 }
 
 pub fn lower_hir_function_decl(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     context: &HIRContext,
     module: &mut Module,
 ) -> DiagPossible {
+    let node_ref = context.nodes.get(&node);
+
     if let HIRNodeKind::FunctionDeclaration {
         key,
         arguments,
         body,
         return_type: _,
         append_terminator,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
         let local_context = context
             .scope
-            .get_entry(key.clone(), &*node)?
-            .as_function(&*node)?
+            .get_entry(key.clone(), node_ref)?
+            .as_function(node_ref)?
             .local_context
             .clone()
             .unwrap();
@@ -109,7 +114,7 @@ pub fn lower_hir_function_decl(
 
         let entry_block = module
             .create_block(format!("{}::entry", key))
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         module.move_end(entry_block.clone(), function);
 
@@ -118,7 +123,7 @@ pub fn lower_hir_function_decl(
             let mut argument_ind = 0;
             for argument in &arguments {
                 let val = build_argument_grab(module, argument_ind)
-                    .convert(node.start.clone(), node.end.clone())?;
+                    .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
                 let argument_variable =
                     BlockVariable::new_ssa(String::clone(&argument.1), Some(val));
@@ -129,7 +134,7 @@ pub fn lower_hir_function_decl(
             }
         }
 
-        lower_hir_body(body, &local_context, module)?;
+        lower_hir_body(body, &local_context, module, &context)?;
 
         if append_terminator {
             let return_type = build_const_int(module, 0, 32, true).unwrap();
@@ -139,20 +144,23 @@ pub fn lower_hir_function_decl(
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&node, &*node_ref).into());
     }
 }
 
 pub fn lower_hir_function_return(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagPossible {
-    if let HIRNodeKind::ReturnStatement { val } = node.kind.clone() {
+    let node_ref = hirctx.nodes.get(&node);
+
+    if let HIRNodeKind::ReturnStatement { val } = node_ref.kind.clone() {
         let mir_val;
 
         if val.is_some() {
-            mir_val = Some(lower_hir_value(val.unwrap(), local_ctx, module)?);
+            mir_val = Some(lower_hir_value(val.unwrap(), local_ctx, module, hirctx)?);
         } else {
             mir_val = None;
         }
@@ -161,6 +169,6 @@ pub fn lower_hir_function_return(
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
     }
 }

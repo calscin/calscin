@@ -2,12 +2,12 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::{hash::HashedString, pos::FilePosition};
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString, pos::FilePosition};
 
 use crate::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{forms::parse_ast_field_form, values::parse_ast_value},
-    refs::ASTArenaReference,
 };
 
 /// Parses a variable declaration
@@ -15,7 +15,8 @@ use crate::{
 pub fn parse_ast_variable_declaration(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     let mutable = match tokens[*ind].kind {
@@ -35,7 +36,7 @@ pub fn parse_ast_variable_declaration(
     if tokens[*ind].kind == TokenKind::Equal {
         *ind += 1; // =
 
-        val = Some(parse_ast_value(tokens, ind, true, false, true)?); // Auto increments
+        val = Some(parse_ast_value(tokens, ind, true, false, true, ctx)?); // Auto increments
     } else {
         val = None;
     }
@@ -53,14 +54,15 @@ pub fn parse_ast_variable_declaration(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline]
 pub fn parse_ast_element_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 
@@ -70,19 +72,20 @@ pub fn parse_ast_element_reference(
 
     let node = ASTNode::new(ASTNodeKind::ElementReference(name), start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline]
 pub fn parse_ast_assign(
     tokens: &Vec<Token>,
     ind: &mut usize,
-    first: ASTArenaReference,
+    first: ArenaHandle,
     start: FilePosition,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     *ind += 1; // =
 
-    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 
@@ -95,5 +98,5 @@ pub fn parse_ast_assign(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

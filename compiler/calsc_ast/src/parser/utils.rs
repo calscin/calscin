@@ -5,13 +5,14 @@ use calsc_lexer::toks::{Token, TokenKind};
 ///
 /// This works on every function of the AST as it fakes another index in order to make every function behave correctly.
 ///
-pub fn peek_ahead<F, R>(tokens: &Vec<Token>, ind: usize, f: F) -> R
+pub fn peek_ahead<F, R>(tokens: &Vec<Token>, ind: usize, f: F) -> (R, usize)
 where
     F: FnOnce(&Vec<Token>, &mut usize) -> R,
 {
     let mut local_ind = ind;
 
-    f(tokens, &mut local_ind)
+    let r = f(tokens, &mut local_ind);
+    (r, local_ind)
 }
 
 /// Parses an list of elements in the AST of type `R` by using the given element parsing function.

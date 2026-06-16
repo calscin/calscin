@@ -2,9 +2,9 @@
 
 use std::{fs, path::PathBuf, process::Command};
 
-use calsc_ast::{AST_CONTEXT, parser::ctx::parse_ast_whole};
+use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::container::dump_and_stop_if_errors;
-use calsc_hir::HIR_CONTEXT;
+use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_hir_lowering::{stage1::lower_hir_stage_1, stage2::lower_hir_stage_2};
 use calsc_lexer::lexer_tokenize;
 use calsc_remir_lowering::compile_file;
@@ -105,22 +105,23 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let lexer = lexer_tokenize(&contents, file.to_str().unwrap().to_string());
     dump_and_stop_if_errors();
 
-    let _ = parse_ast_whole(&lexer.unwrap());
+    let ast_ctx = parse_ast_whole(&lexer.unwrap());
     dump_and_stop_if_errors();
 
-    let ast_context = AST_CONTEXT.with(|ctx| ctx.borrow().clone()); // We keep it for AST refs
+    let ast_ctx = ast_ctx.unwrap();
 
-    let _ = lower_hir_stage_1(ast_context.clone());
+    let mut hir_ctx = HIRContext::new();
+    let mut file_ctx = HIRFileContext::new();
+
+    let _ = lower_hir_stage_1(ast_ctx.clone(), &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();
 
-    let _ = lower_hir_stage_2(ast_context);
+    let _ = lower_hir_stage_2(ast_ctx, &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();
 
     if !target.requires_remir() {
         return None;
     }
-
-    let ctx_context = HIR_CONTEXT.with(|ctx| ctx.borrow().clone()); // We keep this for HIR refs
 
     let mut out_file = match target {
         BuildTargetMode::Remir => file.with_extension("remir"),
@@ -136,7 +137,7 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     }
 
     let _ = compile_file(
-        ctx_context,
+        hir_ctx,
         out_file.clone(),
         file.file_name().unwrap().to_str().unwrap().to_string(),
         target.clone(),

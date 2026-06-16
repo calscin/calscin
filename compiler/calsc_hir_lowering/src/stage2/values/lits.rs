@@ -3,12 +3,13 @@
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{
+    HIRContext,
     nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
 };
+use calsc_utils::alloc::arena::ArenaHandle;
 
 /// Lowers an AST literal into an HIR literal
-pub fn lower_ast_literal(node: ASTNode) -> DiagResult<HIRArenaReference> {
+pub fn lower_ast_literal(node: ASTNode, ctx: &mut HIRContext) -> DiagResult<ArenaHandle> {
     let kind = match &node.kind {
         ASTNodeKind::IntLiteral(val) => HIRNodeKind::IntLiteral(*val, 128, *val < 0),
         ASTNodeKind::FloatLiteral(val) => HIRNodeKind::FloatLiteral(*val, 128, *val < 0.0),
@@ -21,5 +22,5 @@ pub fn lower_ast_literal(node: ASTNode) -> DiagResult<HIRArenaReference> {
 
     let node = HIRNode::new(kind, node.start.clone(), node.end.clone());
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

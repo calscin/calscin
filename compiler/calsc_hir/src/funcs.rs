@@ -1,9 +1,9 @@
 //! Declarations for HIR functions
 
 use calsc_typing::{base::BaseType, tree::Type};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext, refs::HIRArenaReference};
+use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext};
 
 /// Represents a function in the HIR stage
 ///
@@ -40,7 +40,7 @@ pub struct HIRFunction {
 
     /// The implementation node
     /// Is present only in stage 2 functions
-    pub impl_node: Option<HIRArenaReference>,
+    pub impl_node: Option<ArenaHandle>,
 
     /// The triple dot position for extern functions
     pub triple_dot_position: Option<usize>,
@@ -94,7 +94,7 @@ impl HIRFunction {
     /// # Panics
     /// This function will panic if this is not a stage 1 function
     ///
-    pub fn transform_stage_2(&mut self, impl_node: HIRArenaReference) {
+    pub fn transform_stage_2(&mut self, impl_node: ArenaHandle) {
         if self.local_context.is_none() {
             panic!("This is not a stage 1 function");
         }

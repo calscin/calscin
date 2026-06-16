@@ -1,6 +1,7 @@
-use crate::refs::ASTArenaReference;
+use crate::ASTContext;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::Token;
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     nodes::{ASTNode, ASTNodeKind},
@@ -11,36 +12,37 @@ use crate::{
 pub fn parse_ast_pointer_reference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // &
 
-    let value = parse_ast_value(tokens, ind, false, false, true)?; // Doesn't allow post 
-    // Auto increments
+    let value = parse_ast_value(tokens, ind, false, false, true, ctx)?; // Doesn't allow post
 
     let end = tokens[*ind - 1].end.clone();
 
     let node = ASTNode::new(ASTNodeKind::PointerReference(value), start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
 
 #[inline(always)]
 pub fn parse_ast_pointer_dereference(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     *ind += 1; // *
 
-    let value = parse_ast_value(tokens, ind, false, false, true)?; // Doesn't allow post
+    let value = parse_ast_value(tokens, ind, false, false, true, ctx)?; // Doesn't allow post
     // Auto increments
 
     let end = tokens[*ind - 1].end.clone();
 
     let node = ASTNode::new(ASTNodeKind::PointerDereference(value), start, end);
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

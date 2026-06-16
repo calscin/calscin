@@ -1,6 +1,6 @@
 use calsc_diagnostics::{DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
-use calsc_utils::math::MathOperation;
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
+use calsc_utils::{alloc::arena::ArenaHandle, math::MathOperation};
 use remir::{
     builders::{build_math_op_float, build_math_op_int},
     module::Module,
@@ -26,27 +26,34 @@ pub fn convert_math_operator(math: MathOperation) -> DiagResult<remir::misc::Mat
 }
 
 pub fn lower_hir_math_operation(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
+    hirctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
+    let node_ref = hirctx.nodes.get(&node);
+
     if let HIRNodeKind::MathExpression {
         left_expr,
         right_expr,
         operator,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
-        let ty = left_expr.get_type(Some(ctx.local_key.clone()))?;
-        let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module)?;
-        let right_expr_val = lower_hir_value(right_expr, ctx, module)?;
+        let ty = hirctx
+            .nodes
+            .get(&left_expr)
+            .get_type(Some(ctx.local_key.clone()), hirctx)?;
+
+        let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module, hirctx)?;
+        let right_expr_val = lower_hir_value(right_expr, ctx, module, hirctx)?;
 
         let res: BaseSSAValue;
 
         if ty.is_base() && ty.as_base().ty.kind.is_int() {
             let left_expr = SSAIntValue::try_from(left_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
             let right_expr = SSAIntValue::try_from(right_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             res = build_math_op_int(
                 module,
@@ -58,14 +65,14 @@ pub fn lower_hir_math_operation(
                 !operator.fast,
                 operator.fast,
             )
-            .convert(node.start.clone(), node.end.clone())?
+            .convert(node_ref.start.clone(), node_ref.end.clone())?
             .into()
         } else {
             let left_expr = SSAFloatValue::try_from(left_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             let right_expr = SSAFloatValue::try_from(right_expr_val)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             res = build_math_op_float(
                 module,
@@ -76,16 +83,16 @@ pub fn lower_hir_math_operation(
                 !operator.fast,
                 operator.fast,
             )
-            .convert(node.start.clone(), node.end.clone())?
+            .convert(node_ref.start.clone(), node_ref.end.clone())?
             .into()
         }
 
         if operator.assigns {
-            lower_hir_writable(left_expr, ctx, module, res.clone())?;
+            lower_hir_writable(left_expr, ctx, module, res.clone(), hirctx)?;
         }
 
         Ok(res)
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
     }
 }

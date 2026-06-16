@@ -1,0 +1,108 @@
+use std::{
+    fmt::{Debug, Display},
+    hash::Hash,
+};
+
+use calsc_utils::hash::HashedString;
+
+/// Represents a path to a module
+#[derive(Clone)]
+pub struct ModulePath {
+    /// The package name of the module.
+    pub package: HashedString,
+
+    /// The path of modules to go to the module.
+    /// Each entry represents a module to walk trough
+    pub path: Vec<HashedString>,
+}
+
+impl ModulePath {
+    /// Creates a new [`ModulePath`]
+    pub fn new(package: HashedString, path: Vec<HashedString>) -> Self {
+        Self { package, path }
+    }
+
+    /// Creates a new [`ModulePath`]
+    pub fn new_prelude_path(path: Vec<HashedString>) -> Self {
+        Self {
+            package: "prelude".into(),
+            path,
+        }
+    }
+
+    pub fn is_prelude(&self) -> bool {
+        self.package == "prelude".into()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.package.is_empty() && self.path.is_empty()
+    }
+
+    pub fn append(&mut self, path: ModulePath) {
+        if !path.package.is_empty() {
+            self.path.push(path.package);
+        }
+
+        for entry in path.path {
+            self.path.push(entry);
+        }
+    }
+}
+
+impl Default for ModulePath {
+    fn default() -> Self {
+        Self {
+            package: "".into(),
+            path: vec![],
+        }
+    }
+}
+
+impl PartialEq for ModulePath {
+    fn eq(&self, other: &Self) -> bool {
+        if self.is_prelude() || other.is_prelude() {
+            return true;
+        }
+
+        return self.package == other.package && self.path == other.path;
+    }
+}
+
+impl Eq for ModulePath {}
+
+impl Hash for ModulePath {
+    fn hash<H: std::hash::Hasher>(&self, state: &mut H) {
+        if self.is_prelude() || self.package == "".into() {
+            return;
+        }
+
+        self.package.hash(state);
+        state.write_usize(self.path.len());
+
+        let _ = self.path.iter().map(|entry| entry.hash(state));
+    }
+}
+
+impl Display for ModulePath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.package)?;
+
+        for path in &self.path {
+            write!(f, "::{}", path)?;
+        }
+
+        Ok(())
+    }
+}
+
+impl Debug for ModulePath {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.package)?;
+
+        for path in &self.path {
+            write!(f, "::{}", path)?;
+        }
+
+        Ok(())
+    }
+}

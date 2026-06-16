@@ -1,20 +1,20 @@
-use crate::refs::HIRArenaReference;
+use calsc_utils::alloc::arena::ArenaHandle;
 
 /// Represents a branch on an if statement.
 #[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(PartialEq, Clone)]
+#[derive(Clone)]
 pub enum IfStatementBranch {
     If {
-        condition: HIRArenaReference,
-        body: Vec<HIRArenaReference>,
+        condition: ArenaHandle,
+        body: Vec<ArenaHandle>,
     },
 
     IfElse {
-        condition: HIRArenaReference,
-        body: Vec<HIRArenaReference>,
+        condition: ArenaHandle,
+        body: Vec<ArenaHandle>,
     },
 
     Else {
-        body: Vec<HIRArenaReference>,
+        body: Vec<ArenaHandle>,
     },
 }

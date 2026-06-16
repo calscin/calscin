@@ -5,7 +5,7 @@ members = [
 	"compiler/calsc_diagnostics",
 	"compiler/calsc_hir",
 	"compiler/calsc_hir_lowering",
-	"compiler/calsc_lexer",
+	"compiler/calsc_lexer", "compiler/calsc_modules",
 	"compiler/calsc_remir_lowering",
 	"compiler/calsc_state",
 	"compiler/calsc_typing",

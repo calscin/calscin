@@ -1,8 +1,9 @@
 //! Literal parsing
 
+use crate::ASTContext;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use crate::refs::ASTArenaReference;
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::nodes::{ASTNode, ASTNodeKind};
 
@@ -22,16 +23,23 @@ use crate::nodes::{ASTNode, ASTNodeKind};
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_ast::parser::values::lits::parse_ast_literal;
 /// use calsc_ast::nodes::ASTNodeKind;
+/// use calsc_ast::ASTContext;
+///
+/// let mut ast_ctx = ASTContext::new();
 ///
 /// let mut ind: usize = 0;
 /// let tokens = lexer_tokenize("16", "test".to_string()).unwrap();
 ///
-/// let parsed = parse_ast_literal(&tokens, &mut ind).unwrap();
+/// let parsed = parse_ast_literal(&tokens, &mut ind, &mut ast_ctx).unwrap();
 ///
-/// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
+/// assert_eq!(ast_ctx.nodes.get(&parsed).kind, ASTNodeKind::IntLiteral(16));
 /// ```
 ///
-pub fn parse_ast_literal(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ASTArenaReference> {
+pub fn parse_ast_literal(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
     let end = tokens[*ind].end.clone();
 
@@ -49,5 +57,5 @@ pub fn parse_ast_literal(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<AST
     *ind += 1; // Post increment
 
     let node = ASTNode::new(kind, start, end);
-    Ok(node.push())
+    Ok(node.push(ctx))
 }

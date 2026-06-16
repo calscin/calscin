@@ -2,10 +2,9 @@
 
 use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
 
 use crate::{
-    parser::utils::parse_ast_list,
+    parser::{forms::parse_element_path_form, utils::parse_ast_list},
     types::{ASTType, SimpleASTType},
 };
 
@@ -161,8 +160,8 @@ pub fn parse_type_generic(
     ind: &mut usize,
     allow_generic_parameters: bool,
 ) -> DiagResult<SimpleASTType> {
-    if let TokenKind::Keyword(name) = tokens[*ind].kind.clone() {
-        *ind += 1; // keyword
+    if let TokenKind::Keyword(_) = tokens[*ind].kind.clone() {
+        let name = parse_element_path_form(tokens, ind)?;
 
         let size_spec;
         let mut type_parameters: Vec<ASTType> = vec![];
@@ -198,11 +197,7 @@ pub fn parse_type_generic(
             )?; // Auto increments
         }
 
-        return Ok(SimpleASTType::Generic(
-            HashedString::new(name),
-            size_spec,
-            type_parameters,
-        ));
+        return Ok(SimpleASTType::Generic(name, size_spec, type_parameters));
     }
 
     panic!("Invalid node")

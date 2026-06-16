@@ -1,19 +1,22 @@
-use calsc_ast::nodes::{ASTNode, ASTNodeKind};
+use calsc_ast::{
+    ASTContext,
+    nodes::{ASTNode, ASTNodeKind},
+};
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
-        InternalErrors, build_expected_entry_type, build_expected_return_error,
-        build_internal_hir_node_leaked, build_internal_singleton_error,
+        build_expected_entry_type, build_expected_return_error, build_internal_hir_node_leaked,
         build_restricted_return_type,
     },
 };
 use calsc_hir::{
-    HIR_CONTEXT,
+    HIRContext,
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
 };
 use calsc_typing::{base::BaseType, tree::Type};
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     stage1::types::lower_ast_type,
@@ -21,6 +24,7 @@ use crate::{
         control::{
             lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop,
         },
+        key::lower_ast_key,
         values::{lower_ast_value, lru::lower_ast_lru},
         vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
     },
@@ -29,22 +33,37 @@ use crate::{
 pub fn lower_ast_body_node(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
-) -> DiagResult<HIRArenaReference> {
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     match &node.kind {
-        ASTNodeKind::FunctionCall { .. } => lower_ast_function_call(node, None, local_ctx),
-        ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx),
+        ASTNodeKind::FunctionCall { .. } => {
+            lower_ast_function_call(node, None, local_ctx, file_ctx, ctx, ast_ctx)
+        }
+        ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx, file_ctx, ctx, ast_ctx),
 
-        ASTNodeKind::VariableDeclaration { .. } => lower_ast_variable_declaration(node, local_ctx),
-        ASTNodeKind::Assignment { .. } => lower_ast_variable_assign(node, local_ctx),
+        ASTNodeKind::VariableDeclaration { .. } => {
+            lower_ast_variable_declaration(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
+        ASTNodeKind::Assignment { .. } => {
+            lower_ast_variable_assign(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
 
-        ASTNodeKind::IfStatement { .. } => lower_ast_if_statement(node, local_ctx),
-        ASTNodeKind::ForLoop { .. } => lower_ast_for_loop(node, local_ctx),
-        ASTNodeKind::WhileLoop { .. } => lower_ast_while_loop(node, local_ctx),
-        ASTNodeKind::Loop { .. } => lower_ast_loop(node, local_ctx),
+        ASTNodeKind::IfStatement { .. } => {
+            lower_ast_if_statement(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
+        ASTNodeKind::ForLoop { .. } => lower_ast_for_loop(node, local_ctx, file_ctx, ctx, ast_ctx),
+        ASTNodeKind::WhileLoop { .. } => {
+            lower_ast_while_loop(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
+        ASTNodeKind::Loop { .. } => lower_ast_loop(node, local_ctx, file_ctx, ctx, ast_ctx),
 
-        ASTNodeKind::ReturnStatement { .. } => lower_ast_return_statement(node, local_ctx),
+        ASTNodeKind::ReturnStatement { .. } => {
+            lower_ast_return_statement(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
 
-        _ => lower_ast_value(node, local_ctx),
+        _ => lower_ast_value(node, local_ctx, file_ctx, ctx, ast_ctx),
     }
 }
 
@@ -53,62 +72,64 @@ pub fn lower_ast_body<K: DiagnosticSource>(
     local_ctx: Option<GlobalContextKey>,
     introduce_branch: bool,
     origin: &K,
-) -> DiagResult<Vec<HIRArenaReference>> {
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagResult<Vec<ArenaHandle>> {
     let mut hir_nodes = vec![];
 
-    let previous_branch = HIR_CONTEXT.with(|f| {
-        Ok(f.borrow()
-            .scope
-            .get_entry(local_ctx.clone().unwrap(), origin)?
-            .as_function(origin)?
-            .local_context
-            .as_ref()
-            .unwrap()
-            .current_branch)
-    })?;
+    let previous_branch = ctx
+        .scope
+        .get_entry(local_ctx.clone().unwrap(), origin)?
+        .as_function(origin)?
+        .local_context
+        .as_ref()
+        .unwrap()
+        .current_branch;
 
     let mut branch = 0;
-    let mut last = None;
 
     if introduce_branch {
-        branch = HIR_CONTEXT.with(|f| {
-            Ok(f.borrow_mut().scope.mutate_entry(
-                local_ctx.clone().unwrap(),
-                |entry| {
-                    entry.mutate_function(
-                        |ff| ff.local_context.as_mut().unwrap().start_branch(),
-                        origin,
-                    )
-                },
-                origin,
-            )?)
-        })??;
+        branch = ctx.scope.mutate_entry(
+            local_ctx.clone().unwrap(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| ff.local_context.as_mut().unwrap().start_branch(),
+                    origin,
+                )
+            },
+            origin,
+        )??;
     }
 
     for node in &nodes {
-        last = Some(node.clone());
-        hir_nodes.push(lower_ast_body_node(node.clone(), local_ctx.clone())?);
+        hir_nodes.push(lower_ast_body_node(
+            node.clone(),
+            local_ctx.clone(),
+            file_ctx,
+            ctx,
+            ast_ctx,
+        )?);
     }
 
     if introduce_branch {
-        HIR_CONTEXT.with(|f| {
-            f.borrow_mut().scope.mutate_entry(
-                local_ctx.unwrap(),
-                |entry| {
-                    entry.mutate_function(
-                        |ff| {
-                            ff.local_context
-                                .as_mut()
-                                .unwrap()
-                                .end_branch(branch, &last.unwrap());
-                            ff.local_context.as_mut().unwrap().current_branch = previous_branch;
-                        },
-                        origin,
-                    )
-                },
-                origin,
-            )
-        })??;
+        ctx.scope.mutate_entry(
+            local_ctx.unwrap(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| {
+                        ff.local_context
+                            .as_mut()
+                            .unwrap()
+                            .end_branch(branch, origin);
+
+                        ff.local_context.as_mut().unwrap().current_branch = previous_branch;
+                    },
+                    origin,
+                )
+            },
+            origin,
+        )??;
     }
 
     Ok(hir_nodes)
@@ -116,34 +137,30 @@ pub fn lower_ast_body<K: DiagnosticSource>(
 
 pub fn lower_ast_function_call(
     node: ASTNode,
-    ty: Option<BaseType>,
+    _ty: Option<BaseType>,
     local_ctx: Option<GlobalContextKey>,
-) -> DiagResult<HIRArenaReference> {
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::FunctionCall { name, arguments } = node.kind.clone() {
-        let key;
-        let mut hir_arguments = vec![];
+        let key = lower_ast_key(name, &node, true, file_ctx, ctx)?;
 
-        if ty.is_some() {
-            key = GlobalContextKey::new_typed(name, ty.unwrap());
-        } else {
-            key = GlobalContextKey::new(name);
-        }
+        let mut hir_arguments = vec![];
 
         for argument in arguments {
             hir_arguments.push(lower_ast_value(
-                ASTNode::clone(&argument),
+                ASTNode::clone(ast_ctx.nodes.get(&argument)),
                 local_ctx.clone(),
+                file_ctx,
+                ctx,
+                ast_ctx,
             )?);
         }
 
-        let is_function = HIR_CONTEXT.with(|f| {
-            Ok(f.borrow()
-                .scope
-                .get_entry(key.clone(), &node)?
-                .is_function())
-        });
+        let is_function = ctx.scope.get_entry(key.clone(), &node)?.is_function();
 
-        if !is_function? {
+        if !is_function {
             return Err(build_expected_entry_type(&"function", &"?? TODO", &node).into());
         }
 
@@ -156,7 +173,7 @@ pub fn lower_ast_function_call(
             node.end.clone(),
         );
 
-        Ok(node.push())
+        Ok(node.push(ctx))
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
@@ -165,65 +182,63 @@ pub fn lower_ast_function_call(
 pub fn lower_ast_return_statement(
     node: ASTNode,
     local_ctx: Option<GlobalContextKey>,
-) -> DiagResult<HIRArenaReference> {
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::ReturnStatement { val } = node.kind.clone() {
         let v;
 
-        let expected_return_type = HIR_CONTEXT.with_borrow(|f| {
-            Some(
-                f.scope
-                    .get_entry(local_ctx.clone().unwrap(), &node)
-                    .ok()?
-                    .as_function(&node)
-                    .ok()?
-                    .local_context
-                    .as_ref()
-                    .unwrap()
-                    .return_type
-                    .clone(),
-            )
-        });
-
-        let expected_return_type = match expected_return_type {
-            Some(v) => v,
-            None => {
-                return Err(build_internal_singleton_error(
-                    InternalErrors::CannotFindReturnType,
-                    &node,
-                )
-                .into());
-            }
-        };
+        let expected_return_type = ctx
+            .scope
+            .get_entry(local_ctx.clone().unwrap(), &node)?
+            .as_function(&node)?
+            .local_context
+            .as_ref()
+            .unwrap()
+            .return_type
+            .clone();
 
         if val.is_some() && expected_return_type == Type::Void {
             return Err(build_restricted_return_type(&"void", &node).into());
         }
 
         if val.is_some() {
-            let val = lower_ast_value(ASTNode::clone(&val.unwrap()), local_ctx.clone())?;
-            let val = val
-                .use_as(expected_return_type, val.clone(), None, local_ctx.clone())?
-                .push();
+            let val = lower_ast_value(
+                ASTNode::clone(ast_ctx.nodes.get(val.as_ref().unwrap())),
+                local_ctx.clone(),
+                file_ctx,
+                ctx,
+                ast_ctx,
+            )?;
+
+            let val_ref = ctx.nodes.get(&val).clone();
+
+            let val = val_ref
+                .use_as(
+                    expected_return_type,
+                    val.clone(),
+                    None,
+                    local_ctx.clone(),
+                    ctx,
+                )?
+                .push(ctx);
 
             v = Some(val);
         } else {
             v = None;
         }
 
-        HIR_CONTEXT.with(|f| {
-            f.borrow_mut().scope.mutate_entry(
-                local_ctx.clone().unwrap(),
-                |entry| {
-                    entry.mutate_function(
-                        |ff| {
-                            ff.local_context.as_mut().unwrap().introduce_ending_point();
-                        },
-                        &node,
-                    )
-                },
-                &node,
-            )
-        })??;
+        ctx.scope.mutate_entry(
+            local_ctx.clone().unwrap(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| ff.local_context.as_mut().unwrap().introduce_ending_point(),
+                    &node,
+                )
+            },
+            &node,
+        )??;
 
         let node = HIRNode::new(
             HIRNodeKind::ReturnStatement { val: v },
@@ -231,7 +246,7 @@ pub fn lower_ast_return_statement(
             node.end.clone(),
         );
 
-        Ok(node.push())
+        Ok(node.push(ctx))
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
@@ -240,7 +255,10 @@ pub fn lower_ast_return_statement(
 pub fn lower_ast_function_decl(
     node: ASTNode,
     ty: Option<BaseType>,
-) -> DiagResult<HIRArenaReference> {
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::FunctionDeclaration {
         name,
         arguments,
@@ -248,41 +266,50 @@ pub fn lower_ast_function_decl(
         body,
     } = node.kind.clone()
     {
-        let key;
+        let mut key = GlobalContextKey::new(name.clone());
 
         if ty.is_some() {
-            key = GlobalContextKey::new_typed(name.clone(), ty.clone().unwrap());
+            key = key.associated_type(ty.clone().unwrap());
         } else {
-            key = GlobalContextKey::new(name.clone());
+            key = key.module_path(file_ctx.current_module.clone());
+        }
+
+        let is_main_function = key.name == "main".into() && key.module_path.path.len() == 0;
+
+        if is_main_function {
+            key = GlobalContextKey::new("main".into());
         }
 
         let mut hir_arguments = vec![];
-        let ret_type = lower_ast_type(return_type, &node, ty.clone())?;
+        let ret_type = lower_ast_type(return_type, &node, ty.clone(), file_ctx, ctx)?;
 
         for argument in arguments {
             hir_arguments.push((
-                lower_ast_type(argument.0.clone(), &node, ty.clone())?,
+                lower_ast_type(argument.0.clone(), &node, ty.clone(), file_ctx, ctx)?,
                 argument.1,
             ));
         }
 
         let body = lower_ast_body(
-            body.iter().map(|f| ASTNode::clone(f)).collect(),
+            body.iter()
+                .map(|f| ASTNode::clone(ast_ctx.nodes.get(f)))
+                .collect(),
             Some(key.clone()),
             false,
             &node,
+            file_ctx,
+            ctx,
+            ast_ctx,
         )?;
 
-        let meets_ending_point = HIR_CONTEXT.with(|f| {
-            Ok(f.borrow()
-                .scope
-                .get_entry(key.clone(), &node)?
-                .as_function(&node)?
-                .local_context
-                .as_ref()
-                .unwrap()
-                .meets_ending_point_requirement())
-        })?;
+        let meets_ending_point = ctx
+            .scope
+            .get_entry(key.clone(), &node)?
+            .as_function(&node)?
+            .local_context
+            .as_ref()
+            .unwrap()
+            .meets_ending_point_requirement();
 
         if !meets_ending_point {
             return Err(build_expected_return_error(&ret_type, &"void".to_string(), &node).into());
@@ -302,15 +329,13 @@ pub fn lower_ast_function_decl(
             node.end.clone(),
         );
 
-        let r = n.push();
+        let r = n.push(ctx);
 
-        HIR_CONTEXT.with(|f| {
-            f.borrow_mut().scope.mutate_entry(
-                key.clone(),
-                |entry| entry.mutate_function(|ff| ff.impl_node = Some(r.clone()), &node),
-                &node,
-            )
-        })??;
+        ctx.scope.mutate_entry(
+            key.clone(),
+            |entry| entry.mutate_function(|ff| ff.impl_node = Some(r.clone()), &node),
+            &node,
+        )??;
 
         Ok(r)
     } else {

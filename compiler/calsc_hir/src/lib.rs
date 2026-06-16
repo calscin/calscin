@@ -2,30 +2,25 @@
 
 #![deny(unsafe_code)]
 
-use std::cell::RefCell;
-
 use calsc_utils::alloc::arena::ArenaAllocator;
 
-use crate::{globalctx::GlobalContext, nodes::HIRNode, refs::HIRArenaReference};
+use crate::{globalctx::GlobalContext, nodes::HIRNode};
 
 pub mod conv;
+pub mod file;
 pub mod funcs;
 pub mod globalctx;
 pub mod ifs;
+pub mod imports;
 pub mod localctx;
 pub mod nodes;
 pub mod prelude;
-pub mod refs;
 pub mod types;
-
-thread_local! {
-    pub static HIR_CONTEXT: RefCell<HIRContext> = RefCell::new(HIRContext::new());
-}
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)] // For MIR
 pub struct HIRContext {
-    pub nodes: ArenaAllocator<HIRNode, HIRArenaReference>,
+    pub nodes: ArenaAllocator<HIRNode>,
     pub scope: GlobalContext,
 }
 

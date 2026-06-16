@@ -1,5 +1,6 @@
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     block::{Block, sync::VariableSynchronizer, vars::BlockVariable},
     builders::{
@@ -18,19 +19,22 @@ use crate::{
 
 #[allow(unsafe_code)]
 pub fn lower_hir_for_loop(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
+    ctx: &HIRContext,
 ) -> DiagPossible {
+    let node_ref = ctx.nodes.get(&node);
+
     if let HIRNodeKind::ForLoop {
         iterator_type,
         iterator_name,
         iterator_variable_index: _,
         iterated,
         body,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
-        let iterated = lower_hir_range(iterated, local_ctx, module)?;
+        let iterated = lower_hir_range(iterated, local_ctx, module, ctx)?;
         let iterator_type = lower_type(iterator_type)?;
 
         // We use the following technique to lower a for loop:
@@ -53,27 +57,27 @@ pub fn lower_hir_for_loop(
         // Create the merge block
         let merge_block = module
             .create_block("merge_block".to_string())
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         // Append the variable
         // Creation of the iterator variable
-        let variable_ptr_size =
-            build_const_int(module, 0, 64, false).convert(node.start.clone(), node.end.clone())?;
+        let variable_ptr_size = build_const_int(module, 0, 64, false)
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
         let variable_pointer = build_alloca(module, variable_ptr_size, Some(iterator_type))
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         let mut variable =
             BlockVariable::new_pointer(String::clone(&iterator_name), variable_pointer);
         variable
             .write(module, iterated.start.clone().into())
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         module.blocks[curr_pos.id].append_variable(variable); // Appends the variable
 
         // Creating the loop header block
         let header_block = module
             .create_block("for_header".to_string())
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         build_unconditional_branch(module, header_block.clone()); // Jump to the header block from the original block
 
@@ -82,12 +86,12 @@ pub fn lower_hir_for_loop(
         // Creating the body block
         let body_block = module
             .create_block("for_body".to_string())
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         // Filling the body block
         module.move_end(body_block.clone(), module.pos_function.clone().unwrap());
 
-        lower_hir_body(body, local_ctx, module)?;
+        lower_hir_body(body, local_ctx, module, ctx)?;
 
         // Increment the iterator
         {
@@ -96,11 +100,11 @@ pub fn lower_hir_for_loop(
 
             let iterator_value = variable
                 .read(module)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             let iterator_value: SSAIntValue = iterator_value
                 .try_into()
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             let new_value = build_math_op_int(
                 module,
@@ -112,7 +116,7 @@ pub fn lower_hir_for_loop(
                 true,
                 false,
             )
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             // Tricky hack to avoid double borrowing of module
             // This is normally safe as the block reference doesn't escape this block and isn't stored
@@ -127,7 +131,7 @@ pub fn lower_hir_for_loop(
                 .get_mut(&*iterator_name)
                 .unwrap()
                 .write(module, new_value.into())
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
         }
 
         // Build the unconditional branch jump to header
@@ -148,11 +152,11 @@ pub fn lower_hir_for_loop(
 
             let value = block.variables[&*iterator_name]
                 .read(module)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             let value: SSAIntValue = value
                 .try_into()
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             let condition = build_int_compare(
                 module,
@@ -161,10 +165,10 @@ pub fn lower_hir_for_loop(
                 CompareOperator::Lt,
                 iterated.end.signed,
             )
-            .convert(node.start.clone(), node.end.clone())?;
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             build_conditional_branch(module, condition, body_block, merge_block.clone())
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
         }
 
         // Set current pos to merge block
@@ -172,6 +176,6 @@ pub fn lower_hir_for_loop(
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
     }
 }

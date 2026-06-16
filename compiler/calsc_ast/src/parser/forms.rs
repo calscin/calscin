@@ -2,11 +2,12 @@
 
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
+    ASTContext,
     parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
-    refs::ASTArenaReference,
+    path::ElementPath,
     types::ASTType,
 };
 
@@ -15,11 +16,12 @@ use crate::{
 pub fn parse_ast_condition_form(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     tokens[*ind].expects(TokenKind::ParenOpen)?;
     *ind += 1; // (
 
-    let value = parse_ast_value(tokens, ind, true, false, true)?; // Auto increments
+    let value = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
 
     tokens[*ind].expects(TokenKind::ParenClose)?;
     *ind += 1; // )
@@ -32,11 +34,12 @@ pub fn parse_ast_condition_form(
 pub fn parse_ast_body_form(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<Vec<ASTArenaReference>> {
+    ctx: &mut ASTContext,
+) -> DiagResult<Vec<ArenaHandle>> {
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
-    let body = parse_ast_body(tokens, ind)?; // Auto increments
+    let body = parse_ast_body(tokens, ind, ctx)?; // Auto increments
 
     Ok(body)
 }
@@ -65,4 +68,42 @@ pub fn parse_ast_return_type_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagR
     }
 
     Ok(ASTType::Void)
+}
+
+pub fn parse_element_path_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult<ElementPath> {
+    let mut path: Vec<HashedString> = vec![];
+    let mut relative = false;
+
+    if tokens[*ind].kind == TokenKind::Colon {
+        *ind += 1; // first :
+
+        tokens[*ind].expects(TokenKind::Colon)?;
+        *ind += 1; // second :
+
+        relative = true;
+    }
+
+    path.push(tokens[*ind].expects_keyword()?.into());
+    *ind += 1; // first element
+
+    if tokens[*ind].kind != TokenKind::Colon {
+        relative = true;
+    }
+
+    while tokens[*ind].kind == TokenKind::Colon {
+        *ind += 1; // first :
+
+        tokens[*ind].expects(TokenKind::Colon)?;
+        *ind += 1; // second :
+
+        let val = tokens[*ind].expects_keyword()?;
+        path.push(val.into());
+
+        *ind += 1; // keyword
+    }
+
+    Ok(ElementPath {
+        members: path,
+        relative,
+    })
 }

@@ -1,8 +1,9 @@
 //! Parsing of if statements & else statements
 
-use crate::refs::ASTArenaReference;
+use crate::ASTContext;
 use calsc_diagnostics::DiagResult;
 use calsc_lexer::toks::{Token, TokenKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     ifs::IfStatementBranch,
@@ -13,11 +14,12 @@ use crate::{
 fn parse_if_member_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<IfStatementBranch> {
     *ind += 1; // if
 
-    let condition = parse_ast_condition_form(tokens, ind)?; // Auto increments
-    let body = parse_ast_body_form(tokens, ind)?; // Auto increments
+    let condition = parse_ast_condition_form(tokens, ind, ctx)?; // Auto increments
+    let body = parse_ast_body_form(tokens, ind, ctx)?; // Auto increments
 
     Ok(IfStatementBranch::If { condition, body })
 }
@@ -26,11 +28,12 @@ fn parse_if_member_statement(
 fn parse_if_else_member_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
+    ctx: &mut ASTContext,
 ) -> DiagResult<IfStatementBranch> {
     *ind += 2; // else & if
 
-    let condition = parse_ast_condition_form(tokens, ind)?; // Auto increments
-    let body = parse_ast_body_form(tokens, ind)?; // Auto increments
+    let condition = parse_ast_condition_form(tokens, ind, ctx)?; // Auto increments
+    let body = parse_ast_body_form(tokens, ind, ctx)?; // Auto increments
 
     Ok(IfStatementBranch::IfElse { condition, body })
 }
@@ -39,15 +42,16 @@ fn parse_else_member_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
     has_met_else: &mut bool,
+    ctx: &mut ASTContext,
 ) -> DiagResult<IfStatementBranch> {
     if tokens[*ind + 1].kind == TokenKind::If {
-        return parse_if_else_member_statement(tokens, ind);
+        return parse_if_else_member_statement(tokens, ind, ctx);
     } else {
         *ind += 1; // else
 
         *has_met_else = true;
 
-        let body = parse_ast_body_form(tokens, ind)?;
+        let body = parse_ast_body_form(tokens, ind, ctx)?;
 
         return Ok(IfStatementBranch::Else { body });
     }
@@ -57,18 +61,19 @@ fn parse_else_member_statement(
 pub fn parse_ast_if_statement(
     tokens: &Vec<Token>,
     ind: &mut usize,
-) -> DiagResult<ASTArenaReference> {
+    ctx: &mut ASTContext,
+) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
     let mut statements: Vec<IfStatementBranch> = vec![];
 
-    let if_statement = parse_if_member_statement(tokens, ind)?; // Auto increments
+    let if_statement = parse_if_member_statement(tokens, ind, ctx)?; // Auto increments
     let mut has_met_else = false;
 
     statements.push(if_statement);
 
     while tokens[*ind].kind == TokenKind::Else {
-        let statement = parse_else_member_statement(tokens, ind, &mut has_met_else)?; // Auto increments
+        let statement = parse_else_member_statement(tokens, ind, &mut has_met_else, ctx)?; // Auto increments
 
         statements.push(statement);
 
@@ -87,5 +92,5 @@ pub fn parse_ast_if_statement(
         end,
     );
 
-    Ok(node.push())
+    Ok(node.push(ctx))
 }
