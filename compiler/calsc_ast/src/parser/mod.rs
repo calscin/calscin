@@ -130,7 +130,12 @@ pub fn parse_ast_top_level(
     ind: &mut usize,
     ctx: &mut ASTContext,
 ) -> DiagResult<ArenaHandle> {
-    match tokens[*ind].kind {
+    let i = match tokens[*ind].kind {
+        TokenKind::Public | TokenKind::Private | TokenKind::Protected => *ind + 1,
+        _ => *ind,
+    };
+
+    match tokens[i].kind {
         TokenKind::Function => parse_function_declaration(tokens, ind, ctx),
         TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind, ctx),
         TokenKind::Struct => parse_ast_struct_declaration(tokens, ind, ctx),
