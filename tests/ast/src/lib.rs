@@ -1,6 +1,8 @@
 //! Tests for the AST part of Calscin. Mostly is composed of parser tests
 
+#[cfg(test)]
 use calsc_ast::ASTContext;
+
 #[cfg(test)]
 use calsc_ast::{
     imports::ImportKind, nodes::ASTNodeKind, parser::import::parse_ast_import_statement,
@@ -28,8 +30,9 @@ fn parse_import_statement_whole_test() {
     let mut ind = 0;
 
     let import = parse_ast_import_statement(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let import_ref = ctx.nodes.get(&import);
 
-    if let ASTNodeKind::ImportStatement { path, kind } = import.kind.clone() {
+    if let ASTNodeKind::ImportStatement { path, kind } = import_ref.kind.clone() {
         assert_eq!(path, ElementPath::new(vec!["std".into(), "meow".into()]));
         assert_eq!(kind, ImportKind::Whole);
     } else {
@@ -45,8 +48,9 @@ fn parse_import_statement_elements_test() {
     let mut ind = 0;
 
     let import = parse_ast_import_statement(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let import_ref = ctx.nodes.get(&import);
 
-    if let ASTNodeKind::ImportStatement { path, kind } = import.kind.clone() {
+    if let ASTNodeKind::ImportStatement { path, kind } = import_ref.kind.clone() {
         assert_eq!(path, ElementPath::new(vec!["meow".into(), "test".into()]));
         assert_eq!(kind, ImportKind::Items(vec!["print".into()]));
     } else {
@@ -61,8 +65,9 @@ pub fn parse_import_statement_module_test() {
     let mut ind = 0;
 
     let import = parse_ast_import_statement(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let import_ref = ctx.nodes.get(&import);
 
-    if let ASTNodeKind::ImportStatement { path, kind } = import.kind.clone() {
+    if let ASTNodeKind::ImportStatement { path, kind } = import_ref.kind.clone() {
         assert_eq!(path, ElementPath::new(vec!["meow".into(), "test".into()]));
         assert_eq!(kind, ImportKind::Module);
     }

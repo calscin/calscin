@@ -23,13 +23,16 @@ use crate::nodes::{ASTNode, ASTNodeKind};
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_ast::parser::values::lits::parse_ast_literal;
 /// use calsc_ast::nodes::ASTNodeKind;
+/// use calsc_ast::ASTContext;
+///
+/// let mut ast_ctx = ASTContext::new();
 ///
 /// let mut ind: usize = 0;
 /// let tokens = lexer_tokenize("16", "test".to_string()).unwrap();
 ///
-/// let parsed = parse_ast_literal(&tokens, &mut ind).unwrap();
+/// let parsed = parse_ast_literal(&tokens, &mut ind, &mut ast_ctx).unwrap();
 ///
-/// assert_eq!(parsed.kind, ASTNodeKind::IntLiteral(16));
+/// assert_eq!(ast_ctx.nodes.get(&parsed).kind, ASTNodeKind::IntLiteral(16));
 /// ```
 ///
 pub fn parse_ast_literal(

@@ -25,14 +25,17 @@ fn parse_for_loop_test() {
     let mut ind = 0;
 
     let for_loop = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let for_loop_ref = ctx.nodes.get(&for_loop);
 
     if let ASTNodeKind::ForLoop {
         iterator_type,
         iterator_name,
         iterated,
         body,
-    } = for_loop.kind.clone()
+    } = for_loop_ref.kind.clone()
     {
+        let iterated = ctx.nodes.get(&iterated);
+
         assert_eq!(
             iterator_type,
             ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None, vec![])
@@ -46,9 +49,15 @@ fn parse_for_loop_test() {
             increment,
         } = iterated.kind.clone()
         {
+            let start = ctx.nodes.get(&start);
+            let end = ctx.nodes.get(&end);
+
             assert_eq!(start.kind.clone(), ASTNodeKind::IntLiteral(0));
             assert_eq!(end.kind.clone(), ASTNodeKind::IntLiteral(1));
-            assert_eq!(increment.unwrap().kind.clone(), ASTNodeKind::IntLiteral(2))
+            assert_eq!(
+                ctx.nodes.get(increment.as_ref().unwrap()).kind.clone(),
+                ASTNodeKind::IntLiteral(2)
+            )
         } else {
             panic!()
         }
@@ -65,10 +74,13 @@ fn parse_loop_test() {
     let mut ind = 0;
 
     let loop_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let loop_node_ref = ctx.nodes.get(&loop_node);
 
-    if let ASTNodeKind::Loop { body } = loop_node.kind.clone() {
+    if let ASTNodeKind::Loop { body } = loop_node_ref.kind.clone() {
+        let body_0 = ctx.nodes.get(&body[0]);
+
         assert_eq!(
-            body[0].kind.clone(),
+            body_0.kind.clone(),
             ASTNodeKind::VariableDeclaration {
                 mutable: false,
                 var_type: ASTType::Generic(
@@ -95,11 +107,15 @@ fn parse_while_loop_test() {
     let mut ind = 0;
 
     let while_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let while_node_ref = ctx.nodes.get(&while_node);
 
-    if let ASTNodeKind::WhileLoop { condition, body } = while_node.kind.clone() {
+    if let ASTNodeKind::WhileLoop { condition, body } = while_node_ref.kind.clone() {
+        let condition = ctx.nodes.get(&condition);
+        let body_0 = ctx.nodes.get(&body[0]);
+
         assert_eq!(condition.kind.clone(), ASTNodeKind::BooleanLiteral(true));
         assert_eq!(
-            body[0].kind.clone(),
+            body_0.kind.clone(),
             ASTNodeKind::VariableDeclaration {
                 mutable: false,
                 var_type: ASTType::Generic(
@@ -124,12 +140,16 @@ fn parse_if_statement_simple_test() {
     let mut ind = 0;
 
     let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let if_node_ref = ctx.nodes.get(&if_node);
 
-    if let ASTNodeKind::IfStatement { branches } = if_node.kind.clone() {
+    if let ASTNodeKind::IfStatement { branches } = if_node_ref.kind.clone() {
         if let IfStatementBranch::If { condition, body } = branches[0].clone() {
+            let condition = ctx.nodes.get(&condition);
+            let body_0 = ctx.nodes.get(&body[0]);
+
             assert_eq!(condition.kind.clone(), ASTNodeKind::BooleanLiteral(true));
             assert_eq!(
-                body[0].kind.clone(),
+                body_0.kind.clone(),
                 ASTNodeKind::VariableDeclaration {
                     mutable: false,
                     var_type: ASTType::Generic(
@@ -161,9 +181,12 @@ fn parse_if_statement_test() {
     let mut ind = 0;
 
     let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let if_node_ref = ctx.nodes.get(&if_node);
 
-    if let ASTNodeKind::IfStatement { branches } = if_node.kind.clone() {
+    if let ASTNodeKind::IfStatement { branches } = if_node_ref.kind.clone() {
         if let IfStatementBranch::If { condition, body } = branches[0].clone() {
+            let condition = ctx.nodes.get(&condition);
+
             assert_eq!(condition.kind.clone(), ASTNodeKind::BooleanLiteral(true));
             assert_eq!(body, vec![])
         } else {
@@ -171,6 +194,8 @@ fn parse_if_statement_test() {
         }
 
         if let IfStatementBranch::IfElse { condition, body } = branches[1].clone() {
+            let condition = ctx.nodes.get(&condition);
+
             assert_eq!(condition.kind.clone(), ASTNodeKind::BooleanLiteral(false));
             assert_eq!(body, vec![]);
         } else {

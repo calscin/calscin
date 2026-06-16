@@ -1,4 +1,6 @@
+#[cfg(test)]
 use calsc_ast::ASTContext;
+
 #[cfg(test)]
 use calsc_ast::parser::parse_ast_node_body_member;
 
@@ -13,7 +15,6 @@ use calsc_diagnostics::result::CalscinResult;
 
 #[cfg(test)]
 use calsc_lexer::lexer_tokenize;
-use calsc_lexer::toks;
 
 #[test]
 pub fn test_parse_variable_delc_no_def() {
@@ -43,9 +44,10 @@ pub fn test_parse_variable_ref() {
     let mut ind = 0;
 
     let reference = parse_ast_element_reference(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let reference_ref = ctx.nodes.get(&reference);
 
     assert_eq!(
-        reference.kind.clone(),
+        reference_ref.kind.clone(),
         ASTNodeKind::ElementReference("test_abcef".into())
     )
 }
@@ -58,8 +60,12 @@ pub fn test_parse_variable_assign() {
     let mut ind = 0;
 
     let assign = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let assign_ref = ctx.nodes.get(&assign);
 
-    if let ASTNodeKind::Assignment { variable, value } = assign.kind.clone() {
+    if let ASTNodeKind::Assignment { variable, value } = assign_ref.kind.clone() {
+        let variable = ctx.nodes.get(&variable);
+        let value = ctx.nodes.get(&value);
+
         assert_eq!(
             variable.kind.clone(),
             ASTNodeKind::ElementReference("test".into())

@@ -48,11 +48,14 @@ pub mod vars;
 /// use calsc_lexer::lexer_tokenize;
 /// use calsc_lexer::toks::{Token, TokenKind};
 /// use calsc_diagnostics::result::CalscinResult;
+///	use calsc_ast::ASTContext;
+///
+/// let mut ast_ctx = ASTContext::new();
 ///
 /// let tokens: Vec<Token> = lexer_tokenize("var s32 test = 5", "test.cal".to_string()).unwrap();
 /// let mut ind: usize = 0;
 ///
-/// let node = parse_ast_node_body_member(&tokens, &mut ind).unwrap_cleanly();
+/// let node = parse_ast_node_body_member(&tokens, &mut ind, &mut ast_ctx).unwrap_cleanly();
 /// ```
 ///
 pub fn parse_ast_node_body_member(

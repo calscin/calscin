@@ -28,9 +28,10 @@ pub fn function_decl_parsing_base_test() {
     let mut ind = 0;
 
     let func = parse_function_declaration(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let func_ref = ctx.nodes.get(&func);
 
     assert_eq!(
-        func.kind.clone(),
+        func_ref.kind.clone(),
         ASTNodeKind::FunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
@@ -62,9 +63,10 @@ pub fn function_call_parsing_test() {
     let mut ind = 0;
 
     let call = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let call_ref = ctx.nodes.get(&call);
 
     assert_eq!(
-        call.kind.clone(),
+        call_ref.kind.clone(),
         ASTNodeKind::FunctionCall {
             name: ElementPath::new_relative(vec!["test".into()]),
             arguments: vec![]
@@ -81,19 +83,24 @@ pub fn parse_call_parsing_args_test() {
     let mut ind = 0;
 
     let call = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let call_ref = ctx.nodes.get(&call);
 
-    if let ASTNodeKind::FunctionCall { name, arguments } = call.kind.clone() {
+    if let ASTNodeKind::FunctionCall { name, arguments } = call_ref.kind.clone() {
+        let arguments_0 = ctx.nodes.get(&arguments[0]);
+        let arguments_1 = ctx.nodes.get(&arguments[1]);
+        let arguments_2 = ctx.nodes.get(&arguments[2]);
+
         assert_eq!(name, ElementPath::new_relative(vec!["test".into()]));
 
         assert_eq!(
-            arguments[0].kind.clone(),
+            arguments_0.kind.clone(),
             ASTNodeKind::FunctionCall {
                 name: ElementPath::new_relative(vec!["testtwo".into()]),
                 arguments: vec![]
             }
         );
-        assert_eq!(arguments[1].kind.clone(), ASTNodeKind::IntLiteral(123));
-        assert_eq!(arguments[2].kind.clone(), ASTNodeKind::IntLiteral(4565));
+        assert_eq!(arguments_1.kind.clone(), ASTNodeKind::IntLiteral(123));
+        assert_eq!(arguments_2.kind.clone(), ASTNodeKind::IntLiteral(4565));
     } else {
         assert!(false)
     }
@@ -107,9 +114,10 @@ pub fn parse_extern_function_decl_base_test() {
     let mut ind = 0;
 
     let call = parse_extern_function_declaration(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let call_ref = ctx.nodes.get(&call);
 
     assert_eq!(
-        call.kind.clone(),
+        call_ref.kind.clone(),
         ASTNodeKind::ExternFunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
@@ -127,9 +135,10 @@ pub fn parse_extern_function_decl_test() {
     let mut ind = 0;
 
     let call = parse_extern_function_declaration(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let call_ref = ctx.nodes.get(&call);
 
     assert_eq!(
-        call.kind.clone(),
+        call_ref.kind.clone(),
         ASTNodeKind::ExternFunctionDeclaration {
             name: "test".into(),
             arguments: vec![],
