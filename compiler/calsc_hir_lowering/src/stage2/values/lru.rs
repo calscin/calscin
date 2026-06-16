@@ -14,9 +14,9 @@ use calsc_hir::{
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
 };
 use calsc_typing::{FieldHavingType, func::DeclBlockAffectedType};
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::stage2::{funcs::lower_ast_function_call, values::lower_ast_value};
 
@@ -26,7 +26,7 @@ pub fn lower_ast_lru(
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
     ast_ctx: &ASTContext,
-) -> DiagResult<HIRArenaReference> {
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::StructLRUsage {
         left_expr,
         right_expr,
@@ -37,16 +37,19 @@ pub fn lower_ast_lru(
             curr_ctx.clone(),
             file_ctx,
             ctx,
+            ast_ctx,
         )?;
 
         let left_ty = ctx.nodes.get(&left_expr).get_type(curr_ctx.clone(), ctx)?;
 
-        match &right_expr.kind {
+        let right_expr_ref = ast_ctx.nodes.get(&right_expr);
+
+        match &right_expr_ref.kind {
             ASTNodeKind::FunctionCall { name, arguments: _ } => {
                 if name.members.len() != 1 {
                     return Err(build_cannot_parse_error(
                         &"LRU function call".to_string(),
-                        &*right_expr,
+                        right_expr_ref,
                     )
                     .into());
                 }
@@ -65,9 +68,10 @@ pub fn lower_ast_lru(
                     curr_ctx.clone(),
                     file_ctx,
                     ctx,
+                    ast_ctx,
                 )?;
 
-                let ret = HIRNode::clone(&ret);
+                let ret = ctx.nodes.get(&ret).clone();
 
                 if let HIRNodeKind::FunctionCall { func, arguments } = ret.kind.clone() {
                     let mut arguments = arguments;

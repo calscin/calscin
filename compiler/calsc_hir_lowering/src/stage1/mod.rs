@@ -58,7 +58,7 @@ pub fn lower_hir_stage_1(ast_context: ASTContext, ctx: &mut HIRContext) -> DiagP
         if !first {
             first = true;
 
-            apply_prelude(&mut ctx.scope, &**node)?;
+            apply_prelude(&mut ctx.scope, ctx.nodes.get(node))?;
         }
 
         println!("{:#?}", node);

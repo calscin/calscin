@@ -1,4 +1,7 @@
-use calsc_ast::nodes::{ASTNode, ASTNodeKind};
+use calsc_ast::{
+    ASTContext,
+    nodes::{ASTNode, ASTNodeKind},
+};
 use calsc_diagnostics::{
     DiagPossible, DiagResult,
     diags::errors::{build_expected_referencable, build_internal_hir_node_leaked},
@@ -8,19 +11,19 @@ use calsc_hir::{
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
 };
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::stage2::values::lower_ast_value;
 
 pub fn introduce_reference_ast(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     local_ctx: Option<GlobalContextKey>,
     ctx: &mut HIRContext,
 ) -> DiagPossible {
-    let ind = node.get_root_variable_reference_index();
+    let ind = ctx.nodes.get(&node).get_root_variable_reference_index(ctx);
 
-    let node = HIRNode::clone(&node);
+    let node = ctx.nodes.get(&node).clone();
 
     ctx.scope.mutate_entry(
         local_ctx.unwrap(),
@@ -33,7 +36,7 @@ pub fn introduce_reference_ast(
             )
         },
         &node,
-    );
+    )??;
 
     Ok(())
 }
@@ -43,11 +46,14 @@ pub fn lower_ast_pointer_reference(
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-) -> DiagResult<HIRArenaReference> {
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::PointerReference(val) = node.kind.clone() {
-        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone(), file_ctx, ctx)?;
+        let val_ref = ast_ctx.nodes.get(&val);
 
-        if !val.represents_pointer_referencable() {
+        let val = lower_ast_value(val_ref.clone(), local_ctx.clone(), file_ctx, ctx, ast_ctx)?;
+
+        if !ctx.nodes.get(&val).represents_pointer_referencable(ctx) {
             return Err(build_expected_referencable(&node).into());
         }
 
@@ -70,11 +76,18 @@ pub fn lower_ast_pointer_dereference(
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-) -> DiagResult<HIRArenaReference> {
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::PointerDereference(val) = node.kind.clone() {
-        let val = lower_ast_value(ASTNode::clone(&val), local_ctx.clone(), file_ctx, ctx)?;
+        let val = lower_ast_value(
+            ast_ctx.nodes.get(&val).clone(),
+            local_ctx.clone(),
+            file_ctx,
+            ctx,
+            ast_ctx,
+        )?;
 
-        if !val.represents_pointer_referencable() {
+        if !ctx.nodes.get(&val).represents_pointer_referencable(ctx) {
             return Err(build_expected_referencable(&node).into());
         }
 

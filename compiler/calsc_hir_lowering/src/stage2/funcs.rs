@@ -1,9 +1,11 @@
-use calsc_ast::nodes::{ASTNode, ASTNodeKind};
+use calsc_ast::{
+    ASTContext,
+    nodes::{ASTNode, ASTNodeKind},
+};
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
-        InternalErrors, build_expected_entry_type, build_expected_return_error,
-        build_internal_hir_node_leaked, build_internal_singleton_error,
+        build_expected_entry_type, build_expected_return_error, build_internal_hir_node_leaked,
         build_restricted_return_type,
     },
 };
@@ -12,9 +14,9 @@ use calsc_hir::{
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    refs::HIRArenaReference,
 };
 use calsc_typing::{base::BaseType, tree::Type};
+use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     stage1::types::lower_ast_type,
@@ -33,28 +35,35 @@ pub fn lower_ast_body_node(
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-) -> DiagResult<HIRArenaReference> {
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     match &node.kind {
         ASTNodeKind::FunctionCall { .. } => {
-            lower_ast_function_call(node, None, local_ctx, file_ctx, ctx)
+            lower_ast_function_call(node, None, local_ctx, file_ctx, ctx, ast_ctx)
         }
-        ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx, file_ctx, ctx),
+        ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx, file_ctx, ctx, ast_ctx),
 
         ASTNodeKind::VariableDeclaration { .. } => {
-            lower_ast_variable_declaration(node, local_ctx, file_ctx, ctx)
+            lower_ast_variable_declaration(node, local_ctx, file_ctx, ctx, ast_ctx)
         }
-        ASTNodeKind::Assignment { .. } => lower_ast_variable_assign(node, local_ctx, file_ctx, ctx),
+        ASTNodeKind::Assignment { .. } => {
+            lower_ast_variable_assign(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
 
-        ASTNodeKind::IfStatement { .. } => lower_ast_if_statement(node, local_ctx, file_ctx, ctx),
-        ASTNodeKind::ForLoop { .. } => lower_ast_for_loop(node, local_ctx, file_ctx, ctx),
-        ASTNodeKind::WhileLoop { .. } => lower_ast_while_loop(node, local_ctx, file_ctx, ctx),
-        ASTNodeKind::Loop { .. } => lower_ast_loop(node, local_ctx, file_ctx, ctx),
+        ASTNodeKind::IfStatement { .. } => {
+            lower_ast_if_statement(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
+        ASTNodeKind::ForLoop { .. } => lower_ast_for_loop(node, local_ctx, file_ctx, ctx, ast_ctx),
+        ASTNodeKind::WhileLoop { .. } => {
+            lower_ast_while_loop(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
+        ASTNodeKind::Loop { .. } => lower_ast_loop(node, local_ctx, file_ctx, ctx, ast_ctx),
 
         ASTNodeKind::ReturnStatement { .. } => {
-            lower_ast_return_statement(node, local_ctx, file_ctx, ctx)
+            lower_ast_return_statement(node, local_ctx, file_ctx, ctx, ast_ctx)
         }
 
-        _ => lower_ast_value(node, local_ctx, file_ctx, ctx),
+        _ => lower_ast_value(node, local_ctx, file_ctx, ctx, ast_ctx),
     }
 }
 
@@ -65,7 +74,8 @@ pub fn lower_ast_body<K: DiagnosticSource>(
     origin: &K,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-) -> DiagResult<Vec<HIRArenaReference>> {
+    ast_ctx: &ASTContext,
+) -> DiagResult<Vec<ArenaHandle>> {
     let mut hir_nodes = vec![];
 
     let previous_branch = ctx
@@ -98,6 +108,7 @@ pub fn lower_ast_body<K: DiagnosticSource>(
             local_ctx.clone(),
             file_ctx,
             ctx,
+            ast_ctx,
         )?);
     }
 
@@ -130,7 +141,8 @@ pub fn lower_ast_function_call(
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-) -> DiagResult<HIRArenaReference> {
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::FunctionCall { name, arguments } = node.kind.clone() {
         let key = lower_ast_key(name, &node, true, file_ctx, ctx)?;
 
@@ -138,10 +150,11 @@ pub fn lower_ast_function_call(
 
         for argument in arguments {
             hir_arguments.push(lower_ast_value(
-                ASTNode::clone(&argument),
+                ASTNode::clone(ast_ctx.nodes.get(&argument)),
                 local_ctx.clone(),
                 file_ctx,
                 ctx,
+                ast_ctx,
             )?);
         }
 
@@ -171,7 +184,8 @@ pub fn lower_ast_return_statement(
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-) -> DiagResult<HIRArenaReference> {
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::ReturnStatement { val } = node.kind.clone() {
         let v;
 
@@ -191,12 +205,16 @@ pub fn lower_ast_return_statement(
 
         if val.is_some() {
             let val = lower_ast_value(
-                ASTNode::clone(&val.unwrap()),
+                ASTNode::clone(ast_ctx.nodes.get(val.as_ref().unwrap())),
                 local_ctx.clone(),
                 file_ctx,
                 ctx,
+                ast_ctx,
             )?;
-            let val = val
+
+            let val_ref = ctx.nodes.get(&val).clone();
+
+            let val = val_ref
                 .use_as(
                     expected_return_type,
                     val.clone(),
@@ -239,7 +257,8 @@ pub fn lower_ast_function_decl(
     ty: Option<BaseType>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-) -> DiagResult<HIRArenaReference> {
+    ast_ctx: &ASTContext,
+) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::FunctionDeclaration {
         name,
         arguments,
@@ -272,12 +291,15 @@ pub fn lower_ast_function_decl(
         }
 
         let body = lower_ast_body(
-            body.iter().map(|f| ASTNode::clone(f)).collect(),
+            body.iter()
+                .map(|f| ASTNode::clone(ast_ctx.nodes.get(f)))
+                .collect(),
             Some(key.clone()),
             false,
             &node,
             file_ctx,
             ctx,
+            ast_ctx,
         )?;
 
         let meets_ending_point = ctx
