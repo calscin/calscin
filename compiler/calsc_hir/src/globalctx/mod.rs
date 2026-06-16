@@ -10,10 +10,11 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
         build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
+        build_unreadable_element_visibility,
     },
 };
 
-use calsc_modules::visibility::Visibility;
+use calsc_modules::{path::ModulePath, visibility::Visibility};
 use calsc_utils::str::levenshtein;
 
 use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
@@ -71,6 +72,7 @@ impl GlobalContext {
     pub fn get_entry<K: DiagnosticSource>(
         &self,
         key: GlobalContextKey,
+        source: &ModulePath,
         origin: &K,
     ) -> DiagResult<&GlobalContextValue> {
         if !self.key_to_ind.contains_key(&key) {
@@ -83,10 +85,16 @@ impl GlobalContext {
             }
         }
 
-        let val = &self.values[self.key_to_ind[&key]];
+        let ind = self.key_to_ind[&key];
+
+        let val = &self.values[ind];
 
         if let GlobalContextValue::AnotherReference(key) = &val {
-            return self.get_entry(key.clone(), origin);
+            return self.get_entry(key.clone(), source, origin);
+        }
+
+        if !self.visibilities[ind].can_view(&source) {
+            return Err(build_unreadable_element_visibility(&key, source, origin).into());
         }
 
         Ok(val)
