@@ -1,4 +1,5 @@
 use calsc_ast::{
+    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     path::ElementPath,
     types::ASTType,
@@ -192,13 +193,14 @@ pub fn lower_ast_decl_block(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclBlock { target, functions } = node.kind.clone() {
         let target = lower_simple_ast_type(target, &node, None, file_ctx, ctx)?;
 
         for func in functions {
             lower_ast_function_decl_first_stage(
-                ASTNode::clone(&func),
+                ast_ctx.nodes.get(&func).clone(),
                 Some(target.clone()),
                 file_ctx,
                 ctx,

@@ -24,6 +24,7 @@ pub fn lower_hir_stage_1_node(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
 ) -> DiagPossible {
     match node.kind {
         ASTNodeKind::FunctionDeclaration { .. } => {
@@ -38,10 +39,10 @@ pub fn lower_hir_stage_1_node(
         }
 
         ASTNodeKind::StructDeclBlock { .. } => {
-            lower_ast_decl_block(ASTNode::clone(&node), file_ctx, ctx)?
+            lower_ast_decl_block(ASTNode::clone(&node), file_ctx, ctx, ast_ctx)?
         }
 
-        ASTNodeKind::Module { .. } => lower_hir_stage_1_module(node, file_ctx, ctx)?,
+        ASTNodeKind::Module { .. } => lower_hir_stage_1_module(node, file_ctx, ctx, ast_ctx)?,
 
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     };
@@ -62,7 +63,12 @@ pub fn lower_hir_stage_1(ast_context: ASTContext, ctx: &mut HIRContext) -> DiagP
 
         println!("{:#?}", node);
 
-        lower_hir_stage_1_node(ASTNode::clone(&node), &mut file_ctx, ctx)?;
+        lower_hir_stage_1_node(
+            ASTNode::clone(&ast_context.nodes.get(node)),
+            &mut file_ctx,
+            ctx,
+            &ast_context,
+        )?;
     }
 
     Ok(())
@@ -72,12 +78,18 @@ pub fn lower_hir_stage_1_module(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
+    ast_ctx: &ASTContext,
 ) -> DiagPossible {
     if let ASTNodeKind::Module { name, body } = node.kind.clone() {
         file_ctx.advance_module(name);
 
         for element in body {
-            lower_hir_stage_1_node(ASTNode::clone(&element), file_ctx, ctx)?;
+            lower_hir_stage_1_node(
+                ASTNode::clone(&ast_ctx.nodes.get(&element)),
+                file_ctx,
+                ctx,
+                ast_ctx,
+            )?;
         }
 
         file_ctx.deadvance_module();
