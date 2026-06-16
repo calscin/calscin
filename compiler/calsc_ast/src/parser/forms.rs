@@ -9,6 +9,7 @@ use crate::{
     parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
     path::ElementPath,
     types::ASTType,
+    visibility::Visibility,
 };
 
 /// Parses where a condition should be put
@@ -106,4 +107,20 @@ pub fn parse_element_path_form(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
         members: path,
         relative,
     })
+}
+
+pub fn parse_visibility_form(tokens: &Vec<Token>, ind: &mut usize) -> Option<Visibility> {
+    let visibility = match tokens[*ind].kind {
+        TokenKind::Public => Some(Visibility::Public),
+        TokenKind::Protected => Some(Visibility::Protected),
+        TokenKind::Private => Some(Visibility::Private),
+
+        _ => None,
+    };
+
+    if visibility.is_some() {
+        *ind += 1;
+    }
+
+    visibility
 }

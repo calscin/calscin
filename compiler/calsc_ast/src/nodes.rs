@@ -13,6 +13,7 @@ use calsc_utils::{
 
 use crate::{
     ASTContext, ifs::IfStatementBranch, imports::ImportKind, path::ElementPath, types::ASTType,
+    visibility::Visibility,
 };
 
 /// The kind of AST tree node. Holds information about the node itself.
@@ -82,6 +83,7 @@ pub enum ASTNodeKind {
         arguments: Vec<(ASTType, HashedString)>,
         return_type: ASTType,
         body: Vec<ArenaHandle>,
+        visibility: Option<Visibility>,
     },
 
     ExternFunctionDeclaration {
@@ -89,6 +91,7 @@ pub enum ASTNodeKind {
         arguments: Vec<(ASTType, HashedString)>,
         return_type: ASTType,
         triple_dot_position: Option<usize>,
+        visibility: Option<Visibility>,
     },
 
     FunctionCall {
@@ -143,6 +146,7 @@ pub enum ASTNodeKind {
         name: HashedString,
         type_params: Vec<HashedString>,
         fields: Vec<(ASTType, HashedString)>,
+        visibility: Option<Visibility>,
     },
 
     StructDeclBlock {
@@ -153,6 +157,7 @@ pub enum ASTNodeKind {
     Module {
         name: HashedString,
         body: Vec<ArenaHandle>,
+        visibility: Option<Visibility>,
     },
 
     None,
@@ -185,6 +190,7 @@ impl ASTNode {
                 arguments: _,
                 return_type: _,
                 body: _,
+                visibility: _,
             } => name.clone(),
 
             ASTNodeKind::ExternFunctionDeclaration {
@@ -192,11 +198,13 @@ impl ASTNode {
                 arguments: _,
                 return_type: _,
                 triple_dot_position: _,
+                visibility: _,
             } => name.clone(),
             ASTNodeKind::StructDeclaration {
                 name,
                 type_params: _,
                 fields: _,
+                visibility: _,
             } => name.clone(),
 
             _ => panic!("Cannot get level top level name on a non top level node"),

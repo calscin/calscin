@@ -15,6 +15,7 @@ use crate::{
             for_loop::parse_ast_for_loop, ifelse::parse_ast_if_statement, loops::parse_ast_loop,
             while_loop::parse_ast_while_loop,
         },
+        forms::parse_visibility_form,
         func::{parse_extern_function_declaration, parse_function_declaration},
         import::parse_ast_import_statement,
         structs::{parse_ast_struct_decl_block, parse_ast_struct_declaration},
@@ -148,6 +149,8 @@ pub fn parse_ast_module(
 ) -> DiagResult<ArenaHandle> {
     let start = tokens[*ind].start.clone();
 
+    let visibility = parse_visibility_form(tokens, ind);
+
     *ind += 1; // module
 
     let name: HashedString = tokens[*ind].expects_keyword()?.into(); // Auto increments
@@ -166,7 +169,15 @@ pub fn parse_ast_module(
 
     *ind += 1; // }
 
-    let node = ASTNode::new(ASTNodeKind::Module { name, body }, start, end);
+    let node = ASTNode::new(
+        ASTNodeKind::Module {
+            name,
+            body,
+            visibility,
+        },
+        start,
+        end,
+    );
 
     Ok(node.push(ctx))
 }
