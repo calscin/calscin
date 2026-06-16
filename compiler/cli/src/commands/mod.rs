@@ -26,6 +26,9 @@ pub enum CLICommand {
         )]
         linker: String,
 
+        #[arg(long, default_value = "")]
+        package_name: String,
+
         #[arg(
             long,
             default_value_t = true,
