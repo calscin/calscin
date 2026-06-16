@@ -107,7 +107,7 @@ pub fn parse_ast_body(
     while tokens[*ind].kind != TokenKind::BraceClose {
         let member = parse_ast_node_body_member(tokens, ind, ctx)?; // Auto increments
 
-        if !ctx.nodes.get(member).kind.is_body() {
+        if !ctx.nodes.get(&member).kind.is_body() {
             tokens[*ind].expects(TokenKind::SemiColon)?;
             *ind += 1; // ;
         }

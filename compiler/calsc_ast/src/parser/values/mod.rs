@@ -122,7 +122,7 @@ pub fn parse_ast_value(
         }
     };
 
-    let start = ctx.nodes.get(first).start.clone();
+    let start = ctx.nodes.get(&first).start.clone();
 
     if allow_post {
         parse_ast_post(tokens, ind, first, start, invoked_from_body, allow_ops, ctx)
