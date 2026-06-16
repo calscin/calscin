@@ -13,6 +13,7 @@ use calsc_diagnostics::{
     },
 };
 
+use calsc_modules::visibility::Visibility;
 use calsc_utils::str::levenshtein;
 
 use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
@@ -25,6 +26,7 @@ pub mod vals;
 pub struct GlobalContext {
     pub key_to_ind: HashMap<GlobalContextKey, usize>,
     pub values: Vec<GlobalContextValue>,
+    pub visibilities: Vec<Visibility>,
 }
 
 impl GlobalContext {
@@ -32,6 +34,7 @@ impl GlobalContext {
         Self {
             key_to_ind: HashMap::new(),
             values: vec![],
+            visibilities: vec![],
         }
     }
 
@@ -44,6 +47,7 @@ impl GlobalContext {
         &mut self,
         key: GlobalContextKey,
         value: GlobalContextValue,
+        visibility: Visibility,
         origin: &K,
     ) -> DiagResult<usize> {
         if self.key_to_ind.contains_key(&key) {
@@ -54,6 +58,7 @@ impl GlobalContext {
 
         self.key_to_ind.insert(key, ind);
         self.values.push(value);
+        self.visibilities.push(visibility);
 
         Ok(ind)
     }

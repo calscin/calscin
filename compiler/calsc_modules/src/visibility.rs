@@ -8,6 +8,7 @@
 use crate::path::ModulePath;
 
 /// The visibility enum
+#[derive(Clone, Debug)]
 pub enum Visibility {
     /// The element is accessible by anyone
     Public,
