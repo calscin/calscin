@@ -50,9 +50,12 @@ pub fn lower_hir_stage_1_node(
     Ok(())
 }
 
-pub fn lower_hir_stage_1(ast_context: ASTContext, ctx: &mut HIRContext) -> DiagPossible {
+pub fn lower_hir_stage_1(
+    ast_context: ASTContext,
+    ctx: &mut HIRContext,
+    file_ctx: &mut HIRFileContext,
+) -> DiagPossible {
     let mut first = false;
-    let mut file_ctx = HIRFileContext::new();
 
     for node in &ast_context.tree {
         if !first {
@@ -63,7 +66,7 @@ pub fn lower_hir_stage_1(ast_context: ASTContext, ctx: &mut HIRContext) -> DiagP
 
         lower_hir_stage_1_node(
             ASTNode::clone(&ast_context.nodes.get(node)),
-            &mut file_ctx,
+            file_ctx,
             ctx,
             &ast_context,
         )?;

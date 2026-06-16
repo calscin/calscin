@@ -19,13 +19,15 @@ pub mod structs;
 pub mod values;
 pub mod vars;
 
-pub fn lower_hir_stage_2(ast_context: ASTContext, ctx: &mut HIRContext) -> DiagPossible {
-    let mut file_ctx = HIRFileContext::new();
-
+pub fn lower_hir_stage_2(
+    ast_context: ASTContext,
+    ctx: &mut HIRContext,
+    file_ctx: &mut HIRFileContext,
+) -> DiagPossible {
     for node in &ast_context.tree {
         lower_hir_stage_2_node(
             ASTNode::clone(ast_context.nodes.get(node)),
-            &mut file_ctx,
+            file_ctx,
             ctx,
             &ast_context,
         )?;

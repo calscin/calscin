@@ -4,7 +4,7 @@ use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::container::dump_and_stop_if_errors;
-use calsc_hir::HIRContext;
+use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_hir_lowering::{stage1::lower_hir_stage_1, stage2::lower_hir_stage_2};
 use calsc_lexer::lexer_tokenize;
 use calsc_remir_lowering::compile_file;
@@ -111,11 +111,12 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let ast_ctx = ast_ctx.unwrap();
 
     let mut hir_ctx = HIRContext::new();
+    let mut file_ctx = HIRFileContext::new();
 
-    let _ = lower_hir_stage_1(ast_ctx.clone(), &mut hir_ctx);
+    let _ = lower_hir_stage_1(ast_ctx.clone(), &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();
 
-    let _ = lower_hir_stage_2(ast_ctx, &mut hir_ctx);
+    let _ = lower_hir_stage_2(ast_ctx, &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();
 
     if !target.requires_remir() {

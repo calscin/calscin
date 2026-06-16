@@ -4,8 +4,11 @@ use calsc_modules::path::ModulePath;
 use calsc_state::GLOBAL_STATE;
 use calsc_utils::hash::HashedString;
 
+use crate::imports::LazyImportQueueElement;
+
 pub struct HIRFileContext {
     pub current_module: ModulePath,
+    pub lazy_imports: Vec<LazyImportQueueElement>,
 }
 
 impl HIRFileContext {
@@ -15,6 +18,8 @@ impl HIRFileContext {
                 GLOBAL_STATE.with_borrow(|state| state.package_name.clone()),
                 vec![],
             ),
+
+            lazy_imports: vec![],
         }
     }
 
