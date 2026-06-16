@@ -1,7 +1,8 @@
 use std::mem::transmute;
 
 use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind, refs::HIRArenaReference};
+use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
+use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     block::vars::BlockVariable,
     builders::{build_alloca, build_const_int},
@@ -16,14 +17,17 @@ use crate::{
 
 #[allow(unsafe_code)]
 pub fn lower_hir_variable_reference<'a>(
-    node: HIRArenaReference,
-    _ctx: &LocalContext,
+    node: ArenaHandle,
+    _lctx: &LocalContext,
     module: &mut Module,
+    ctx: &HIRContext,
 ) -> DiagResult<&'a mut BlockVariable> {
+    let node_ref = ctx.nodes.get(&node);
+
     if let HIRNodeKind::VariableReference {
         name,
         variable_index: _,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
         let block = &mut module.blocks[module.pos_block.as_ref().unwrap().id];
         let variable = block.variables.get_mut(&*name).unwrap();
@@ -34,49 +38,56 @@ pub fn lower_hir_variable_reference<'a>(
             ))
         }
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
     }
 }
 
 pub fn lower_hir_variable_reference_val(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
+    hir_ctx: &HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    let var = lower_hir_variable_reference(node.clone(), ctx, module)?;
+    let node_ref = hir_ctx.nodes.get(&node);
+
+    let var = lower_hir_variable_reference(node, ctx, module, hir_ctx)?;
 
     var.read(module)
-        .convert(node.start.clone(), node.end.clone())
+        .convert(node_ref.start.clone(), node_ref.end.clone())
 }
 
 pub fn lower_hir_variable_assign(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagPossible {
-    if let HIRNodeKind::Assignment { variable, value } = node.kind.clone() {
+    let node_ref = hirctx.nodes.get(&node);
+
+    if let HIRNodeKind::Assignment { variable, value } = node_ref.kind.clone() {
         let value = lower_hir_value(value, ctx, module, hirctx)?;
 
         lower_hir_writable(variable, ctx, module, value, hirctx)
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
     }
 }
 
 pub fn lower_hir_variable_declaration(
-    node: HIRArenaReference,
+    node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
     hirctx: &HIRContext,
 ) -> DiagPossible {
+    let node_ref = hirctx.nodes.get(&node);
+
     if let HIRNodeKind::VariableDeclaration {
         mutable,
         var_type,
         value,
         name,
         variable_index,
-    } = node.kind.clone()
+    } = node_ref.kind.clone()
     {
         let mut variable: BlockVariable;
         let is_array = var_type.is_array();
@@ -88,10 +99,10 @@ pub fn lower_hir_variable_declaration(
             // TODO: allow to customize this in the future
 
             let size = build_const_int(module, 0, 32, false)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             let ptr = build_alloca(module, size, Some(var_type.clone()))
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
             variable = BlockVariable::new_pointer(String::clone(&name), ptr);
         } else {
@@ -106,7 +117,7 @@ pub fn lower_hir_variable_declaration(
 
             variable
                 .write(module, value)
-                .convert(node.start.clone(), node.end.clone())?;
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
         }
 
         let block = &mut module.blocks[module.pos_block.as_ref().unwrap().id];
@@ -114,6 +125,6 @@ pub fn lower_hir_variable_declaration(
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, &*node).into());
+        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
     }
 }

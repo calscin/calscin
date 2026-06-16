@@ -25,7 +25,7 @@ pub fn lower_hir_writable(
 
     match &node_ref.kind {
         HIRNodeKind::VariableReference { .. } => {
-            let r = lower_hir_variable_reference(node.clone(), local_ctx, module)?;
+            let r = lower_hir_variable_reference(node.clone(), local_ctx, module, ctx)?;
 
             r.write(module, val)
                 .convert(node_ref.start.clone(), node_ref.end.clone())?;
@@ -59,7 +59,7 @@ pub fn lower_hir_writable_value(
 
     match node_ref.kind {
         HIRNodeKind::VariableReference { .. } => {
-            let var = lower_hir_variable_reference(node.clone(), local_ctx, module)?;
+            let var = lower_hir_variable_reference(node.clone(), local_ctx, module, ctx)?;
 
             return Ok(var.held_value.clone().unwrap());
         }
