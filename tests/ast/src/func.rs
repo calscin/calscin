@@ -4,6 +4,7 @@ use calsc_ast::ASTContext;
 #[cfg(test)]
 use calsc_ast::parser::func::parse_extern_function_declaration;
 
+use calsc_ast::visibility;
 #[cfg(test)]
 use calsc_ast::{
     nodes::ASTNodeKind,
@@ -36,7 +37,8 @@ pub fn function_decl_parsing_base_test() {
             name: "test".into(),
             arguments: vec![],
             return_type: ASTType::Void,
-            body: vec![]
+            body: vec![],
+            visibility: None
         }
     )
 }
@@ -122,7 +124,8 @@ pub fn parse_extern_function_decl_base_test() {
             name: "test".into(),
             arguments: vec![],
             return_type: ASTType::Void,
-            triple_dot_position: None
+            triple_dot_position: None,
+            visibility: None
         }
     )
 }
@@ -143,7 +146,8 @@ pub fn parse_extern_function_decl_test() {
             name: "test".into(),
             arguments: vec![],
             return_type: ASTType::Void,
-            triple_dot_position: Some(0)
+            triple_dot_position: Some(0),
+            visibility: None
         }
     )
 }
