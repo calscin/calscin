@@ -14,6 +14,7 @@ use calsc_utils::{
 
 use crate::{
     HIRContext,
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     ifs::IfStatementBranch,
     types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
@@ -198,34 +199,46 @@ impl HIRNode {
         &self,
         local_func_key: Option<GlobalContextKey>,
         ctx: &HIRContext,
+        file_ctx: &HIRFileContext,
     ) -> DiagResult<Type> {
         if self.stronger_type.is_some() {
             return Ok(self.stronger_type.clone().unwrap());
         }
 
         let ty = match self.kind.clone() {
-            HIRNodeKind::IntLiteral(_, size, signed) => make_int_type(signed, size, self, ctx),
-            HIRNodeKind::FloatLiteral(_, size, signed) => make_float_type(signed, size, self, ctx),
-            HIRNodeKind::StringLiteral(_) => make_string_type(self, ctx),
-            HIRNodeKind::CharLiteral(_) => make_char_type(self, ctx),
-            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self, ctx),
-            HIRNodeKind::InverseCondition(_) => make_bool_type(self, ctx),
+            HIRNodeKind::IntLiteral(_, size, signed) => {
+                make_int_type(signed, size, self, ctx, file_ctx)
+            }
+            HIRNodeKind::FloatLiteral(_, size, signed) => {
+                make_float_type(signed, size, self, ctx, file_ctx)
+            }
+            HIRNodeKind::StringLiteral(_) => make_string_type(self, ctx, file_ctx),
+            HIRNodeKind::CharLiteral(_) => make_char_type(self, ctx, file_ctx),
+            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self, ctx, file_ctx),
+            HIRNodeKind::InverseCondition(_) => make_bool_type(self, ctx, file_ctx),
 
             HIRNodeKind::Range {
                 start,
                 end: _,
                 increment: _,
-            } => ctx.nodes.get(&start).get_type(local_func_key, ctx)?,
+            } => ctx
+                .nodes
+                .get(&start)
+                .get_type(local_func_key, ctx, file_ctx)?,
 
             HIRNodeKind::PointerReference(val) => Type::Reference {
                 mutable: true, // Mutable by default, will change
-                inner: Box::new(ctx.nodes.get(&val).get_type(local_func_key, ctx)?),
+                inner: Box::new(
+                    ctx.nodes
+                        .get(&val)
+                        .get_type(local_func_key, ctx, file_ctx)?,
+                ),
             },
 
             HIRNodeKind::PointerDereference(val) => {
                 ctx.nodes
                     .get(&val)
-                    .get_type(local_func_key, ctx)?
+                    .get_type(local_func_key, ctx, file_ctx)?
                     .get_inner() // Assumes the container of a pointer reference is a pointer.
             }
 
@@ -237,7 +250,9 @@ impl HIRNode {
                 if operator.assigns {
                     Type::Void
                 } else {
-                    ctx.nodes.get(&left_expr).get_type(local_func_key, ctx)?
+                    ctx.nodes
+                        .get(&left_expr)
+                        .get_type(local_func_key, ctx, file_ctx)?
                 }
             }
 
@@ -246,7 +261,10 @@ impl HIRNode {
                 field_ind: _,
                 name,
             } => {
-                let ty = ctx.nodes.get(&val).get_type(local_func_key, ctx)?;
+                let ty = ctx
+                    .nodes
+                    .get(&val)
+                    .get_type(local_func_key, ctx, file_ctx)?;
 
                 if ty.has_field(name.clone()) {
                     ty.get_field_type(name)
@@ -255,7 +273,7 @@ impl HIRNode {
                 }
             }
 
-            HIRNodeKind::CompareExpression { .. } => make_bool_type(self, ctx),
+            HIRNodeKind::CompareExpression { .. } => make_bool_type(self, ctx, file_ctx),
 
             HIRNodeKind::VariableReference {
                 name: _,
@@ -265,7 +283,7 @@ impl HIRNode {
                     Type::Void
                 } else {
                     ctx.scope
-                        .get_entry(local_func_key.unwrap(), self)?
+                        .get_entry(local_func_key.unwrap(), &file_ctx.current_module, self)?
                         .as_function(self)?
                         .local_context
                         .as_ref()
@@ -278,7 +296,7 @@ impl HIRNode {
 
             HIRNodeKind::FunctionCall { func, arguments: _ } => ctx
                 .scope
-                .get_entry(func, self)?
+                .get_entry(func, &file_ctx.current_module, self)?
                 .as_function(self)?
                 .return_type
                 .clone(),
@@ -291,7 +309,11 @@ impl HIRNode {
 
             HIRNodeKind::ArrayInit { vals } => Type::Array {
                 size: Some(vals.len()),
-                inner: Box::new(ctx.nodes.get(&vals[0]).get_type(local_func_key, ctx)?),
+                inner: Box::new(
+                    ctx.nodes
+                        .get(&vals[0])
+                        .get_type(local_func_key, ctx, file_ctx)?,
+                ),
             },
 
             _ => Type::Void,
