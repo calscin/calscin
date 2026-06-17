@@ -1,6 +1,99 @@
 //! The stage 0 of the HIR lowering process. This layer is only ran when building the module tree as it handles lazy loading of types.
 //!
 
+use calsc_ast::{
+    ASTContext,
+    nodes::{ASTNode, ASTNodeKind},
+    path,
+};
+use calsc_diagnostics::{
+    DiagPossible, DiagResult,
+    diags::errors::{build_already_in_scope, build_internal_hir_node_leaked},
+};
+use calsc_hir::file::HIRFileContext;
+use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
+
+use crate::stage0::{
+    func::lower_ast_function_decl_stage_zero,
+    lower_types::{lower_ast_type_struct_decl, lower_ast_type_struct_declaration},
+};
+
 pub mod func;
 pub mod key;
+pub mod lower_types;
 pub mod types;
+
+pub fn lower_stage_0(ast_ctx: ASTContext, file_ctx: &mut HIRFileContext) -> DiagResult<ModuleTree> {
+    let mut tree = ModuleTree::new();
+
+    for node in &ast_ctx.tree {
+        let node = ast_ctx.nodes.get(node).clone();
+
+        lower_stage_0_node(node, &ast_ctx, file_ctx, &mut tree)?;
+    }
+
+    Ok(tree)
+}
+
+pub fn lower_stage_0_node(
+    node: ASTNode,
+    ast_ctx: &ASTContext,
+    file_ctx: &mut HIRFileContext,
+    tree: &mut ModuleTree,
+) -> DiagPossible {
+    match node.kind {
+        ASTNodeKind::FunctionDeclaration { .. } => {
+            lower_ast_function_decl_stage_zero(node, None, file_ctx, tree)
+        }
+
+        ASTNodeKind::StructDeclaration { .. } => {
+            lower_ast_type_struct_declaration(node, file_ctx, tree)
+        }
+
+        ASTNodeKind::StructDeclBlock { .. } => {
+            lower_ast_type_struct_decl(node, file_ctx, tree, ast_ctx)
+        }
+
+        _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
+    }
+}
+
+pub fn lower_ast_stage_0_module(
+    node: ASTNode,
+    ast_ctx: &ASTContext,
+    file_ctx: &mut HIRFileContext,
+    tree: &mut ModuleTree,
+) -> DiagPossible {
+    if let ASTNodeKind::Module {
+        name,
+        is_bodied: _,
+        body,
+    } = node.kind.clone()
+    {
+        file_ctx.advance_module(name.clone());
+
+        {
+            let path_to_mutate = file_ctx.current_module.clone();
+
+            let mut_ref = tree.traverse_mutably_to(path_to_mutate.clone(), &node)?;
+
+            if let ModuleTreeEntry::Module(module) = mut_ref {
+                module.imported = true;
+            } else {
+                return Err(build_already_in_scope(&path_to_mutate, &node).into());
+            }
+        }
+
+        for body_node in body {
+            let body_node = ast_ctx.nodes.get(&body_node).clone();
+
+            lower_stage_0_node(body_node, ast_ctx, file_ctx, tree)?;
+        }
+
+        file_ctx.deadvance_module();
+
+        Ok(())
+    } else {
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
+    }
+}

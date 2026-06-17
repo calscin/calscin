@@ -1,7 +1,4 @@
-use calsc_ast::{
-    nodes::{ASTNode, ASTNodeKind},
-    path,
-};
+use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagPossible,
     diags::errors::{build_expected_entry_type, build_internal_hir_node_leaked},

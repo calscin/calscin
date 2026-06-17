@@ -16,14 +16,11 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
     prelude::apply_prelude,
 };
-use calsc_modules::{path::ModulePath, visibility::Visibility};
+use calsc_modules::visibility::Visibility;
 
-use crate::{
-    convert_visibility,
-    stage1::{
-        funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
-        types::{lower_ast_decl_block, lower_ast_struct_declaration},
-    },
+use crate::stage1::{
+    funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
+    types::{lower_ast_decl_block, lower_ast_struct_declaration},
 };
 
 pub mod funcs;
