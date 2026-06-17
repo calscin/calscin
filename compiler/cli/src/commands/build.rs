@@ -12,14 +12,14 @@ pub fn sanitize_path(path: PathBuf) -> PathBuf {
 }
 
 pub fn build_command(
-    input: Vec<PathBuf>,
+    input: PathBuf,
     out: PathBuf,
     linker: String,
     use_pie: bool,
     package_name: String,
 ) {
     let out = sanitize_path(out);
-    let input: Vec<PathBuf> = input.iter().map(|f| sanitize_path(f.clone())).collect();
+    let input = sanitize_path(input);
 
     setup_build_state(out, BuildTargetMode::Executable, input, linker, use_pie);
     GLOBAL_STATE.with_borrow_mut(|f| f.package_name = package_name.into());

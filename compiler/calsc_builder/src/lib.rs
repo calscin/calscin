@@ -13,7 +13,7 @@ use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 pub fn setup_build_state(
     out: PathBuf,
     target: BuildTargetMode,
-    initial_files: Vec<PathBuf>,
+    initial_file: PathBuf,
     linker: String,
     use_pie: bool,
 ) {
@@ -22,9 +22,8 @@ pub fn setup_build_state(
         state.build.linker = linker;
         state.build.use_pie = use_pie;
 
-        for file in initial_files {
-            state.build.append_to_build(file);
-        }
+        state.build.append_to_build(initial_file.clone());
+        state.build.origin_file_to_build = Some(initial_file);
     })
 }
 

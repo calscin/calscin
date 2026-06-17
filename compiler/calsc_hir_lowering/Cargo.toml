@@ -11,3 +11,4 @@ calsc_utils = { path = "../calsc_utils" }
 calsc_typing = { path = "../calsc_typing" }
 calsc_modules = { path = "../calsc_modules" }
 calsc_lexer = { path = "../calsc_lexer" }
+calsc_state = { path = "../calsc_state" }

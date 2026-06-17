@@ -14,7 +14,7 @@ use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_modules::{path::ModulePath, tree::ModuleTree};
 
 use crate::{
-    modules::module_tree_append_file,
+    modules::{build_module_tree, module_tree_append_file},
     stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_decl},
 };
 
@@ -30,16 +30,7 @@ pub fn lower_hir_stage_2(
     ctx: &mut HIRContext,
     file_ctx: &mut HIRFileContext,
 ) -> DiagPossible {
-    let mut tree = ModuleTree::new();
-
-    module_tree_append_file(
-        PathBuf::from("meow.cal"),
-        ModulePath::new("test_package".into(), vec!["meow".into()]),
-        &mut tree,
-        &ASTNode::clone(ast_context.nodes.get(&ast_context.tree[0])),
-    )?;
-
-    println!("{:#?}", tree);
+    let tree = build_module_tree()
 
     for node in &ast_context.tree {
         lower_hir_stage_2_node(
