@@ -21,6 +21,7 @@ pub enum ModuleTreeEntry {
 pub struct TreeModule {
     pub name: HashedString,
     pub children: HashMap<HashedString, ModuleTreeEntry>,
+    pub imported: bool,
 }
 
 impl TreeModule {
@@ -28,6 +29,7 @@ impl TreeModule {
         Self {
             name,
             children: HashMap::new(),
+            imported: false,
         }
     }
 }
