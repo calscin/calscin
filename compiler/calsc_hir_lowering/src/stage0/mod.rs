@@ -23,16 +23,18 @@ pub mod key;
 pub mod lower_types;
 pub mod types;
 
-pub fn lower_stage_0(ast_ctx: ASTContext, file_ctx: &mut HIRFileContext) -> DiagResult<ModuleTree> {
-    let mut tree = ModuleTree::new();
-
+pub fn lower_stage_0(
+    ast_ctx: ASTContext,
+    file_ctx: &mut HIRFileContext,
+    tree: &mut ModuleTree,
+) -> DiagPossible {
     for node in &ast_ctx.tree {
         let node = ast_ctx.nodes.get(node).clone();
 
-        lower_stage_0_node(node, &ast_ctx, file_ctx, &mut tree)?;
+        lower_stage_0_node(node, &ast_ctx, file_ctx, tree)?;
     }
 
-    Ok(tree)
+    Ok(())
 }
 
 pub fn lower_stage_0_node(

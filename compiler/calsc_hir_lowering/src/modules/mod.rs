@@ -10,7 +10,9 @@ use calsc_modules::{
 };
 use calsc_utils::path::to_absolute_path;
 
-use crate::{modules::seek::seek_module_tree_folder, stage1::lower_hir_stage_1};
+use crate::{
+    modules::seek::seek_module_tree_folder, stage0::lower_stage_0, stage1::lower_hir_stage_1,
+};
 
 pub mod seek;
 
@@ -41,9 +43,10 @@ pub fn module_tree_append_file(
 
     let ast = parse_ast_whole(&lexer)?;
 
-    let mut hir_ctx = HIRContext::new();
     let mut hir_file_ctx = HIRFileContext::new();
     hir_file_ctx.current_module = module_path;
+
+    lower_stage_0(ast, &mut hir_file_ctx, tree)?;
 
     Ok(())
 }
