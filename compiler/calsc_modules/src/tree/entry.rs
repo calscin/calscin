@@ -7,11 +7,15 @@ use calsc_diagnostics::{
 
 use calsc_utils::hash::HashedString;
 
-use crate::{lazy::raw::LazyLoadedRawType, path::ModulePath, tree::traversal::ModuleTreeTraversal};
+use crate::{
+    lazy::{LazyLoadedType, raw::LazyLoadedRawType},
+    path::ModulePath,
+    tree::traversal::ModuleTreeTraversal,
+};
 
 #[derive(Debug, Clone)]
 pub enum ModuleTreeEntry {
-    Function(LazyLoadedRawType, Vec<(HashedString, LazyLoadedRawType)>),
+    Function(LazyLoadedType, Vec<(HashedString, LazyLoadedType)>),
     Type(LazyLoadedRawType),
     Module(TreeModule),
 }

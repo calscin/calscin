@@ -3,7 +3,7 @@
 
 use calsc_utils::hash::HashedString;
 
-use crate::{lazy::raw::LazyLoadedRawType, path::ModulePath};
+use crate::path::ModulePath;
 
 pub mod raw;
 
@@ -13,8 +13,6 @@ pub enum LazyLoadedType {
     Base {
         module_path: ModulePath,
         element_name: HashedString,
-
-        kind: LazyLoadedRawType,
 
         size_specifiers: Vec<usize>,
         type_parameters: Vec<LazyLoadedType>,

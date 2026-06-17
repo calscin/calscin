@@ -45,53 +45,5 @@ pub fn module_tree_append_file(
     let mut hir_file_ctx = HIRFileContext::new();
     hir_file_ctx.current_module = module_path;
 
-    lower_hir_stage_1(ast, &mut hir_ctx, &mut hir_file_ctx)?;
-
-    for entry in &hir_ctx.scope.key_to_ind {
-        let source = &hir_ctx.scope.sources[*entry.1];
-
-        let key = entry.0.clone();
-
-        let visibility = &hir_ctx.scope.visibilities[*entry.1];
-
-        if !visibility.should_be_added_to_tree() {
-            continue;
-        }
-
-        let entry = &hir_ctx.scope.values[*entry.1];
-
-        let tree_entry;
-
-        if entry.is_function() {
-            let func = entry.as_function(source)?;
-
-            tree_entry = ModuleTreeEntry::Function(func.return_type.clone(), func.arguments.clone())
-        } else if entry.is_type() {
-            let ty = entry.as_type(source)?;
-
-            tree_entry = ModuleTreeEntry::Type(ty);
-        } else if entry.is_module() {
-            let mut path = key.module_path.clone();
-            path.path.push(key.name);
-
-            println!("Imported {}", path);
-
-            let k = tree.traverse_mutably_to(path, source)?;
-
-            if let ModuleTreeEntry::Module(m) = k {
-                m.imported = true;
-            }
-
-            continue;
-        } else {
-            continue;
-        }
-
-        let mut path = key.module_path.clone();
-        path.path.push(key.name);
-
-        tree.traverse_to_append(path, tree_entry, source)?;
-    }
-
     Ok(())
 }
