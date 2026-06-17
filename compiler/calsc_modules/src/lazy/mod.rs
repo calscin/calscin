@@ -8,6 +8,7 @@ use crate::{lazy::raw::LazyLoadedRawType, path::ModulePath};
 pub mod raw;
 
 /// Represents a lazy loaded type. This should normally live before HIR lowering stage 2 as types will be obtained back there.
+#[derive(Debug, Clone)]
 pub enum LazyLoadedType {
     Base {
         module_path: ModulePath,

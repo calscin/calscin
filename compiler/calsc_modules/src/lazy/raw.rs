@@ -4,6 +4,7 @@ use calsc_utils::hash::HashedString;
 
 use crate::lazy::LazyLoadedType;
 
+#[derive(Debug, Clone)]
 pub enum LazyLoadedRawTypeKind {
     Simple,
 
@@ -13,6 +14,7 @@ pub enum LazyLoadedRawTypeKind {
     },
 }
 
+#[derive(Debug, Clone)]
 pub struct LazyLoadedRawType {
     pub kind: LazyLoadedRawTypeKind,
 
