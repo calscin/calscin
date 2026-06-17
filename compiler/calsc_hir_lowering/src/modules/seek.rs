@@ -5,6 +5,9 @@ use calsc_modules::{path::ModulePath, tree::ModuleTree};
 
 use crate::modules::module_tree_append_file;
 
+/// Seeks everyt file inside of the folder and append their contents inside of the module tree inside of the calculated path.
+/// Warning: This function creates its own module path based on the given one and the file name.
+/// Warning: This function is recursive
 pub fn seek_module_tree_folder<S: DiagnosticSource>(
     path: PathBuf,
     module_path: ModulePath,
@@ -18,7 +21,20 @@ pub fn seek_module_tree_folder<S: DiagnosticSource>(
     for path in paths {
         let path = path.unwrap().path();
 
-        if path.extension().is_some() && path.extension().unwrap() == "cal" {
+        if path.is_dir() {
+            let mut module_path = module_path.clone();
+
+            module_path.path.push(
+                path.file_name()
+                    .unwrap()
+                    .to_str()
+                    .unwrap()
+                    .to_string()
+                    .into(),
+            );
+
+            seek_module_tree_folder(path, module_path, tree, source)?;
+        } else if path.extension().is_some() && path.extension().unwrap() == "cal" {
             seek_module_file(path, module_path.clone(), tree, source)?;
         }
     }
@@ -26,6 +42,8 @@ pub fn seek_module_tree_folder<S: DiagnosticSource>(
     Ok(())
 }
 
+/// Seeks the given file and append it's content inside of the module tree inside of the calculated module path.
+/// Warning: This function creates its own module path based on the given one and the file name.
 pub fn seek_module_file<S: DiagnosticSource>(
     path: PathBuf,
     mut module_path: ModulePath,
