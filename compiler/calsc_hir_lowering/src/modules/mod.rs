@@ -7,10 +7,11 @@ use calsc_lexer::lexer_tokenize;
 use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, entry::ModuleTreeEntry},
-    visibility::Visibility,
 };
 
 use crate::stage1::lower_hir_stage_1;
+
+pub mod seek;
 
 pub fn module_tree_append_file<S: DiagnosticSource>(
     path: PathBuf,
