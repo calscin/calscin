@@ -85,7 +85,16 @@ pub fn lower_hir_stage_2_module(
     ctx: &mut HIRContext,
     ast_context: &ASTContext,
 ) -> DiagPossible {
-    if let ASTNodeKind::Module { name, body } = node.kind.clone() {
+    if let ASTNodeKind::Module {
+        name,
+        body,
+        is_bodied,
+    } = node.kind.clone()
+    {
+        if !is_bodied {
+            return Ok(());
+        }
+
         file_ctx.advance_module(name);
 
         for element in body {

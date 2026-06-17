@@ -161,18 +161,41 @@ pub fn parse_ast_module(
 
     *ind += 1; // name
 
-    tokens[*ind].expects(TokenKind::BraceOpen)?;
-    *ind += 1; // {
+    let node;
 
-    while tokens[*ind].kind != TokenKind::BraceClose {
-        body.push(parse_ast_top_level(tokens, ind, ctx)?);
+    if tokens[*ind].kind == TokenKind::BraceOpen {
+        *ind += 1; // {
+
+        let end = tokens[*ind].end.clone();
+
+        while tokens[*ind].kind != TokenKind::BraceClose {
+            body.push(parse_ast_top_level(tokens, ind, ctx)?);
+        }
+
+        *ind += 1; // }
+
+        node = ASTNode::new(
+            ASTNodeKind::Module {
+                name,
+                body,
+                is_bodied: true,
+            },
+            start,
+            end,
+        );
+    } else {
+        let end = tokens[*ind].end.clone();
+
+        node = ASTNode::new(
+            ASTNodeKind::Module {
+                name,
+                is_bodied: false,
+                body,
+            },
+            start,
+            end,
+        )
     }
-
-    let end = tokens[*ind].end.clone();
-
-    *ind += 1; // }
-
-    let node = ASTNode::new(ASTNodeKind::Module { name, body }, start, end);
 
     Ok(node.push(ctx))
 }

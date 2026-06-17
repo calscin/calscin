@@ -10,7 +10,13 @@ use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
 };
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::{HIRContext, file::HIRFileContext, prelude::apply_prelude};
+use calsc_hir::{
+    HIRContext,
+    file::HIRFileContext,
+    globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
+    prelude::apply_prelude,
+};
+use calsc_modules::{path::ModulePath, visibility::Visibility};
 
 use crate::{
     convert_visibility,
@@ -86,7 +92,29 @@ pub fn lower_hir_stage_1_module(
     ctx: &mut HIRContext,
     ast_ctx: &ASTContext,
 ) -> DiagPossible {
-    if let ASTNodeKind::Module { name, body } = node.kind.clone() {
+    if let ASTNodeKind::Module {
+        name,
+        body,
+        is_bodied,
+    } = node.kind.clone()
+    {
+        if !is_bodied {
+            let key =
+                GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
+
+            let mut path = file_ctx.current_module.clone();
+            path.path.push(name);
+
+            ctx.scope.append(
+                key,
+                GlobalContextValue::Module(path),
+                Visibility::Public,
+                &node,
+            )?;
+
+            return Ok(());
+        }
+
         file_ctx.advance_module(name);
 
         for element in body {

@@ -72,6 +72,17 @@ pub fn module_tree_append_file<S: DiagnosticSource>(
             let ty = entry.as_type(source)?;
 
             tree_entry = ModuleTreeEntry::Type(ty);
+        } else if entry.is_module() {
+            let mut path = key.module_path.clone();
+            path.path.push(key.name);
+
+            let k = tree.traverse_mutably_to(path, source)?;
+
+            if let ModuleTreeEntry::Module(m) = k {
+                m.imported = true;
+            }
+
+            continue;
         } else {
             continue;
         }
