@@ -22,7 +22,10 @@ pub fn build_command(
     let input = sanitize_path(input);
 
     setup_build_state(out, BuildTargetMode::Executable, input, linker, use_pie);
-    GLOBAL_STATE.with_borrow_mut(|f| f.package_name = package_name.into());
+    GLOBAL_STATE.with_borrow_mut(|f| {
+        f.package_name = package_name.into();
+        f.is_package_enabled = true;
+    });
 
     build();
 }

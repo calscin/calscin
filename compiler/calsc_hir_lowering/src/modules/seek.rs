@@ -8,11 +8,10 @@ use crate::modules::module_tree_append_file;
 /// Seeks everyt file inside of the folder and append their contents inside of the module tree inside of the calculated path.
 /// Warning: This function creates its own module path based on the given one and the file name.
 /// Warning: This function is recursive
-pub fn seek_module_tree_folder<S: DiagnosticSource>(
+pub fn seek_module_tree_folder(
     path: PathBuf,
     module_path: ModulePath,
     tree: &mut ModuleTree,
-    source: &S,
 ) -> DiagPossible {
     assert!(path.is_dir(), "file {:#?} is not a folder", path);
 
@@ -33,9 +32,9 @@ pub fn seek_module_tree_folder<S: DiagnosticSource>(
                     .into(),
             );
 
-            seek_module_tree_folder(path, module_path, tree, source)?;
+            seek_module_tree_folder(path, module_path, tree)?;
         } else if path.extension().is_some() && path.extension().unwrap() == "cal" {
-            seek_module_file(path, module_path.clone(), tree, source)?;
+            seek_module_file(path, module_path.clone(), tree)?;
         }
     }
 
@@ -44,11 +43,10 @@ pub fn seek_module_tree_folder<S: DiagnosticSource>(
 
 /// Seeks the given file and append it's content inside of the module tree inside of the calculated module path.
 /// Warning: This function creates its own module path based on the given one and the file name.
-pub fn seek_module_file<S: DiagnosticSource>(
+pub fn seek_module_file(
     path: PathBuf,
     mut module_path: ModulePath,
     tree: &mut ModuleTree,
-    source: &S,
 ) -> DiagPossible {
     let module_name = path
         .with_extension("")
@@ -63,7 +61,7 @@ pub fn seek_module_file<S: DiagnosticSource>(
         module_path.path.push(module_name.into());
     }
 
-    module_tree_append_file(path, module_path, tree, source)?;
+    module_tree_append_file(path, module_path, tree)?;
 
     Ok(())
 }

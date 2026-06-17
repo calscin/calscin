@@ -31,13 +31,6 @@ pub fn lower_hir_stage_2(
     ctx: &mut HIRContext,
     file_ctx: &mut HIRFileContext,
 ) -> DiagPossible {
-    let tree = build_module_tree(
-        GLOBAL_STATE.with_borrow(|state| state.build.origin_file_to_build.clone().unwrap()),
-        ast_context.nodes.get(&ast_context.tree[0]),
-    )?;
-
-    println!("{:#?}", tree);
-
     for node in &ast_context.tree {
         lower_hir_stage_2_node(
             ASTNode::clone(ast_context.nodes.get(node)),

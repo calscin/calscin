@@ -58,7 +58,7 @@ pub trait DiagnosticSource {
 
 /// An implementation of `DiagnosticSource` that only relies on a start and end position.
 /// Allowing to use diagnostic builders where there isn't really a diagnostic source.
-#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Debug, Clone)]
 pub struct PosDiagnosticSource {
     pub start: FilePosition,
     pub end: FilePosition,

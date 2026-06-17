@@ -15,10 +15,7 @@ use crate::{modules::seek::seek_module_tree_folder, stage1::lower_hir_stage_1};
 pub mod seek;
 
 /// Builds the module tree based on the given building file
-pub fn build_module_tree<S: DiagnosticSource>(
-    file_path: PathBuf,
-    source: &S,
-) -> DiagResult<ModuleTree> {
+pub fn build_module_tree(file_path: PathBuf) -> DiagResult<ModuleTree> {
     let mut tree = ModuleTree::new();
 
     let file_path = to_absolute_path(file_path).unwrap();
@@ -27,16 +24,15 @@ pub fn build_module_tree<S: DiagnosticSource>(
 
     let module_path = HIRFileContext::new().current_module; // Gets the current_package::empty path.
 
-    seek_module_tree_folder(folder, module_path, &mut tree, source)?;
+    seek_module_tree_folder(folder, module_path, &mut tree)?;
 
     Ok(tree)
 }
 
-pub fn module_tree_append_file<S: DiagnosticSource>(
+pub fn module_tree_append_file(
     path: PathBuf,
     module_path: ModulePath,
     tree: &mut ModuleTree,
-    source: &S,
 ) -> DiagPossible {
     let lexer = lexer_tokenize(
         &fs::read_to_string(&path).unwrap(),
@@ -52,6 +48,8 @@ pub fn module_tree_append_file<S: DiagnosticSource>(
     lower_hir_stage_1(ast, &mut hir_ctx, &mut hir_file_ctx)?;
 
     for entry in &hir_ctx.scope.key_to_ind {
+        let source = &hir_ctx.scope.sources[*entry.1];
+
         let key = entry.0.clone();
 
         let visibility = &hir_ctx.scope.visibilities[*entry.1];

@@ -5,7 +5,9 @@ use std::{fs, path::PathBuf, process::Command};
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::container::dump_and_stop_if_errors;
 use calsc_hir::{HIRContext, file::HIRFileContext};
-use calsc_hir_lowering::{stage1::lower_hir_stage_1, stage2::lower_hir_stage_2};
+use calsc_hir_lowering::{
+    modules::build_module_tree, stage1::lower_hir_stage_1, stage2::lower_hir_stage_2,
+};
 use calsc_lexer::lexer_tokenize;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
@@ -45,6 +47,21 @@ pub(crate) fn get_linker() -> String {
 
 pub fn build() {
     let mut out_files: Vec<PathBuf> = vec![];
+
+    // Building global module tree
+    if GLOBAL_STATE.with_borrow(|state| state.is_package_enabled) {
+        let module_tree = build_module_tree(
+            GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap()),
+        );
+
+        dump_and_stop_if_errors();
+
+        let module_tree = module_tree.unwrap();
+
+        println!("Detected module tree: {:#?}", module_tree);
+
+        GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
+    }
 
     loop {
         if !consume_build_files(&mut out_files) {
