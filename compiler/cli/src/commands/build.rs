@@ -16,16 +16,20 @@ pub fn build_command(
     out: PathBuf,
     linker: String,
     use_pie: bool,
-    package_name: String,
+    package_name: Option<String>,
+    use_package: bool,
 ) {
     let out = sanitize_path(out);
     let input = sanitize_path(input);
 
     setup_build_state(out, BuildTargetMode::Executable, input, linker, use_pie);
-    GLOBAL_STATE.with_borrow_mut(|f| {
-        f.package_name = package_name.into();
-        f.is_package_enabled = true;
-    });
+
+    if use_package {
+        GLOBAL_STATE.with_borrow_mut(|f| {
+            f.package_name = package_name.unwrap().into();
+            f.is_package_enabled = true;
+        });
+    }
 
     build();
 }
