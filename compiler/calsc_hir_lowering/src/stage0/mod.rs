@@ -4,18 +4,17 @@
 use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
-    path,
 };
 use calsc_diagnostics::{
-    DiagPossible, DiagResult,
+    DiagPossible,
     diags::errors::{build_already_in_scope, build_internal_hir_node_leaked},
 };
 use calsc_hir::file::HIRFileContext;
 use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
 
 use crate::stage0::{
-    func::lower_ast_function_decl_stage_zero,
-    lower_types::{lower_ast_type_struct_decl, lower_ast_type_struct_declaration},
+    func::{lower_ast_extern_func_decl_stage_zero, lower_ast_function_decl_stage_zero},
+    lower_types::lower_ast_type_struct_declaration,
 };
 
 pub mod func;
@@ -45,16 +44,22 @@ pub fn lower_stage_0_node(
 ) -> DiagPossible {
     match node.kind {
         ASTNodeKind::FunctionDeclaration { .. } => {
-            lower_ast_function_decl_stage_zero(node, None, file_ctx, tree)
+            lower_ast_function_decl_stage_zero(node, file_ctx, tree)
+        }
+
+        ASTNodeKind::ExternFunctionDeclaration { .. } => {
+            lower_ast_extern_func_decl_stage_zero(node, file_ctx, tree)
         }
 
         ASTNodeKind::StructDeclaration { .. } => {
             lower_ast_type_struct_declaration(node, file_ctx, tree)
         }
 
-        ASTNodeKind::StructDeclBlock { .. } => {
-            lower_ast_type_struct_decl(node, file_ctx, tree, ast_ctx)
-        }
+        ASTNodeKind::StructDeclBlock { .. } => Ok(()),
+
+        ASTNodeKind::Module { .. } => lower_ast_stage_0_module(node, ast_ctx, file_ctx, tree),
+
+        ASTNodeKind::ImportStatement { .. } => Ok(()),
 
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     }

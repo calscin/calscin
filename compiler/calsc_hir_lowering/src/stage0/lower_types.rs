@@ -69,36 +69,9 @@ pub fn lower_ast_type_struct_declaration(
         let mut path_to_append_to = file_ctx.current_module.clone();
         path_to_append_to.path.push(name);
 
+        println!("Struct appended to {}", path_to_append_to);
+
         tree.traverse_to_append(path_to_append_to, ModuleTreeEntry::Type(raw_type), &node)
-    } else {
-        return Err(build_internal_hir_node_leaked(&node, &node).into());
-    }
-}
-
-pub fn lower_ast_type_struct_decl(
-    node: ASTNode,
-    file_ctx: &mut HIRFileContext,
-    tree: &mut ModuleTree,
-    ast_ctx: &ASTContext,
-) -> DiagPossible {
-    if let ASTNodeKind::StructDeclBlock { target, functions } = node.kind.clone() {
-        if let ASTType::Generic(path, b, c) = target {
-            if b.is_some() || !c.is_empty() {
-                return Err(build_expected_simple_type(&node).into());
-            }
-
-            let path = lower_stage_0_key(path);
-
-            for func in functions {
-                let func = ast_ctx.nodes.get(&func).clone();
-
-                lower_ast_function_decl_stage_zero(func, Some(path.clone()), file_ctx, tree)?;
-            }
-
-            Ok(())
-        } else {
-            return Err(build_expected_simple_type(&node).into());
-        }
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
