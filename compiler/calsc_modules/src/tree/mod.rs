@@ -17,6 +17,7 @@ use crate::{
     },
 };
 
+pub mod clean;
 pub mod entry;
 pub mod traversal;
 

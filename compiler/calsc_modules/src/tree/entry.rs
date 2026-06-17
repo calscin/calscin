@@ -7,7 +7,10 @@ use calsc_diagnostics::{
 use calsc_typing::{base::BaseType, tree::Type};
 use calsc_utils::hash::HashedString;
 
-use crate::{path::ModulePath, tree::traversal::ModuleTreeTraversal};
+use crate::{
+    path::ModulePath,
+    tree::{clean::TreeCleanable, traversal::ModuleTreeTraversal},
+};
 
 #[derive(Debug, Clone)]
 pub enum ModuleTreeEntry {
