@@ -98,6 +98,7 @@ dependencies = [
  "calsc_hir",
  "calsc_hir_lowering",
  "calsc_lexer",
+ "calsc_modules",
  "calsc_remir_lowering",
  "calsc_state",
 ]
@@ -170,6 +171,7 @@ dependencies = [
 name = "calsc_state"
 version = "0.1.0"
 dependencies = [
+ "calsc_modules",
  "calsc_utils",
 ]
 

@@ -9,6 +9,7 @@ use calsc_hir_lowering::{
     modules::build_module_tree, stage1::lower_hir_stage_1, stage2::lower_hir_stage_2,
 };
 use calsc_lexer::lexer_tokenize;
+use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 
@@ -56,7 +57,11 @@ pub fn build() {
 
         dump_and_stop_if_errors();
 
-        let module_tree = module_tree.unwrap();
+        let mut module_tree = module_tree.unwrap();
+
+        println!("Before tree: {:#?}", module_tree);
+
+        module_tree.clean();
 
         println!("Detected module tree: {:#?}", module_tree);
 

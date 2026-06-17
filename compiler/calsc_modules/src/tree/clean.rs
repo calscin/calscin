@@ -60,8 +60,11 @@ impl TreeCleanable for ModuleTree {
             let entry = child.1;
 
             if entry.is_clean() {
+                println!("Entry '{}' is clean", child.0);
                 entry.clean();
             } else {
+                println!("Entry '{}' is unclean", child.0);
+
                 to_delete.push(child.0.clone());
             }
         }

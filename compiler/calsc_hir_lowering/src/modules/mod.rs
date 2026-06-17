@@ -74,6 +74,8 @@ pub fn module_tree_append_file(
             let mut path = key.module_path.clone();
             path.path.push(key.name);
 
+            println!("Imported {}", path);
+
             let k = tree.traverse_mutably_to(path, source)?;
 
             if let ModuleTreeEntry::Module(m) = k {

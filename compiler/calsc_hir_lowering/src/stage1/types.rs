@@ -41,7 +41,7 @@ pub fn lower_ast_struct_declaration(
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
 
-        let key = GlobalContextKey::new(name.clone());
+        let key = GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
         let mut base_type = BaseType::new(BaseTypeKind::Struct(BaseStructContainer::new(name)));
 
