@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use calsc_diagnostics::{DiagPossible, DiagnosticSource, diags::errors::build_already_in_scope};
 use calsc_utils::hash::HashedString;
 
 use crate::lazy::LazyLoadedType;
@@ -18,7 +19,7 @@ pub enum LazyLoadedRawTypeKind {
 pub struct LazyLoadedRawType {
     pub kind: LazyLoadedRawTypeKind,
 
-    pub functions: HashMap<HashedString, (Vec<LazyLoadedType>, LazyLoadedType)>,
+    pub functions: HashMap<HashedString, (Vec<(HashedString, LazyLoadedType)>, LazyLoadedType)>,
     pub type_params: HashMap<HashedString, usize>,
     pub type_params_iter: Vec<HashedString>,
 }
@@ -31,5 +32,21 @@ impl LazyLoadedRawType {
             type_params: HashMap::new(),
             type_params_iter: vec![],
         }
+    }
+
+    pub fn append_function<S: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        ret_type: LazyLoadedType,
+        arguments: Vec<(HashedString, LazyLoadedType)>,
+        source: &S,
+    ) -> DiagPossible {
+        if self.functions.contains_key(&name) {
+            return Err(build_already_in_scope(&name, source).into());
+        }
+
+        self.functions.insert(name, (arguments, ret_type));
+
+        Ok(())
     }
 }

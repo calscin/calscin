@@ -2,9 +2,12 @@
 
 use calsc_ast::{path::ElementPath, types::ASTType};
 
-use calsc_modules::lazy::LazyLoadedType;
+use calsc_modules::{lazy::LazyLoadedType, path::ModulePath};
+use calsc_utils::hash::HashedString;
 
 use crate::stage0::key::lower_stage_0_key;
+
+pub type LazyLoadedTypeId = (ModulePath, HashedString);
 
 pub fn lower_ast_type_base(
     name: ElementPath,
