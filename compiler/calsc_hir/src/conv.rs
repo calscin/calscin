@@ -16,7 +16,7 @@ use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
     HIRContext,
-    file::{self, HIRFileContext},
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };

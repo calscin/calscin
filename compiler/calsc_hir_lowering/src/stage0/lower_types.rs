@@ -1,26 +1,14 @@
 use std::collections::HashMap;
 
-use calsc_ast::{
-    ASTContext,
-    nodes::{ASTNode, ASTNodeKind},
-    types::ASTType,
-};
-use calsc_diagnostics::{
-    DiagPossible, DiagResult,
-    diags::errors::{build_expected_simple_type, build_internal_hir_node_leaked},
-};
-use calsc_hir::{file::HIRFileContext, nodes::HIRNodeKind};
+use calsc_ast::nodes::{ASTNode, ASTNodeKind};
+use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
+use calsc_hir::file::HIRFileContext;
 use calsc_modules::{
     lazy::raw::{LazyLoadedRawType, LazyLoadedRawTypeKind},
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
-use crate::{
-    convert_visibility,
-    stage0::{
-        func::lower_ast_function_decl_stage_zero, key::lower_stage_0_key, types::lower_ast_type,
-    },
-};
+use crate::{convert_visibility, stage0::types::lower_ast_type};
 
 pub fn lower_ast_type_struct_declaration(
     node: ASTNode,

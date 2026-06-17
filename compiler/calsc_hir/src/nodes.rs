@@ -14,7 +14,7 @@ use calsc_utils::{
 
 use crate::{
     HIRContext,
-    file::{self, HIRFileContext},
+    file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     ifs::IfStatementBranch,
     types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},

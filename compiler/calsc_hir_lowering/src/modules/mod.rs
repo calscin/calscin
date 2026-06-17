@@ -1,8 +1,8 @@
 use std::{fs, path::PathBuf};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource, PosDiagnosticSource};
-use calsc_hir::{HIRContext, file::HIRFileContext};
+use calsc_diagnostics::{DiagPossible, DiagResult, PosDiagnosticSource};
+use calsc_hir::file::HIRFileContext;
 use calsc_lexer::lexer_tokenize;
 use calsc_modules::{
     path::ModulePath,
@@ -10,9 +10,7 @@ use calsc_modules::{
 };
 use calsc_utils::path::to_absolute_path;
 
-use crate::{
-    modules::seek::seek_module_tree_folder, stage0::lower_stage_0, stage1::lower_hir_stage_1,
-};
+use crate::{modules::seek::seek_module_tree_folder, stage0::lower_stage_0};
 
 pub mod seek;
 

@@ -1,6 +1,6 @@
 use std::{fs, path::PathBuf};
 
-use calsc_diagnostics::{DiagPossible, DiagnosticSource};
+use calsc_diagnostics::DiagPossible;
 use calsc_modules::{path::ModulePath, tree::ModuleTree};
 
 use crate::modules::module_tree_append_file;

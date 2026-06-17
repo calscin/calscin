@@ -15,7 +15,6 @@ use crate::{
             for_loop::parse_ast_for_loop, ifelse::parse_ast_if_statement, loops::parse_ast_loop,
             while_loop::parse_ast_while_loop,
         },
-        forms::parse_visibility_form,
         func::{parse_extern_function_declaration, parse_function_declaration},
         import::parse_ast_import_statement,
         structs::{parse_ast_struct_decl_block, parse_ast_struct_declaration},

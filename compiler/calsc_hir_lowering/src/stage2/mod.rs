@@ -3,21 +3,14 @@
 //!
 //! The stage 2 should propagate the function body implementations
 
-use std::path::PathBuf;
-
 use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
 };
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIRContext, file::HIRFileContext};
-use calsc_modules::{path::ModulePath, tree::ModuleTree};
-use calsc_state::GLOBAL_STATE;
 
-use crate::{
-    modules::{build_module_tree, module_tree_append_file},
-    stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_decl},
-};
+use crate::stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_decl};
 
 pub mod control;
 pub mod funcs;

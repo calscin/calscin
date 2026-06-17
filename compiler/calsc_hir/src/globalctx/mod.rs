@@ -15,7 +15,7 @@ use calsc_diagnostics::{
 };
 
 use calsc_modules::{path::ModulePath, visibility::Visibility};
-use calsc_utils::{alloc::arena::ArenaHandle, str::levenshtein};
+use calsc_utils::str::levenshtein;
 
 use crate::globalctx::{key::GlobalContextKey, vals::GlobalContextValue};
 
