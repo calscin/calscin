@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
+use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource, PosDiagnosticSource};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_lexer::lexer_tokenize;
 use calsc_modules::{
@@ -25,6 +25,17 @@ pub fn build_module_tree(file_path: PathBuf) -> DiagResult<ModuleTree> {
     let folder = file_path.parent().unwrap().to_path_buf();
 
     let module_path = HIRFileContext::new().current_module; // Gets the current_package::empty path.
+
+    // Make sure that the package path is imported
+    {
+        let dummy_source = PosDiagnosticSource::new(Default::default(), Default::default());
+
+        let mut_ref = tree.traverse_mutably_to(module_path.clone(), &dummy_source)?;
+
+        if let ModuleTreeEntry::Module(module) = mut_ref {
+            module.imported = true;
+        }
+    }
 
     seek_module_tree_folder(folder, module_path, &mut tree)?;
 
