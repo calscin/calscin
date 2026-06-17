@@ -1,11 +1,11 @@
 //! Declarations for type lazy loading.
 //! This allows for types to be circularly imported just like functions and allows for types to be loaded only in stage 2 instead of stage 1
 
-use std::collections::HashMap;
-
 use calsc_utils::hash::HashedString;
 
-use crate::path::ModulePath;
+use crate::{lazy::raw::LazyLoadedRawType, path::ModulePath};
+
+pub mod raw;
 
 /// Represents a lazy loaded type. This should normally live before HIR lowering stage 2 as types will be obtained back there.
 pub enum LazyLoadedType {
@@ -35,13 +35,4 @@ pub enum LazyLoadedType {
     },
 
     Void,
-}
-
-pub enum LazyLoadedRawType {
-    LazyLoadedStruct {
-        fields: HashMap<HashedString, (LazyLoadedRawType, usize)>,
-        field_order: Vec<HashedString>,
-    },
-
-    LazyLoadedNormal,
 }
