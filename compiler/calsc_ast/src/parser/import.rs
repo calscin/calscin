@@ -71,8 +71,18 @@ pub fn parse_ast_import_statement(
     let import_path = parse_ast_import_path(tokens, ind)?; // Auto increments
 
     let kind = match tokens[*ind].kind {
-        TokenKind::Star => ImportKind::Whole,
-        TokenKind::SemiColon => ImportKind::Module,
+        TokenKind::Star => {
+            *ind += 1; // *
+
+            ImportKind::Whole
+        }
+
+        TokenKind::SemiColon => {
+            *ind += 1; // ;
+
+            ImportKind::Module
+        }
+
         TokenKind::BracketOpen => {
             *ind += 1; // [
 
@@ -83,7 +93,7 @@ pub fn parse_ast_import_statement(
                 TokenKind::BracketClose,
                 true,
                 true,
-            )?;
+            )?; // Auto increments
 
             ImportKind::Items(list.iter().map(|elem| elem.clone().into()).collect())
         }
@@ -91,7 +101,7 @@ pub fn parse_ast_import_statement(
         _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     };
 
-    *ind += 1;
+    //*ind += 1;
 
     let end = tokens[*ind - 1].end.clone();
 

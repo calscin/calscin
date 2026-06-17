@@ -47,6 +47,8 @@ pub fn lower_hir_stage_1_node(
 
         ASTNodeKind::Module { .. } => lower_hir_stage_1_module(node, file_ctx, ctx, ast_ctx)?,
 
+        ASTNodeKind::ImportStatement { .. } => {}
+
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     };
 

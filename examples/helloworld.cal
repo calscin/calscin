@@ -1,11 +1,11 @@
-import std::[print]
+priv externfunc printf(str fmt)
 
 func main() -> s.32 {
 	mut s.32 test2 = 69;
 
-	test2 = 120; // Mutable
+	test2 = 120;
 
-	var s.32 test3 = 69; // Not mutable
+	var s.32 test3 = 69;
 
-	print("Hello world!");
+	printf("Hello world!");
 }

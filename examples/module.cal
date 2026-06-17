@@ -10,7 +10,7 @@ module myTestModule {
 	}
 }
 
-import myTestModule::myInnerModule
+import myTestModule::myInnerModule;
 
 
 func main() {
