@@ -1,7 +1,7 @@
 use std::{fs, path::PathBuf};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::{DiagPossible, DiagnosticSource};
+use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_lexer::lexer_tokenize;
 use calsc_modules::{
@@ -9,9 +9,24 @@ use calsc_modules::{
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
-use crate::stage1::lower_hir_stage_1;
+use crate::{modules::seek::seek_module_tree_folder, stage1::lower_hir_stage_1};
 
 pub mod seek;
+
+/// Builds the module tree based on the given building file
+pub fn build_module_tree<S: DiagnosticSource>(
+    file_path: PathBuf,
+    source: &S,
+) -> DiagResult<ModuleTree> {
+    let mut tree = ModuleTree::new();
+
+    let folder = file_path.parent().unwrap().to_path_buf();
+    let module_path = HIRFileContext::new().current_module; // Gets the current_package::empty path.
+
+    seek_module_tree_folder(folder, module_path, &mut tree, source)?;
+
+    Ok(tree)
+}
 
 pub fn module_tree_append_file<S: DiagnosticSource>(
     path: PathBuf,
