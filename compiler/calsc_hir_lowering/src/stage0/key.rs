@@ -6,7 +6,7 @@ pub fn lower_stage_0_key(key: ElementPath) -> (ModulePath, HashedString) {
     assert!(!key.members.is_empty());
 
     let path = if key.members.len() == 1 {
-        ModulePath::new(key.members[0].clone(), vec![])
+        ModulePath::new("prelude".into(), vec![])
     } else {
         ModulePath::new(
             key.members[0].clone(),
