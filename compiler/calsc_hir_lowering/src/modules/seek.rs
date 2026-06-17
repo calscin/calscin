@@ -14,7 +14,7 @@ pub fn seek_module_tree_folder<S: DiagnosticSource>(
     tree: &mut ModuleTree,
     source: &S,
 ) -> DiagPossible {
-    assert!(path.is_dir());
+    assert!(path.is_dir(), "file {:#?} is not a folder", path);
 
     let paths = fs::read_dir(path).unwrap();
 

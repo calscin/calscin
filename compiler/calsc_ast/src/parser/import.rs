@@ -91,6 +91,8 @@ pub fn parse_ast_import_statement(
         _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
     };
 
+    *ind += 1;
+
     let end = tokens[*ind - 1].end.clone();
 
     let node = ASTNode::new(

@@ -12,6 +12,7 @@ use calsc_ast::{
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_modules::{path::ModulePath, tree::ModuleTree};
+use calsc_state::GLOBAL_STATE;
 
 use crate::{
     modules::{build_module_tree, module_tree_append_file},
@@ -30,7 +31,12 @@ pub fn lower_hir_stage_2(
     ctx: &mut HIRContext,
     file_ctx: &mut HIRFileContext,
 ) -> DiagPossible {
-    let tree = build_module_tree()
+    let tree = build_module_tree(
+        GLOBAL_STATE.with_borrow(|state| state.build.origin_file_to_build.clone().unwrap()),
+        ast_context.nodes.get(&ast_context.tree[0]),
+    )?;
+
+    println!("{:#?}", tree);
 
     for node in &ast_context.tree {
         lower_hir_stage_2_node(

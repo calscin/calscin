@@ -8,6 +8,7 @@ use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
+use calsc_utils::path::to_absolute_path;
 
 use crate::{modules::seek::seek_module_tree_folder, stage1::lower_hir_stage_1};
 
@@ -20,7 +21,10 @@ pub fn build_module_tree<S: DiagnosticSource>(
 ) -> DiagResult<ModuleTree> {
     let mut tree = ModuleTree::new();
 
+    let file_path = to_absolute_path(file_path).unwrap();
+
     let folder = file_path.parent().unwrap().to_path_buf();
+
     let module_path = HIRFileContext::new().current_module; // Gets the current_package::empty path.
 
     seek_module_tree_folder(folder, module_path, &mut tree, source)?;

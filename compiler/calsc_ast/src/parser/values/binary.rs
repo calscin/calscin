@@ -76,8 +76,31 @@ pub fn parse_binary_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResult
     }
 }
 
-pub fn is_binary_operator(tokens: &Vec<Token>, ind: usize) -> bool {
-    peek_ahead(tokens, ind, parse_binary_operator).0.is_ok() // TODO: maybe make this better
+pub fn is_binary_operator(tokens: &Vec<Token>, ind: usize, consumed_tilde: bool) -> bool {
+    match &tokens[ind].kind {
+        TokenKind::Equal => tokens[ind + 1].kind == TokenKind::Equal,
+
+        TokenKind::AngelBracketOpen | TokenKind::AngelBracketClose => true,
+
+        TokenKind::Tilde => {
+            if consumed_tilde {
+                return false;
+            }
+
+            let ind2 = ind + 1;
+
+            is_binary_operator(tokens, ind2, true)
+        }
+
+        TokenKind::Plus
+        | TokenKind::Minus
+        | TokenKind::Star
+        | TokenKind::Slash
+        | TokenKind::BackSlash
+        | TokenKind::Bang => true,
+
+        _ => false,
+    }
 }
 
 pub fn parse_ast_binary_operation(
@@ -91,7 +114,7 @@ pub fn parse_ast_binary_operation(
     let min_precedence = min_precedence as usize;
 
     loop {
-        if !is_binary_operator(tokens, *ind) {
+        if !is_binary_operator(tokens, *ind, false) {
             break;
         }
 
@@ -109,7 +132,7 @@ pub fn parse_ast_binary_operation(
 
         let mut right = parse_ast_value(tokens, ind, true, false, false, ctx)?;
 
-        if is_binary_operator(tokens, *ind) {
+        if is_binary_operator(tokens, *ind, false) {
             if let Ok(next_operator) = peek_ahead(tokens, *ind, parse_binary_operator).0 {
                 let next_precedence = Precedence::get_from_operator(next_operator);
 
