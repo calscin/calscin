@@ -29,6 +29,7 @@ impl BuildCache {
         Self {
             entries: HashMap::new(),
             nodes_to_entries: HashMap::new(),
+            type_storage: ResolvedTypeCache::new(),
         }
     }
 
