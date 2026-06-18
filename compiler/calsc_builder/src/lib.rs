@@ -59,8 +59,6 @@ pub fn build() {
 
         let mut module_tree = module_tree.unwrap();
 
-        println!("Before tree: {:#?}", module_tree);
-
         module_tree.clean();
 
         println!("Detected module tree: {:#?}", module_tree);
