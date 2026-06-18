@@ -1,5 +1,7 @@
 //! Definitions related to the traversal of the module tree
 
+use std::path::PathBuf;
+
 use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
 use calsc_utils::hash::HashedString;
 
@@ -29,4 +31,7 @@ pub trait ModuleTreeTraversal {
         val: ModuleTreeEntry,
         source: &S,
     ) -> DiagPossible;
+
+    /// Collects the paths contained inside of the  module tree
+    fn collect_paths(&self, vec: &mut Vec<PathBuf>);
 }
