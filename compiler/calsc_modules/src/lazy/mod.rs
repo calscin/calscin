@@ -73,9 +73,11 @@ impl LazyLoadedTypeLike for LazyLoadedType {
                 let mut path_to_check = module_path.clone();
                 path_to_check.path.push(element_name.clone());
 
-                if counter.get_count(&path_to_check) >= 1 {
-                    return Err(build_type_infinite_size(&path_to_check, source).into());
-                }
+                //                if counter.get_count(&path_to_check) >= 1 {
+                //                    return Err(build_type_infinite_size(&path_to_check, source).into());
+                //                }
+
+                // TODO: make a better infinite size protector as this one does not work as it would flag for multiple fields with the same type.
 
                 let r = tree.traverse_to(path_to_check.clone(), source)?;
 
