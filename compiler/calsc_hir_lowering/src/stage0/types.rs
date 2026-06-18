@@ -24,11 +24,24 @@ pub fn lower_ast_type_base(
     // If the length is one then it's either a prelude type or a current module type. We thus check if the prelude type exists
     if name.members.len() == 1 {
         let path = ModulePath::new_prelude_path(vec![name.members[0].clone()]);
+
+        if tree.contains(path) {
+            key = ModulePath::new_prelude_path(vec![]);
+        } else {
+            key = hir_file_ctx.current_module.clone();
+        }
+    } else {
+        key = ModulePath::new(
+            name.members[0].clone(),
+            name.members[1..name.members.len() - 1].to_vec(),
+        )
     }
 
+    let element_name = name.last();
+
     LazyLoadedType::Base {
-        module_path: key.0.clone(),
-        element_name: key.1,
+        module_path: key,
+        element_name,
         size_specifiers,
         type_parameters,
     }

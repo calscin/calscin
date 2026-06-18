@@ -83,7 +83,7 @@ impl ModuleTree {
         curr.set(path.last(), val, source)
     }
 
-    pub fn contains<S: DiagnosticSource>(&self, path: ModulePath) -> bool {
+    pub fn contains(&self, path: ModulePath) -> bool {
         let fake_origin = PosDiagnosticSource::new(Default::default(), Default::default()); // This is fine since normally the tree cannot fail 
 
         if !self.has(path.get(0)) {
