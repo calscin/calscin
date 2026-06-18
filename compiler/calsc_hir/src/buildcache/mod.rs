@@ -17,4 +17,8 @@ impl BuildCache {
             entries: HashMap::new(),
         }
     }
+
+    pub fn append_entry(&mut self, path: PathBuf, entry: BuildCacheEntry) {
+        self.entries.insert(path, entry);
+    }
 }

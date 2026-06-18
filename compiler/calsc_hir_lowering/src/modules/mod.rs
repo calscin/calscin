@@ -2,7 +2,7 @@ use std::{fs, path::PathBuf};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::{DiagPossible, DiagResult, PosDiagnosticSource};
-use calsc_hir::file::HIRFileContext;
+use calsc_hir::{BUILD_CACHE, buildcache::entry::BuildCacheEntry, file::HIRFileContext};
 use calsc_lexer::lexer_tokenize;
 use calsc_modules::{
     path::ModulePath,
@@ -51,6 +51,10 @@ pub fn module_tree_append_file(
     )?;
 
     let ast = parse_ast_whole(&lexer)?;
+
+    BUILD_CACHE.with_borrow_mut(|cache| {
+        cache.append_entry(path.clone(), BuildCacheEntry::new(ast.clone()))
+    });
 
     let mut hir_file_ctx = HIRFileContext::new();
     hir_file_ctx.current_module = module_path;
