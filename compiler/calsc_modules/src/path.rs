@@ -48,6 +48,15 @@ impl ModulePath {
         }
     }
 
+    pub fn append_single_bit(&mut self, bit: HashedString) {
+        if self.package.is_empty() {
+            self.package = bit;
+            return;
+        }
+
+        self.path.push(bit);
+    }
+
     pub fn get(&self, ind: usize) -> HashedString {
         if ind == 0 {
             self.package.clone()

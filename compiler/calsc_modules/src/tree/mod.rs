@@ -18,6 +18,7 @@ use crate::{
 };
 
 pub mod clean;
+pub mod collect;
 pub mod entry;
 pub mod traversal;
 
@@ -156,12 +157,6 @@ impl ModuleTreeTraversal for ModuleTree {
 
         self.entries.insert(name, val);
         Ok(())
-    }
-
-    fn collect_paths(&self, vec: &mut Vec<PathBuf>) {
-        for entry in &self.entries {
-            entry.1.collect_paths(vec);
-        }
     }
 
     fn has(&self, name: HashedString) -> bool {

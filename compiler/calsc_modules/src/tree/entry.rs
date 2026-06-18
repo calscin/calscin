@@ -100,17 +100,6 @@ impl ModuleTreeTraversal for TreeModule {
         self.children.insert(name, val);
         Ok(())
     }
-
-    fn collect_paths(&self, vec: &mut Vec<PathBuf>) {
-        if self.path.is_some() {
-            vec.push(self.path.clone().unwrap())
-        }
-
-        for child in &self.children {
-            child.1.collect_paths(vec);
-        }
-    }
-
     fn has(&self, name: HashedString) -> bool {
         self.children.contains_key(&name)
     }
@@ -153,14 +142,6 @@ impl ModuleTreeTraversal for ModuleTreeEntry {
             Self::Module(module) => module.set(name, val, source),
 
             _ => return Err(build_already_in_scope(&name, source).into()),
-        }
-    }
-
-    fn collect_paths(&self, vec: &mut Vec<PathBuf>) {
-        match self {
-            Self::Module(module) => module.collect_paths(vec),
-
-            _ => {}
         }
     }
 

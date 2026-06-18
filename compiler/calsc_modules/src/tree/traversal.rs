@@ -32,12 +32,5 @@ pub trait ModuleTreeTraversal {
         source: &S,
     ) -> DiagPossible;
 
-    /// Collects the paths contained inside of the  module tree
-    fn collect_paths(&self, vec: &mut Vec<PathBuf>);
-
     fn has(&self, name: HashedString) -> bool;
-
-    fn collect_entries<F>(&self, f: F, entries: &mut Vec<(ModuleTreeEntry, ModulePath)>)
-    where
-        F: FnOnce(&ModuleTreeEntry) -> bool;
 }
