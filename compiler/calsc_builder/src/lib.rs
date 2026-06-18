@@ -3,20 +3,18 @@
 use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::{PosDiagnosticSource, container::dump_and_stop_if_errors};
-use calsc_hir::{BUILD_CACHE, HIRContext, file::HIRFileContext};
+use calsc_diagnostics::container::dump_and_stop_if_errors;
+use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_hir_lowering::{
     modules::build_module_tree, stage1::lower_hir_stage_1, stage2::lower_hir_stage_2,
 };
 use calsc_lexer::lexer_tokenize;
 use calsc_modules::{
-    lazy::LazyLoadedTypeLike,
     path::ModulePath,
-    tree::{clean::TreeCleanable, collect::ModuleTreeCollector, entry::ModuleTreeEntry},
+    tree::{clean::TreeCleanable, collect::ModuleTreeCollector},
 };
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
-use calsc_utils::hash::HashedCounter;
 
 pub fn setup_build_state(
     out: PathBuf,

@@ -1,14 +1,8 @@
 //! Declarations for type lazy loading.
 //! This allows for types to be circularly imported just like functions and allows for types to be loaded only in stage 2 instead of stage 1
 
-use calsc_diagnostics::{
-    DiagPossible, DiagnosticSource,
-    diags::errors::{build_expected_entry_type, build_type_infinite_size},
-};
-use calsc_utils::{
-    hash::{HashedCounter, HashedString},
-    path,
-};
+use calsc_diagnostics::{DiagPossible, DiagnosticSource, diags::errors::build_expected_entry_type};
+use calsc_utils::hash::{HashedCounter, HashedString};
 
 use crate::{
     path::ModulePath,

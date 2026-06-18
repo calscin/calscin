@@ -76,6 +76,13 @@ impl ModulePath {
             self.path[self.path.len() - 1].clone()
         }
     }
+
+    pub fn everything_but_last(&self) -> ModulePath {
+        ModulePath::new(
+            self.package.clone(),
+            self.path[0..self.path.len() - 2].to_vec(),
+        )
+    }
 }
 
 impl Default for ModulePath {

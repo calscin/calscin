@@ -8,13 +8,11 @@ use calsc_utils::hash::HashedString;
 
 pub type LazyLoadedTypeId = (ModulePath, HashedString);
 
-pub fn lower_ast_type_base(
+pub fn lower_stage0_key(
     name: ElementPath,
-    size_specifiers: Vec<usize>,
-    type_parameters: Vec<LazyLoadedType>,
-    tree: &ModuleTree,
     hir_file_ctx: &HIRFileContext,
-) -> LazyLoadedType {
+    tree: &ModuleTree,
+) -> (ModulePath, HashedString) {
     assert!(!name.members.is_empty());
 
     let key;
@@ -36,6 +34,20 @@ pub fn lower_ast_type_base(
     }
 
     let element_name = name.last();
+
+    (key, element_name)
+}
+
+pub fn lower_ast_type_base(
+    name: ElementPath,
+    size_specifiers: Vec<usize>,
+    type_parameters: Vec<LazyLoadedType>,
+    tree: &ModuleTree,
+    hir_file_ctx: &HIRFileContext,
+) -> LazyLoadedType {
+    assert!(!name.members.is_empty());
+
+    let (key, element_name) = lower_stage0_key(name, hir_file_ctx, tree);
 
     LazyLoadedType::Base {
         module_path: key,
