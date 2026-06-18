@@ -47,10 +47,6 @@ impl ModuleTreeCollector for TreeModule {
 
             let entry = child.1;
 
-            if f(entry) {
-                entries.push((entry.clone(), path.clone()));
-            }
-
             entry.collect_entries(f, path, entries);
         }
     }
@@ -103,10 +99,6 @@ impl ModuleTreeCollector for ModuleTree {
             path.append_single_bit(entry.0.clone());
 
             let entry = entry.1;
-
-            if f(entry) {
-                entries.push((entry.clone(), path.clone()))
-            }
 
             entry.collect_entries(f, path, entries);
         }

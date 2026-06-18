@@ -4,12 +4,15 @@ use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::container::dump_and_stop_if_errors;
-use calsc_hir::{HIRContext, file::HIRFileContext};
+use calsc_hir::{BUILD_CACHE, HIRContext, file::HIRFileContext};
 use calsc_hir_lowering::{
     modules::build_module_tree, stage1::lower_hir_stage_1, stage2::lower_hir_stage_2,
 };
 use calsc_lexer::lexer_tokenize;
-use calsc_modules::tree::clean::TreeCleanable;
+use calsc_modules::{
+    path::ModulePath,
+    tree::{clean::TreeCleanable, collect::ModuleTreeCollector},
+};
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 
@@ -61,7 +64,24 @@ pub fn build() {
 
         module_tree.clean();
 
-        println!("Detected module tree: {:#?}", module_tree);
+        let mut entries = vec![];
+
+        module_tree.collect_entries(
+            &|entry| entry.is_type(),
+            ModulePath::new("".into(), vec![]),
+            &mut entries,
+        );
+
+        for entry in entries {
+            BUILD_CACHE.with_borrow(|cache| {
+                println!(
+                    "Build cache entry {} -> {:#?}",
+                    entry.1, cache.nodes_to_entries[&entry.1]
+                )
+            });
+        }
+
+        //println!("Detected module tree: {:#?}", module_tree);
 
         GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
     }
