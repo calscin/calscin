@@ -101,6 +101,7 @@ dependencies = [
  "calsc_modules",
  "calsc_remir_lowering",
  "calsc_state",
+ "calsc_utils",
 ]
 
 [[package]]
