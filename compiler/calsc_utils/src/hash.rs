@@ -25,6 +25,7 @@ pub struct HashedString {
     val: String,
 }
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct HashedCounter<K> {
     map: HashMap<K, usize>,
 }

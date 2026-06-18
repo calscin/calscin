@@ -5,7 +5,10 @@ use calsc_diagnostics::{
     DiagPossible, DiagnosticSource,
     diags::errors::{build_expected_entry_type, build_type_infinite_size},
 };
-use calsc_utils::hash::{HashedCounter, HashedString};
+use calsc_utils::{
+    hash::{HashedCounter, HashedString},
+    path,
+};
 
 use crate::{
     path::ModulePath,
@@ -72,6 +75,8 @@ impl LazyLoadedTypeLike for LazyLoadedType {
             } => {
                 let mut path_to_check = module_path.clone();
                 path_to_check.path.push(element_name.clone());
+
+                counter.insert(path_to_check.clone());
 
                 //                if counter.get_count(&path_to_check) >= 1 {
                 //                    return Err(build_type_infinite_size(&path_to_check, source).into());
