@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, path::PathBuf};
 
 use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
@@ -26,6 +26,7 @@ pub struct TreeModule {
     pub name: HashedString,
     pub children: HashMap<HashedString, ModuleTreeEntry>,
     pub imported: bool,
+    pub path: Option<PathBuf>,
 }
 
 impl TreeModule {
@@ -34,6 +35,7 @@ impl TreeModule {
             name,
             children: HashMap::new(),
             imported: false,
+            path: None,
         }
     }
 }
