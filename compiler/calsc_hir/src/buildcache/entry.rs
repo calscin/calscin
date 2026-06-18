@@ -5,14 +5,16 @@ use calsc_ast::ASTContext;
 use crate::HIRContext;
 
 /// Represents an entry inside of the build cache.
-/// Allows for stage tracking.
-pub enum BuildCacheEntry {
-    /// Represents a build entry that reached AST level.
-    AST(ASTContext),
+pub struct BuildCacheEntry {
+    pub ast_ctx: ASTContext,
+    pub hir_ctx: HIRContext,
+}
 
-    /// Represents a build entry that reached HIR stage 1 level.
-    HIRStage1(ASTContext, HIRContext),
-
-    /// Represents a build entry that reached HIR stage 2 level.
-    HIRStage2(ASTContext, HIRContext),
+impl BuildCacheEntry {
+    pub fn new(ast_ctx: ASTContext) -> Self {
+        Self {
+            ast_ctx,
+            hir_ctx: HIRContext::new(),
+        }
+    }
 }
