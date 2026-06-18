@@ -17,11 +17,13 @@ use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
 use crate::stage0::{
     func::{lower_ast_extern_func_decl_stage_zero, lower_ast_function_decl_stage_zero},
     lower_types::lower_ast_type_struct_declaration,
+    prelude::apply_stage0_prelude,
 };
 
 pub mod func;
 pub mod key;
 pub mod lower_types;
+pub mod prelude;
 pub mod types;
 
 pub fn lower_stage_0(

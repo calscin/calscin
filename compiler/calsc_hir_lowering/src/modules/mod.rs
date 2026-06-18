@@ -10,7 +10,10 @@ use calsc_modules::{
 };
 use calsc_utils::path::to_absolute_path;
 
-use crate::{modules::seek::seek_module_tree_folder, stage0::lower_stage_0};
+use crate::{
+    modules::seek::seek_module_tree_folder,
+    stage0::{lower_stage_0, prelude::apply_stage0_prelude},
+};
 
 pub mod seek;
 
@@ -24,7 +27,7 @@ pub fn build_module_tree(file_path: PathBuf) -> DiagResult<ModuleTree> {
 
     let module_path = HIRFileContext::new().current_module; // Gets the current_package::empty path.
 
-    // Make sure that the package path is imported
+    // Make sure that the package path is imported and also load the tree prelude
     {
         let dummy_source = PosDiagnosticSource::new(Default::default(), Default::default());
 
@@ -33,6 +36,8 @@ pub fn build_module_tree(file_path: PathBuf) -> DiagResult<ModuleTree> {
         if let ModuleTreeEntry::Module(module) = mut_ref {
             module.imported = true;
         }
+
+        apply_stage0_prelude(&mut tree, &dummy_source)?;
     }
 
     seek_module_tree_folder(folder, module_path, &mut tree)?;
