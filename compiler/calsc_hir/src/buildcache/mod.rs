@@ -6,9 +6,10 @@ use std::{collections::HashMap, path::PathBuf};
 use calsc_ast::nodes::ASTNode;
 use calsc_modules::path::ModulePath;
 
-use crate::buildcache::entry::BuildCacheEntry;
+use crate::buildcache::{entry::BuildCacheEntry, types::ResolvedTypeCache};
 
 pub mod entry;
+pub mod types;
 
 pub struct BuildCache {
     pub entries: HashMap<PathBuf, BuildCacheEntry>,
@@ -19,6 +20,8 @@ pub struct BuildCache {
     /// - Struct method decl blocks
     /// - Type aliases when they arrive
     pub nodes_to_entries: HashMap<ModulePath, Vec<ASTNode>>,
+
+    pub type_storage: ResolvedTypeCache,
 }
 
 impl BuildCache {
