@@ -1,7 +1,5 @@
 //! Definitions related to the traversal of the module tree
 
-use std::path::PathBuf;
-
 use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
 use calsc_utils::hash::HashedString;
 

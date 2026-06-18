@@ -44,11 +44,19 @@ impl ModuleTreeEntry {
     /// Checks if the given [`ModuleTreeEntry`] can contain children.
     /// This is used for traversing
     pub fn has_children(&self) -> bool {
-        match self {
-            Self::Module(_) => true,
+        matches!(self, Self::Module(_))
+    }
 
-            _ => false,
-        }
+    pub fn is_module(&self) -> bool {
+        matches!(self, Self::Module(_))
+    }
+
+    pub fn is_type(&self) -> bool {
+        matches!(self, Self::Type(_))
+    }
+
+    pub fn is_function(&self) -> bool {
+        matches!(self, Self::Function(_, _))
     }
 }
 
