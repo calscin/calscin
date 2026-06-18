@@ -55,7 +55,7 @@ pub fn module_tree_append_file(
     let mut hir_file_ctx = HIRFileContext::new();
     hir_file_ctx.current_module = module_path;
 
-    lower_stage_0(ast, &mut hir_file_ctx, tree)?;
+    lower_stage_0(ast, &mut hir_file_ctx, tree, path)?;
 
     Ok(())
 }

@@ -1,6 +1,8 @@
 //! The stage 0 of the HIR lowering process. This layer is only ran when building the module tree as it handles lazy loading of types.
 //!
 
+use std::path::PathBuf;
+
 use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
@@ -26,7 +28,20 @@ pub fn lower_stage_0(
     ast_ctx: ASTContext,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
+    file_path: PathBuf,
 ) -> DiagPossible {
+    // Append file path to the module
+    {
+        let mut_ref = tree.traverse_mutably_to(
+            file_ctx.current_module.clone(),
+            ast_ctx.nodes.get(&ast_ctx.tree[0]),
+        )?;
+
+        if let ModuleTreeEntry::Module(module) = mut_ref {
+            module.path = Some(file_path);
+        }
+    }
+
     for node in &ast_ctx.tree {
         let node = ast_ctx.nodes.get(node).clone();
 
