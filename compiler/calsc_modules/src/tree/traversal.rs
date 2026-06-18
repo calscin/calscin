@@ -3,7 +3,10 @@
 use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
 use calsc_utils::hash::HashedString;
 
-use crate::{path::ModulePath, tree::entry::ModuleTreeEntry};
+use crate::{
+    path::ModulePath,
+    tree::entry::{ModuleTreeEntry, TreeModule},
+};
 
 /// Trait that represents every element that is traversable inside of a module tree
 pub trait ModuleTreeTraversal {
@@ -31,4 +34,12 @@ pub trait ModuleTreeTraversal {
     ) -> DiagPossible;
 
     fn has(&self, name: HashedString) -> bool;
+
+    fn get_next_module<S: DiagnosticSource>(
+        &self,
+        path: &ModulePath,
+        ind: usize,
+        source: &S,
+        module: TreeModule,
+    ) -> DiagResult<TreeModule>;
 }

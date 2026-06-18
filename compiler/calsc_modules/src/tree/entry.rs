@@ -76,6 +76,22 @@ impl ModuleTreeTraversal for TreeModule {
         Ok(&self.children[&val])
     }
 
+    fn get_next_module<S: DiagnosticSource>(
+        &self,
+        path: &ModulePath,
+        ind: usize,
+        source: &S,
+        _module: TreeModule,
+    ) -> DiagResult<TreeModule> {
+        let val = path.get(ind);
+
+        if !self.children.contains_key(&val) {
+            return Err(build_cannot_find_element_no_closest(&path, source).into());
+        }
+
+        self.children[&val].get_next_module(path, ind + 1, source, self.clone())
+    }
+
     fn traverse_mut<S: DiagnosticSource>(
         &mut self,
         path: &ModulePath,
@@ -124,6 +140,19 @@ impl ModuleTreeTraversal for ModuleTreeEntry {
             Self::Module(module) => module.traverse(path, ind, source),
 
             _ => return Err(build_cannot_find_element_no_closest(&path, source).into()),
+        }
+    }
+
+    fn get_next_module<S: DiagnosticSource>(
+        &self,
+        path: &ModulePath,
+        ind: usize,
+        source: &S,
+        module: TreeModule,
+    ) -> DiagResult<TreeModule> {
+        match self {
+            Self::Module(m) => m.get_next_module(path, ind, source, module),
+            _ => Ok(module),
         }
     }
 
