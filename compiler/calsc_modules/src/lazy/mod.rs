@@ -35,3 +35,7 @@ pub enum LazyLoadedType {
 
     Void,
 }
+
+pub trait LazyLoadedTypeLike {
+	fn get_dependencies() -> Vec<HashedString>
+}

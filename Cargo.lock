@@ -115,6 +115,7 @@ dependencies = [
 name = "calsc_hir"
 version = "0.1.0"
 dependencies = [
+ "calsc_ast",
  "calsc_diagnostics",
  "calsc_modules",
  "calsc_state",
