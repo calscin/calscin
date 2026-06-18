@@ -4,7 +4,7 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource,
+    DiagPossible, DiagResult, DiagnosticSource, PosDiagnosticSource,
     diags::errors::{build_already_in_scope, build_cannot_find_element_no_closest},
 };
 use calsc_utils::hash::HashedString;
@@ -82,6 +82,32 @@ impl ModuleTree {
 
         curr.set(path.last(), val, source)
     }
+
+    pub fn contains<S: DiagnosticSource>(&self, path: ModulePath) -> bool {
+        let fake_origin = PosDiagnosticSource::new(Default::default(), Default::default()); // This is fine since normally the tree cannot fail 
+
+        if !self.has(path.get(0)) {
+            return false;
+        }
+
+        let mut curr = match self.traverse(&path, 0, &fake_origin) {
+            Ok(v) => v,
+            Err(_) => return false,
+        };
+
+        for i in 1..path.get_size() {
+            if !curr.has(path.get(i)) {
+                return false;
+            }
+
+            curr = match curr.traverse(&path, i, &fake_origin) {
+                Ok(v) => v,
+                Err(_) => return false,
+            };
+        }
+
+        true
+    }
 }
 
 impl ModuleTreeTraversal for ModuleTree {
@@ -136,5 +162,9 @@ impl ModuleTreeTraversal for ModuleTree {
         for entry in &self.entries {
             entry.1.collect_paths(vec);
         }
+    }
+
+    fn has(&self, name: HashedString) -> bool {
+        self.entries.contains_key(&name)
     }
 }

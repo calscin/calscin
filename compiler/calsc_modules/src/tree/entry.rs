@@ -110,6 +110,10 @@ impl ModuleTreeTraversal for TreeModule {
             child.1.collect_paths(vec);
         }
     }
+
+    fn has(&self, name: HashedString) -> bool {
+        self.children.contains_key(&name)
+    }
 }
 
 impl ModuleTreeTraversal for ModuleTreeEntry {
@@ -157,6 +161,14 @@ impl ModuleTreeTraversal for ModuleTreeEntry {
             Self::Module(module) => module.collect_paths(vec),
 
             _ => {}
+        }
+    }
+
+    fn has(&self, name: HashedString) -> bool {
+        match self {
+            Self::Module(module) => module.has(name),
+
+            _ => false,
         }
     }
 }

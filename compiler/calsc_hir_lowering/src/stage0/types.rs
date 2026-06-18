@@ -2,7 +2,8 @@
 
 use calsc_ast::{path::ElementPath, types::ASTType};
 
-use calsc_modules::{lazy::LazyLoadedType, path::ModulePath};
+use calsc_hir::{HIRContext, file::HIRFileContext};
+use calsc_modules::{lazy::LazyLoadedType, path::ModulePath, tree::ModuleTree};
 use calsc_utils::hash::HashedString;
 
 use crate::stage0::key::lower_stage_0_key;
@@ -13,8 +14,17 @@ pub fn lower_ast_type_base(
     name: ElementPath,
     size_specifiers: Vec<usize>,
     type_parameters: Vec<LazyLoadedType>,
+    tree: &ModuleTree,
+    hir_file_ctx: &HIRFileContext,
 ) -> LazyLoadedType {
-    let key = lower_stage_0_key(name);
+    assert!(!name.members.is_empty());
+
+    let key;
+
+    // If the length is one then it's either a prelude type or a current module type. We thus check if the prelude type exists
+    if name.members.len() == 1 {
+        let path = ModulePath::new_prelude_path(vec![name.members[0].clone()]);
+    }
 
     LazyLoadedType::Base {
         module_path: key.0.clone(),
@@ -24,16 +34,16 @@ pub fn lower_ast_type_base(
     }
 }
 
-pub fn lower_ast_type(typ: ASTType) -> LazyLoadedType {
+pub fn lower_ast_type(typ: ASTType, tree: &ModuleTree) -> LazyLoadedType {
     match typ {
         ASTType::Array(size, inner) => LazyLoadedType::Array {
             size,
-            inner: Box::new(lower_ast_type(*inner)),
+            inner: Box::new(lower_ast_type(*inner, tree)),
         },
 
         ASTType::Reference(mutable, inner) => LazyLoadedType::Reference {
             mutable,
-            inner: Box::new(lower_ast_type(*inner)),
+            inner: Box::new(lower_ast_type(*inner, tree)),
         },
 
         ASTType::Generic(path, size_specifier, type_parameters) => {
@@ -41,7 +51,7 @@ pub fn lower_ast_type(typ: ASTType) -> LazyLoadedType {
             let mut type_params = vec![];
 
             for param in type_parameters {
-                type_params.push(lower_ast_type(param));
+                type_params.push(lower_ast_type(param, tree));
             }
 
             if size_specifier.is_some() {
