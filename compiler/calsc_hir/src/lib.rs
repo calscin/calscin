@@ -6,6 +6,7 @@ use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{globalctx::GlobalContext, nodes::HIRNode};
 
+pub mod buildcache;
 pub mod conv;
 pub mod file;
 pub mod funcs;
