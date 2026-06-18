@@ -110,6 +110,7 @@ impl ModuleTree {
         true
     }
 
+    /// Gets the closest module to the path to have a file path.
     pub fn closest_module_to_path<S: DiagnosticSource>(
         &self,
         path: ModulePath,

@@ -35,6 +35,7 @@ pub trait ModuleTreeTraversal {
 
     fn has(&self, name: HashedString) -> bool;
 
+    /// Gets the next module in the path if this module contains a file path.
     fn get_next_module<S: DiagnosticSource>(
         &self,
         path: &ModulePath,

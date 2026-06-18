@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
-use calsc_hir::file::HIRFileContext;
+use calsc_hir::{BUILD_CACHE, file::HIRFileContext};
 use calsc_modules::{
     lazy::raw::{LazyLoadedRawType, LazyLoadedRawTypeKind},
     tree::{ModuleTree, entry::ModuleTreeEntry},
@@ -59,6 +59,13 @@ pub fn lower_ast_type_struct_declaration(
 
         let mut path_to_append_to = file_ctx.current_module.clone();
         path_to_append_to.path.push(name);
+
+        // Append the node to the related nodes inside of the build cache
+        {
+            BUILD_CACHE.with_borrow_mut(|cache| {
+                cache.append_related_node(path_to_append_to.clone(), node.clone());
+            })
+        }
 
         println!("Struct appended to {}", path_to_append_to);
 
