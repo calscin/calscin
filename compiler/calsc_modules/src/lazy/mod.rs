@@ -1,9 +1,10 @@
 //! Declarations for type lazy loading.
 //! This allows for types to be circularly imported just like functions and allows for types to be loaded only in stage 2 instead of stage 1
 
-use calsc_utils::hash::HashedString;
+use calsc_diagnostics::{DiagPossible, DiagnosticSource};
+use calsc_utils::hash::{HashedCounter, HashedString};
 
-use crate::path::ModulePath;
+use crate::{path::ModulePath, tree::ModuleTree};
 
 pub mod raw;
 
@@ -37,5 +38,11 @@ pub enum LazyLoadedType {
 }
 
 pub trait LazyLoadedTypeLike {
-	fn get_dependencies() -> Vec<HashedString>
+    /// Gets the dependencies of the lazy loaded type.
+    /// Uses a hashed counter in order to find types that include themselves and prevent it.
+    fn get_dependencies<S: DiagnosticSource>(
+        &self,
+        tree: &ModuleTree,
+        counter: &mut HashedCounter<ModulePath>,
+    ) -> DiagPossible;
 }

@@ -29,6 +29,7 @@ enum ErrorCode {
     _ExpectedRealType,
     ExpectedCompileTimeType,
     NotIterable,
+    InfiniteSize,
 
     // HIR local context
     AlreadyInScope,
@@ -471,5 +472,16 @@ pub fn build_unreadable_element_visibility<S: DiagnosticSource, E: Display, P: D
             element
         )],
         vec!["".to_string()],
+    )
+}
+
+pub fn build_type_infinite_size<S: DiagnosticSource, T: Display>(ty: &T, source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::InfiniteSize as usize),
+        format!("type {} includes itself and thus has an infinite size", ty),
+        Some(format!("infinite size of {} stated here", ty)),
+        vec![],
+        vec!["".to_string()],
+        vec![format!("remove the inner {} field / type declaration", ty)],
     )
 }
