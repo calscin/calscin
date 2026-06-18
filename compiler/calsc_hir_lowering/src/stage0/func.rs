@@ -24,10 +24,15 @@ pub fn lower_ast_function_decl_stage_zero(
             return Ok(());
         }
 
-        let return_type = lower_ast_type(return_type);
+        let return_type = lower_ast_type(return_type, tree, file_ctx);
         let arguments: Vec<_> = arguments
             .iter()
-            .map(|entry| (entry.1.clone(), lower_ast_type(entry.0.clone())))
+            .map(|entry| {
+                (
+                    entry.1.clone(),
+                    lower_ast_type(entry.0.clone(), tree, file_ctx),
+                )
+            })
             .collect();
 
         let mut path_to_append_to = file_ctx.current_module.clone();
@@ -60,10 +65,15 @@ pub fn lower_ast_extern_func_decl_stage_zero(
             return Ok(());
         }
 
-        let return_type = lower_ast_type(return_type);
+        let return_type = lower_ast_type(return_type, tree, file_ctx);
         let arguments: Vec<_> = arguments
             .iter()
-            .map(|entry| (entry.1.clone(), lower_ast_type(entry.0.clone())))
+            .map(|entry| {
+                (
+                    entry.1.clone(),
+                    lower_ast_type(entry.0.clone(), tree, file_ctx),
+                )
+            })
             .collect();
 
         let mut path_to_append_to = file_ctx.current_module.clone();

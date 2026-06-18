@@ -33,7 +33,10 @@ pub fn lower_ast_type_struct_declaration(
 
         let mut ind = 0;
         for field in fields {
-            lowered_fields.insert(field.1.clone(), (lower_ast_type(field.0), ind));
+            lowered_fields.insert(
+                field.1.clone(),
+                (lower_ast_type(field.0, tree, file_ctx), ind),
+            );
             field_order.push(field.1);
 
             ind += 1;

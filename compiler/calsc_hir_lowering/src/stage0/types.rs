@@ -2,11 +2,9 @@
 
 use calsc_ast::{path::ElementPath, types::ASTType};
 
-use calsc_hir::{HIRContext, file::HIRFileContext};
+use calsc_hir::file::HIRFileContext;
 use calsc_modules::{lazy::LazyLoadedType, path::ModulePath, tree::ModuleTree};
 use calsc_utils::hash::HashedString;
-
-use crate::stage0::key::lower_stage_0_key;
 
 pub type LazyLoadedTypeId = (ModulePath, HashedString);
 
@@ -47,16 +45,20 @@ pub fn lower_ast_type_base(
     }
 }
 
-pub fn lower_ast_type(typ: ASTType, tree: &ModuleTree) -> LazyLoadedType {
+pub fn lower_ast_type(
+    typ: ASTType,
+    tree: &ModuleTree,
+    hir_file_ctx: &HIRFileContext,
+) -> LazyLoadedType {
     match typ {
         ASTType::Array(size, inner) => LazyLoadedType::Array {
             size,
-            inner: Box::new(lower_ast_type(*inner, tree)),
+            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
         },
 
         ASTType::Reference(mutable, inner) => LazyLoadedType::Reference {
             mutable,
-            inner: Box::new(lower_ast_type(*inner, tree)),
+            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
         },
 
         ASTType::Generic(path, size_specifier, type_parameters) => {
@@ -64,14 +66,14 @@ pub fn lower_ast_type(typ: ASTType, tree: &ModuleTree) -> LazyLoadedType {
             let mut type_params = vec![];
 
             for param in type_parameters {
-                type_params.push(lower_ast_type(param, tree));
+                type_params.push(lower_ast_type(param, tree, hir_file_ctx));
             }
 
             if size_specifier.is_some() {
                 size_specifiers.push(size_specifier.unwrap());
             }
 
-            lower_ast_type_base(path, size_specifiers, type_params)
+            lower_ast_type_base(path, size_specifiers, type_params, tree, hir_file_ctx)
         }
 
         ASTType::Void => LazyLoadedType::Void,
