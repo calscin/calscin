@@ -13,11 +13,22 @@ use crate::{
     tree::traversal::ModuleTreeTraversal,
 };
 
+/// An entry inside of the module tree
 #[derive(Debug, Clone)]
 pub enum ModuleTreeEntry {
-    Function(LazyLoadedType, Vec<(HashedString, LazyLoadedType)>),
-    Type(LazyLoadedRawType),
+    /// A function that had it's contents loadded. This state is available after and during the filling pass of layer 0.
+    FilledFunction(LazyLoadedType, Vec<(HashedString, LazyLoadedType)>),
+
+    /// A type that had it's contents loadded. This state is available after and during the filling pass of layer 0.
+    FilledType(LazyLoadedRawType),
+
     Module(TreeModule),
+
+    /// A function whose content did not load yet.
+    EmptyFunction,
+
+    /// A type whose content did not load yet.
+    EmptyType,
 }
 
 /// A module contained inside of the module tree
@@ -52,11 +63,11 @@ impl ModuleTreeEntry {
     }
 
     pub fn is_type(&self) -> bool {
-        matches!(self, Self::Type(_))
+        matches!(self, Self::FilledType(_))
     }
 
     pub fn is_function(&self) -> bool {
-        matches!(self, Self::Function(_, _))
+        matches!(self, Self::FilledFunction(_, _))
     }
 }
 
@@ -111,7 +122,6 @@ impl ModuleTreeTraversal for TreeModule {
                 val.clone(),
                 ModuleTreeEntry::Module(TreeModule::new(val.clone())),
             );
-            //return Err(build_cannot_find_element_no_closest(&path, source).into());
         }
 
         Ok(self.children.get_mut(&val).unwrap())
