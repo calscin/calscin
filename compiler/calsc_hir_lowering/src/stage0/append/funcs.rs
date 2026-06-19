@@ -3,17 +3,17 @@ use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_lea
 use calsc_hir::file::HIRFileContext;
 use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
 
-use crate::{convert_visibility, stage0::types::lower_ast_type};
+use crate::convert_visibility;
 
-pub fn lower_ast_function_decl_stage_zero(
+pub fn lower_stage_0_append_pass_function_declaration(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
 ) -> DiagPossible {
     if let ASTNodeKind::FunctionDeclaration {
         name,
-        arguments,
-        return_type,
+        arguments: _,
+        return_type: _,
         body: _,
         visibility,
     } = node.kind.clone()
@@ -24,37 +24,24 @@ pub fn lower_ast_function_decl_stage_zero(
             return Ok(());
         }
 
-        let return_type = lower_ast_type(return_type, tree, file_ctx);
-        let arguments: Vec<_> = arguments
-            .iter()
-            .map(|entry| {
-                (
-                    entry.1.clone(),
-                    lower_ast_type(entry.0.clone(), tree, file_ctx),
-                )
-            })
-            .collect();
-
         let mut path_to_append_to = file_ctx.current_module.clone();
-        path_to_append_to.path.push(name);
+        path_to_append_to.append_single_bit(name);
 
-        let entry = ModuleTreeEntry::Function(return_type, arguments);
-
-        tree.traverse_to_append(path_to_append_to, entry, &node)
+        tree.traverse_to_append(path_to_append_to, ModuleTreeEntry::EmptyFunction, &node)
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
 
-pub fn lower_ast_extern_func_decl_stage_zero(
+pub fn lower_stage_0_append_pass_extern_function_declaration(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
 ) -> DiagPossible {
     if let ASTNodeKind::ExternFunctionDeclaration {
         name,
-        arguments,
-        return_type,
+        arguments: _,
+        return_type: _,
         triple_dot_position: _,
         visibility,
     } = node.kind.clone()
@@ -65,23 +52,10 @@ pub fn lower_ast_extern_func_decl_stage_zero(
             return Ok(());
         }
 
-        let return_type = lower_ast_type(return_type, tree, file_ctx);
-        let arguments: Vec<_> = arguments
-            .iter()
-            .map(|entry| {
-                (
-                    entry.1.clone(),
-                    lower_ast_type(entry.0.clone(), tree, file_ctx),
-                )
-            })
-            .collect();
-
         let mut path_to_append_to = file_ctx.current_module.clone();
-        path_to_append_to.path.push(name);
+        path_to_append_to.append_single_bit(name);
 
-        let entry = ModuleTreeEntry::Function(return_type, arguments);
-
-        tree.traverse_to_append(path_to_append_to, entry, &node)
+        tree.traverse_to_append(path_to_append_to, ModuleTreeEntry::EmptyFunction, &node)
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }

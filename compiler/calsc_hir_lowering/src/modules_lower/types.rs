@@ -22,7 +22,7 @@ use calsc_typing::{
 };
 use calsc_utils::hash::HashedCounter;
 
-use crate::stage0::types::lower_stage0_key;
+use crate::stage0::fill::types::lower_stage0_key;
 
 pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible {
     let already_built = BUILD_CACHE.with_borrow(|cache| cache.type_storage.map.contains_key(&path));
@@ -35,7 +35,7 @@ pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible
 
     let r = tree.traverse_to(path.clone(), &source)?;
 
-    if let ModuleTreeEntry::Type(ty) = r {
+    if let ModuleTreeEntry::FilledType(ty) = r {
         let mut dependencies = HashedCounter::new();
 
         ty.get_dependencies(tree, &mut dependencies, &source)?;

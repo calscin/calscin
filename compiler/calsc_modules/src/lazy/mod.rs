@@ -80,7 +80,7 @@ impl LazyLoadedTypeLike for LazyLoadedType {
 
                 let r = tree.traverse_to(path_to_check.clone(), source)?;
 
-                if let ModuleTreeEntry::Type(ty) = r {
+                if let ModuleTreeEntry::FilledType(ty) = r {
                     ty.get_dependencies(tree, counter, source)?;
                 } else {
                     return Err(build_expected_entry_type(

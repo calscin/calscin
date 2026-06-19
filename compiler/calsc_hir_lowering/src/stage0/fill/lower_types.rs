@@ -8,7 +8,7 @@ use calsc_modules::{
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
-use crate::{convert_visibility, stage0::types::lower_ast_type};
+use crate::{convert_visibility, stage0::fill::types::lower_ast_type};
 
 pub fn lower_ast_type_struct_declaration(
     node: ASTNode,
@@ -67,7 +67,11 @@ pub fn lower_ast_type_struct_declaration(
             })
         }
 
-        tree.traverse_to_append(path_to_append_to, ModuleTreeEntry::Type(raw_type), &node)
+        tree.traverse_to_append(
+            path_to_append_to,
+            ModuleTreeEntry::FilledType(raw_type),
+            &node,
+        )
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
