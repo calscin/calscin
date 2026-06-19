@@ -14,7 +14,7 @@ pub enum CLICommand {
     )]
     Build {
         #[arg(required = true)]
-        input: Vec<PathBuf>,
+        input: PathBuf,
 
         #[arg(short = 'o')]
         out: PathBuf,
@@ -26,8 +26,11 @@ pub enum CLICommand {
         )]
         linker: String,
 
-        #[arg(long, default_value = "")]
-        package_name: String,
+        #[arg(long)]
+        package_name: Option<String>,
+
+        #[arg(long, requires = "package_name")]
+        use_packages: bool,
 
         #[arg(
             long,
@@ -40,7 +43,7 @@ pub enum CLICommand {
     #[command(about = "Builds the given Calscin files into IR files", group(ArgGroup::new("ir").args(["remir", "llvm"]).required(true)))]
     IR {
         #[arg(required = true)]
-        input: Vec<PathBuf>,
+        input: PathBuf,
 
         #[arg(long, conflicts_with = "llvm")]
         remir: bool,
@@ -52,7 +55,7 @@ pub enum CLICommand {
     #[command(about = "Checks for errors without building the code")]
     Check {
         #[arg(required = true)]
-        input: Vec<PathBuf>,
+        input: PathBuf,
 
         #[arg(
             short = 's',

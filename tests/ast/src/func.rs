@@ -4,7 +4,6 @@ use calsc_ast::ASTContext;
 #[cfg(test)]
 use calsc_ast::parser::func::parse_extern_function_declaration;
 
-use calsc_ast::visibility;
 #[cfg(test)]
 use calsc_ast::{
     nodes::ASTNodeKind,

@@ -30,6 +30,13 @@ impl ModulePath {
         }
     }
 
+    pub fn new_module_tree_prelude_path(path: Vec<HashedString>) -> Self {
+        Self {
+            package: "tree_prelude".into(),
+            path,
+        }
+    }
+
     pub fn is_prelude(&self) -> bool {
         self.package == "prelude".into()
     }
@@ -45,6 +52,46 @@ impl ModulePath {
 
         for entry in path.path {
             self.path.push(entry);
+        }
+    }
+
+    pub fn append_single_bit(&mut self, bit: HashedString) {
+        if self.package.is_empty() {
+            self.package = bit;
+            return;
+        }
+
+        self.path.push(bit);
+    }
+
+    pub fn get(&self, ind: usize) -> HashedString {
+        if ind == 0 {
+            self.package.clone()
+        } else {
+            self.path[ind - 1].clone()
+        }
+    }
+
+    pub fn get_size(&self) -> usize {
+        self.path.len() + 1
+    }
+
+    pub fn last(&self) -> HashedString {
+        if self.path.is_empty() {
+            self.package.clone()
+        } else {
+            self.path[self.path.len() - 1].clone()
+        }
+    }
+
+    pub fn everything_but_last(&self) -> ModulePath {
+        if self.path.len() <= 1 {
+            ModulePath::new(self.package.clone(), vec![])
+        } else {
+            ModulePath::new(
+                self.package.clone(),
+                self.path[0..self.path.len() - 2].to_vec(),
+            )
         }
     }
 }

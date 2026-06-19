@@ -57,6 +57,8 @@ pub fn lower_hir_stage_2_node(
 
         ASTNodeKind::Module { .. } => lower_hir_stage_2_module(node, file_ctx, ctx, ast_context)?,
 
+        ASTNodeKind::ImportStatement { .. } => {}
+
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     }
 
@@ -69,7 +71,16 @@ pub fn lower_hir_stage_2_module(
     ctx: &mut HIRContext,
     ast_context: &ASTContext,
 ) -> DiagPossible {
-    if let ASTNodeKind::Module { name, body } = node.kind.clone() {
+    if let ASTNodeKind::Module {
+        name,
+        body,
+        is_bodied,
+    } = node.kind.clone()
+    {
+        if !is_bodied {
+            return Ok(());
+        }
+
         file_ctx.advance_module(name);
 
         for element in body {

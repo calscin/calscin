@@ -3,17 +3,24 @@
 use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::container::dump_and_stop_if_errors;
+use calsc_diagnostics::{container::dump_and_stop_if_errors, result::CalscinResult};
 use calsc_hir::{HIRContext, file::HIRFileContext};
-use calsc_hir_lowering::{stage1::lower_hir_stage_1, stage2::lower_hir_stage_2};
+use calsc_hir_lowering::{
+    modules::build_module_tree, modules_lower::lower_types_from_stage_0, stage1::lower_hir_stage_1,
+    stage2::lower_hir_stage_2,
+};
 use calsc_lexer::lexer_tokenize;
+use calsc_modules::{
+    path::ModulePath,
+    tree::{clean::TreeCleanable, collect::ModuleTreeCollector},
+};
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 
 pub fn setup_build_state(
     out: PathBuf,
     target: BuildTargetMode,
-    initial_files: Vec<PathBuf>,
+    initial_file: PathBuf,
     linker: String,
     use_pie: bool,
 ) {
@@ -22,9 +29,8 @@ pub fn setup_build_state(
         state.build.linker = linker;
         state.build.use_pie = use_pie;
 
-        for file in initial_files {
-            state.build.append_to_build(file);
-        }
+        state.build.append_to_build(initial_file.clone());
+        state.build.origin_file_to_build = Some(initial_file);
     })
 }
 
@@ -46,6 +52,31 @@ pub(crate) fn get_linker() -> String {
 
 pub fn build() {
     let mut out_files: Vec<PathBuf> = vec![];
+
+    // Building global module tree
+    if GLOBAL_STATE.with_borrow(|state| state.is_package_enabled) {
+        let module_tree = build_module_tree(
+            GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap()),
+        );
+
+        dump_and_stop_if_errors();
+
+        let mut module_tree = module_tree.unwrap();
+
+        module_tree.clean();
+
+        let mut entries = vec![];
+
+        module_tree.collect_entries(
+            &|entry| entry.is_type(),
+            ModulePath::new("".into(), vec![]),
+            &mut entries,
+        );
+
+        lower_types_from_stage_0(&module_tree).unwrap_cleanly();
+
+        GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
+    }
 
     loop {
         if !consume_build_files(&mut out_files) {

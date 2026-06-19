@@ -19,7 +19,8 @@ fn main() {
             linker,
             use_pie,
             package_name,
-        } => build_command(input, out, linker, use_pie, package_name),
+            use_packages,
+        } => build_command(input, out, linker, use_pie, package_name, use_packages),
 
         CLICommand::Check { input, simple } => check_command(input, simple),
 

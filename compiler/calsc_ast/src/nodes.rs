@@ -156,6 +156,7 @@ pub enum ASTNodeKind {
 
     Module {
         name: HashedString,
+        is_bodied: bool,
         body: Vec<ArenaHandle>,
     },
 

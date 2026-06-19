@@ -16,6 +16,7 @@ pub enum BuildTargetMode {
 /// module dependencies at compile time and build files that are only discovered during the compile time
 pub struct CompilerBuildState {
     pub(crate) files_to_build: HashSet<PathBuf>,
+    pub origin_file_to_build: Option<PathBuf>,
     pub out: Option<PathBuf>,
     pub target: BuildTargetMode,
     pub linker: String,
@@ -27,6 +28,7 @@ impl CompilerBuildState {
     pub fn new(out: Option<PathBuf>, target: BuildTargetMode, linker: String) -> Self {
         Self {
             files_to_build: HashSet::new(),
+            origin_file_to_build: None,
             out,
             target,
             linker,

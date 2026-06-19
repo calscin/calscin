@@ -1,4 +1,4 @@
-externfunc printf(ptr fmt, ...)
+externfunc printf(str fmt, ...)
 
 func main() -> s.32 {
 	printf("Hello World! From %d", 52);

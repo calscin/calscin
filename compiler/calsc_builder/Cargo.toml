@@ -11,3 +11,5 @@ calsc_hir_lowering = { path = "../calsc_hir_lowering" }
 calsc_remir_lowering = { path = "../calsc_remir_lowering" }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
 calsc_state = { path = "../calsc_state" }
+calsc_modules = { path = "../calsc_modules" }
+calsc_utils = { path = "../calsc_utils" }

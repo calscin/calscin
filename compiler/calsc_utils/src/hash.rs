@@ -1,4 +1,4 @@
-use std::{fmt::Display, hash::Hash, ops::Deref};
+use std::{collections::HashMap, fmt::Display, hash::Hash, ops::Deref};
 
 #[macro_export]
 macro_rules! fnvhash {
@@ -23,6 +23,32 @@ macro_rules! fnvhash {
 pub struct HashedString {
     hash: u64,
     val: String,
+}
+
+#[cfg_attr(feature = "debug", derive(Debug))]
+pub struct HashedCounter<K> {
+    pub map: HashMap<K, usize>,
+}
+
+impl<K: Eq + Hash> HashedCounter<K> {
+    pub fn new() -> Self {
+        Self {
+            map: HashMap::new(),
+        }
+    }
+
+    pub fn insert(&mut self, elem: K) {
+        let val = *self.map.get(&elem).unwrap_or(&0) + 1;
+        self.map.insert(elem, val);
+    }
+
+    pub fn get_count(&self, elem: &K) -> usize {
+        self.map[elem]
+    }
+
+    pub fn clear(&mut self) {
+        self.map.clear();
+    }
 }
 
 pub const fn hash_fnv_1a(s: &str) -> u64 {

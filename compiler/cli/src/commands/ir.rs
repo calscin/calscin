@@ -5,8 +5,8 @@ use calsc_state::build::BuildTargetMode;
 
 use crate::commands::build::sanitize_path;
 
-pub fn ir_command(input: Vec<PathBuf>, remir: bool) {
-    let input: Vec<PathBuf> = input.iter().map(|f| sanitize_path(f.clone())).collect();
+pub fn ir_command(input: PathBuf, remir: bool) {
+    let input = sanitize_path(input);
 
     let target;
 

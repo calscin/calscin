@@ -1,11 +1,15 @@
 #[cfg(test)]
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 
+#[cfg(test)]
 use calsc_hir::file::HIRFileContext;
+
 #[cfg(test)]
 use calsc_hir::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalContextValue};
 
-use calsc_modules::{path::ModulePath, visibility::Visibility};
+#[cfg(test)]
+use calsc_modules::visibility::Visibility;
+
 #[cfg(test)]
 use calsc_typing::base::{BaseType, kind::BaseTypeKind};
 

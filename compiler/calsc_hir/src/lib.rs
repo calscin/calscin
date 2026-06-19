@@ -2,10 +2,13 @@
 
 #![deny(unsafe_code)]
 
+use std::cell::RefCell;
+
 use calsc_utils::alloc::arena::ArenaAllocator;
 
-use crate::{globalctx::GlobalContext, nodes::HIRNode};
+use crate::{buildcache::BuildCache, globalctx::GlobalContext, nodes::HIRNode};
 
+pub mod buildcache;
 pub mod conv;
 pub mod file;
 pub mod funcs;
@@ -16,6 +19,10 @@ pub mod localctx;
 pub mod nodes;
 pub mod prelude;
 pub mod types;
+
+thread_local! {
+    pub static BUILD_CACHE: RefCell<BuildCache> = RefCell::new(BuildCache::new());
+}
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)] // For MIR

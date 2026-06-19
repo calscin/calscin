@@ -5,6 +5,7 @@ pub mod cmp;
 pub mod fs;
 pub mod hash;
 pub mod math;
+pub mod path;
 pub mod pos;
 pub mod refcell;
 pub mod str;

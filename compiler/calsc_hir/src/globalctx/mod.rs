@@ -7,7 +7,7 @@
 use std::collections::HashMap;
 
 use calsc_diagnostics::{
-    DiagResult, DiagnosticSource,
+    DiagResult, DiagnosticSource, PosDiagnosticSource,
     diags::errors::{
         build_already_in_scope, build_cannot_find_element, build_cannot_find_element_no_closest,
         build_unreadable_element_visibility,
@@ -28,6 +28,7 @@ pub struct GlobalContext {
     pub key_to_ind: HashMap<GlobalContextKey, usize>,
     pub values: Vec<GlobalContextValue>,
     pub visibilities: Vec<Visibility>,
+    pub sources: Vec<PosDiagnosticSource>,
 }
 
 impl GlobalContext {
@@ -36,6 +37,7 @@ impl GlobalContext {
             key_to_ind: HashMap::new(),
             values: vec![],
             visibilities: vec![],
+            sources: vec![],
         }
     }
 
@@ -60,6 +62,10 @@ impl GlobalContext {
         self.key_to_ind.insert(key, ind);
         self.values.push(value);
         self.visibilities.push(visibility);
+        self.sources.push(PosDiagnosticSource::new(
+            origin.get_start_pos(),
+            origin.get_end_pos(),
+        ));
 
         Ok(ind)
     }
