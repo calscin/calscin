@@ -22,7 +22,7 @@ use calsc_typing::{
 };
 use calsc_utils::hash::HashedCounter;
 
-use crate::stage0::types::lower_stage0_key;
+use crate::stage0::fill::types::lower_stage0_key;
 
 pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible {
     let already_built = BUILD_CACHE.with_borrow(|cache| cache.type_storage.map.contains_key(&path));

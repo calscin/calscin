@@ -8,7 +8,7 @@ use calsc_modules::{
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
-use crate::{convert_visibility, stage0::types::lower_ast_type};
+use crate::{convert_visibility, stage0::fill::types::lower_ast_type};
 
 pub fn lower_ast_type_struct_declaration(
     node: ASTNode,

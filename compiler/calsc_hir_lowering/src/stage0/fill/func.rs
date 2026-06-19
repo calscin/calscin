@@ -3,7 +3,7 @@ use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_lea
 use calsc_hir::file::HIRFileContext;
 use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
 
-use crate::{convert_visibility, stage0::types::lower_ast_type};
+use crate::{convert_visibility, stage0::fill::types::lower_ast_type};
 
 pub fn lower_ast_function_decl_stage_zero(
     node: ASTNode,

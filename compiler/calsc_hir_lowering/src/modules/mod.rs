@@ -12,7 +12,7 @@ use calsc_utils::path::to_absolute_path;
 
 use crate::{
     modules::seek::seek_module_tree_folder,
-    stage0::{lower_stage_0, prelude::apply_stage0_prelude},
+    stage0::fill::{lower_stage_0, prelude::apply_stage0_prelude},
 };
 
 pub mod seek;
