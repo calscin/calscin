@@ -69,6 +69,10 @@ impl ModuleTreeEntry {
     pub fn is_function(&self) -> bool {
         matches!(self, Self::FilledFunction(_, _))
     }
+
+    pub fn can_be_replaced(&self) -> bool {
+        matches!(self, Self::EmptyType | Self::EmptyFunction)
+    }
 }
 
 impl ModuleTreeTraversal for TreeModule {
@@ -133,7 +137,7 @@ impl ModuleTreeTraversal for TreeModule {
         val: ModuleTreeEntry,
         source: &S,
     ) -> DiagPossible {
-        if self.children.contains_key(&name) {
+        if self.children.contains_key(&name) && !self.children[&name].can_be_replaced() {
             return Err(build_already_in_scope(&name, source).into());
         }
 
