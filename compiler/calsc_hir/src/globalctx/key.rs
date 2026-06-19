@@ -67,7 +67,7 @@ impl Display for GlobalContextKey {
         if self.type_name.is_none() {
             write!(f, "{}", *self.name)
         } else {
-            write!(f, "{}::{}", self.type_name.clone().unwrap(), *self.name)
+            write!(f, "{}$${}", self.type_name.clone().unwrap(), *self.name)
         }
     }
 }
