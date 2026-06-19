@@ -23,7 +23,7 @@ pub mod funcs;
 pub mod types;
 
 pub fn lower_stage_0_append_pass(
-    ast_ctx: ASTContext,
+    ast_ctx: &ASTContext,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
     file_path: PathBuf,

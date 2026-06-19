@@ -28,8 +28,8 @@ pub mod lower_types;
 pub mod prelude;
 pub mod types;
 
-pub fn lower_stage_0(
-    ast_ctx: ASTContext,
+pub fn lower_stage_0_fill_pass(
+    ast_ctx: &ASTContext,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
     file_path: PathBuf,

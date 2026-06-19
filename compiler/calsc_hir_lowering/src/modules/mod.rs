@@ -12,7 +12,7 @@ use calsc_utils::path::to_absolute_path;
 
 use crate::{
     modules::seek::seek_module_tree_folder,
-    stage0::fill::{lower_stage_0, prelude::apply_stage0_prelude},
+    stage0::{fill::prelude::apply_stage0_prelude, lower_stage_0},
 };
 
 pub mod seek;
@@ -64,7 +64,7 @@ pub fn module_tree_append_file(
     let mut hir_file_ctx = HIRFileContext::new();
     hir_file_ctx.current_module = module_path;
 
-    lower_stage_0(ast, &mut hir_file_ctx, tree, path)?;
+    lower_stage_0(&ast, &mut hir_file_ctx, tree, path)?;
 
     Ok(())
 }
