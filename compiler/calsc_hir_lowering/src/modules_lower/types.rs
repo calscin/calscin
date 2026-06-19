@@ -35,7 +35,7 @@ pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible
 
     let r = tree.traverse_to(path.clone(), &source)?;
 
-    if let ModuleTreeEntry::Type(ty) = r {
+    if let ModuleTreeEntry::FilledType(ty) = r {
         let mut dependencies = HashedCounter::new();
 
         ty.get_dependencies(tree, &mut dependencies, &source)?;
