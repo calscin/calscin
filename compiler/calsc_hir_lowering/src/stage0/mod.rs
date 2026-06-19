@@ -19,6 +19,7 @@ use crate::stage0::{
     lower_types::lower_ast_type_struct_declaration,
 };
 
+pub mod append;
 pub mod func;
 pub mod key;
 pub mod lower_types;
