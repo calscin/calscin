@@ -30,6 +30,13 @@ impl ModulePath {
         }
     }
 
+    pub fn new_module_tree_prelude_path(path: Vec<HashedString>) -> Self {
+        Self {
+            package: "tree_prelude".into(),
+            path,
+        }
+    }
+
     pub fn is_prelude(&self) -> bool {
         self.package == "prelude".into()
     }
@@ -78,10 +85,14 @@ impl ModulePath {
     }
 
     pub fn everything_but_last(&self) -> ModulePath {
-        ModulePath::new(
-            self.package.clone(),
-            self.path[0..self.path.len() - 2].to_vec(),
-        )
+        if self.path.len() <= 1 {
+            ModulePath::new(self.package.clone(), vec![])
+        } else {
+            ModulePath::new(
+                self.package.clone(),
+                self.path[0..self.path.len() - 2].to_vec(),
+            )
+        }
     }
 }
 

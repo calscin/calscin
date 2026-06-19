@@ -19,10 +19,10 @@ pub fn lower_stage0_key(
 
     // If the length is one then it's either a prelude type or a current module type. We thus check if the prelude type exists
     if name.members.len() == 1 {
-        let path = ModulePath::new_prelude_path(vec![name.members[0].clone()]);
+        let path = ModulePath::new_module_tree_prelude_path(vec![name.members[0].clone()]);
 
         if tree.contains(path) {
-            key = ModulePath::new_prelude_path(vec![]);
+            key = ModulePath::new_module_tree_prelude_path(vec![]);
         } else {
             key = hir_file_ctx.current_module.clone();
         }

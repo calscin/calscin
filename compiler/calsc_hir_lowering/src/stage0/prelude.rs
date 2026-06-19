@@ -9,57 +9,58 @@ pub fn apply_stage0_prelude<S: DiagnosticSource>(
     tree: &mut ModuleTree,
     source: &S,
 ) -> DiagPossible {
-    let mod_ref = tree.traverse_mutably_to(ModulePath::new_prelude_path(vec![]), source)?;
+    let mod_ref =
+        tree.traverse_mutably_to(ModulePath::new_module_tree_prelude_path(vec![]), source)?;
 
     if let ModuleTreeEntry::Module(module) = mod_ref {
         module.imported = true;
     } else {
         return Err(build_expected_entry_type(
             &"module".to_string(),
-            &ModulePath::new_prelude_path(vec![]),
+            &ModulePath::new_module_tree_prelude_path(vec![]),
             source,
         )
         .into());
     }
 
     tree.traverse_to_append(
-        ModulePath::new_prelude_path(vec!["bool".into()]),
+        ModulePath::new_module_tree_prelude_path(vec!["bool".into()]),
         ModuleTreeEntry::Type(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )?;
 
     tree.traverse_to_append(
-        ModulePath::new_prelude_path(vec!["s".into()]),
+        ModulePath::new_module_tree_prelude_path(vec!["s".into()]),
         ModuleTreeEntry::Type(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )?;
 
     tree.traverse_to_append(
-        ModulePath::new_prelude_path(vec!["u".into()]),
+        ModulePath::new_module_tree_prelude_path(vec!["u".into()]),
         ModuleTreeEntry::Type(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )?;
 
     tree.traverse_to_append(
-        ModulePath::new_prelude_path(vec!["f".into()]),
+        ModulePath::new_module_tree_prelude_path(vec!["f".into()]),
         ModuleTreeEntry::Type(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )?;
 
     tree.traverse_to_append(
-        ModulePath::new_prelude_path(vec!["uf".into()]),
+        ModulePath::new_module_tree_prelude_path(vec!["uf".into()]),
         ModuleTreeEntry::Type(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )?;
 
     tree.traverse_to_append(
-        ModulePath::new_prelude_path(vec!["str".into()]),
+        ModulePath::new_module_tree_prelude_path(vec!["str".into()]),
         ModuleTreeEntry::Type(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )?;
 
     tree.traverse_to_append(
-        ModulePath::new_prelude_path(vec!["char".into()]),
+        ModulePath::new_module_tree_prelude_path(vec!["char".into()]),
         ModuleTreeEntry::Type(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )

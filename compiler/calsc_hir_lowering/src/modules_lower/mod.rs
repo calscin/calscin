@@ -4,14 +4,21 @@ use calsc_modules::{
     tree::{ModuleTree, collect::ModuleTreeCollector},
 };
 
-use crate::modules_lower::types::lower_type_from_tree;
+use crate::modules_lower::{
+    prelude::apply_prelude_to_module_tree_lowering, types::lower_type_from_tree,
+};
 
+pub mod prelude;
 pub mod types;
 
 pub fn lower_types_from_stage_0<S: DiagnosticSource>(
     tree: &ModuleTree,
     source: &S,
 ) -> DiagPossible {
+    // Setup the prelude environment.
+
+    apply_prelude_to_module_tree_lowering();
+
     let mut types = vec![];
 
     tree.collect_entries(

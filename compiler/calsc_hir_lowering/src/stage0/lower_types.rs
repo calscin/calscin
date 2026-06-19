@@ -67,8 +67,6 @@ pub fn lower_ast_type_struct_declaration(
             })
         }
 
-        println!("Struct appended to {}", path_to_append_to);
-
         tree.traverse_to_append(path_to_append_to, ModuleTreeEntry::Type(raw_type), &node)
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
