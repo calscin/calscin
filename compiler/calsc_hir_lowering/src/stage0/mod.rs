@@ -1,5 +1,7 @@
 //! The stage 0 of the HIR lowering process. This layer is only ran when building the module tree as it handles lazy loading of types.
-//!
+//! It consits of two passes:
+//! - Append pass
+//! - Fill pass
 
 use std::path::PathBuf;
 
@@ -20,6 +22,7 @@ use crate::stage0::{
 };
 
 pub mod append;
+pub mod fill;
 pub mod func;
 pub mod key;
 pub mod lower_types;

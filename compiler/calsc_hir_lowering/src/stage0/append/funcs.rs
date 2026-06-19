@@ -5,7 +5,7 @@ use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
 
 use crate::convert_visibility;
 
-pub fn lower_stage_0_append_pass_function_declaratino(
+pub fn lower_stage_0_append_pass_function_declaration(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
