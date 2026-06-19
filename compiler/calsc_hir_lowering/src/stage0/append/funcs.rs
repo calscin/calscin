@@ -32,3 +32,31 @@ pub fn lower_stage_0_append_pass_function_declaratino(
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
+
+pub fn lower_stage_0_append_pass_extern_function_declaration(
+    node: ASTNode,
+    file_ctx: &mut HIRFileContext,
+    tree: &mut ModuleTree,
+) -> DiagPossible {
+    if let ASTNodeKind::ExternFunctionDeclaration {
+        name,
+        arguments: _,
+        return_type: _,
+        triple_dot_position: _,
+        visibility,
+    } = node.kind.clone()
+    {
+        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+
+        if !visibility.can_be_imported() {
+            return Ok(());
+        }
+
+        let mut path_to_append_to = file_ctx.current_module.clone();
+        path_to_append_to.append_single_bit(name);
+
+        tree.traverse_to_append(path_to_append_to, ModuleTreeEntry::EmptyFunction, &node)
+    } else {
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
+    }
+}
