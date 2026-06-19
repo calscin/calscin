@@ -3,9 +3,7 @@
 use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::{
-    PosDiagnosticSource, container::dump_and_stop_if_errors, result::CalscinResult,
-};
+use calsc_diagnostics::{container::dump_and_stop_if_errors, result::CalscinResult};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_hir_lowering::{
     modules::build_module_tree, modules_lower::lower_types_from_stage_0, stage1::lower_hir_stage_1,
@@ -75,8 +73,7 @@ pub fn build() {
             &mut entries,
         );
 
-        let dummy = PosDiagnosticSource::new(Default::default(), Default::default());
-        lower_types_from_stage_0(&module_tree, &dummy).unwrap_cleanly();
+        lower_types_from_stage_0(&module_tree).unwrap_cleanly();
 
         GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
     }
