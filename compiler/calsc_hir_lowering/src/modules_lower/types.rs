@@ -24,27 +24,25 @@ use calsc_utils::hash::HashedCounter;
 
 use crate::stage0::types::lower_stage0_key;
 
-pub fn lower_type_from_tree<S: DiagnosticSource>(
-    path: ModulePath,
-    tree: &ModuleTree,
-    source: &S,
-) -> DiagPossible {
+pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible {
     let already_built = BUILD_CACHE.with_borrow(|cache| cache.type_storage.map.contains_key(&path));
 
     if already_built {
         return Ok(()); // No need to do anything else if its already built.
     }
 
-    let r = tree.traverse_to(path.clone(), source)?;
+    let source = BUILD_CACHE.with_borrow(|cache| cache.nodes_to_entries[&path][0].clone());
+
+    let r = tree.traverse_to(path.clone(), &source)?;
 
     if let ModuleTreeEntry::Type(ty) = r {
         let mut dependencies = HashedCounter::new();
 
-        ty.get_dependencies(tree, &mut dependencies, source)?;
+        ty.get_dependencies(tree, &mut dependencies, &source)?;
 
         // Lower each dependency first so that the type can be safely resolved
         for dependency in &dependencies.map {
-            lower_type_from_tree(dependency.0.clone(), tree, source)?;
+            lower_type_from_tree(dependency.0.clone(), tree)?;
         }
 
         // We first build a HIR file context with the current module path to allow for same-module resolution
@@ -59,10 +57,10 @@ pub fn lower_type_from_tree<S: DiagnosticSource>(
         let related_nodes = BUILD_CACHE.with_borrow(|cache| cache.nodes_to_entries[&path].clone());
 
         for node in related_nodes {
-            lower_type_node(path.clone(), tree, node, &hir_file_ctx, source)?;
+            lower_type_node(path.clone(), tree, node, &hir_file_ctx, &source)?;
         }
     } else {
-        return Err(build_expected_entry_type(&"type".to_string(), &path, source).into());
+        return Err(build_expected_entry_type(&"type".to_string(), &path, &source).into());
     }
 
     Ok(())

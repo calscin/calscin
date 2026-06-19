@@ -1,4 +1,4 @@
-use calsc_diagnostics::{DiagPossible, DiagnosticSource};
+use calsc_diagnostics::DiagPossible;
 use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, collect::ModuleTreeCollector},
@@ -11,10 +11,7 @@ use crate::modules_lower::{
 pub mod prelude;
 pub mod types;
 
-pub fn lower_types_from_stage_0<S: DiagnosticSource>(
-    tree: &ModuleTree,
-    source: &S,
-) -> DiagPossible {
+pub fn lower_types_from_stage_0(tree: &ModuleTree) -> DiagPossible {
     // Setup the prelude environment.
 
     apply_prelude_to_module_tree_lowering();
@@ -28,7 +25,7 @@ pub fn lower_types_from_stage_0<S: DiagnosticSource>(
     );
 
     for ty in types {
-        lower_type_from_tree(ty.1, tree, source)?;
+        lower_type_from_tree(ty.1, tree)?;
     }
 
     Ok(())
