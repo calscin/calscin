@@ -62,15 +62,19 @@ pub fn parse_ast_node_body_member(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ArenaHandle> {
+) -> Option<DiagResult<ArenaHandle>> {
     match tokens[*ind].kind {
-        TokenKind::Var | TokenKind::Mut => parse_ast_variable_declaration(tokens, ind, ctx),
-        TokenKind::For => parse_ast_for_loop(tokens, ind, ctx),
-        TokenKind::Loop => parse_ast_loop(tokens, ind, ctx),
-        TokenKind::While => parse_ast_while_loop(tokens, ind, ctx),
-        TokenKind::If => parse_ast_if_statement(tokens, ind, ctx),
-        TokenKind::Return => parse_ast_return_statement(tokens, ind, ctx),
-        _ => parse_ast_value(tokens, ind, true, true, true, ctx),
+        TokenKind::Var | TokenKind::Mut => Some(parse_ast_variable_declaration(tokens, ind, ctx)),
+        TokenKind::For => Some(parse_ast_for_loop(tokens, ind, ctx)),
+        TokenKind::Loop => Some(parse_ast_loop(tokens, ind, ctx)),
+        TokenKind::While => Some(parse_ast_while_loop(tokens, ind, ctx)),
+        TokenKind::If => Some(parse_ast_if_statement(tokens, ind, ctx)),
+        TokenKind::Return => Some(parse_ast_return_statement(tokens, ind, ctx)),
+        TokenKind::Comment(_) => {
+            *ind += 1; // We do not care about body comments
+            None
+        }
+        _ => Some(parse_ast_value(tokens, ind, true, true, true, ctx)),
     }
 }
 
@@ -108,7 +112,13 @@ pub fn parse_ast_body(
     let mut members: Vec<ArenaHandle> = vec![];
 
     while tokens[*ind].kind != TokenKind::BraceClose {
-        let member = parse_ast_node_body_member(tokens, ind, ctx)?; // Auto increments
+        let member = parse_ast_node_body_member(tokens, ind, ctx); // Auto increments
+
+        if member.is_none() {
+            continue;
+        }
+
+        let member = member.unwrap()?;
 
         if !ctx.nodes.get(&member).kind.is_body() {
             tokens[*ind].expects(TokenKind::SemiColon)?;
