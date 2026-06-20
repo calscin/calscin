@@ -86,6 +86,9 @@ pub enum TokenKind {
     /// `priv`
     Private,
 
+    /// `into`
+    Into,
+
     /// ;
     SemiColon,
 
@@ -512,6 +515,7 @@ impl Display for TokenKind {
             Self::Public => "pub",
             Self::Protected => "prot",
             Self::Private => "priv",
+            Self::Into => "into",
             Self::SemiColon => ";",
             Self::Comma => ",",
             Self::Dot => ".",
