@@ -16,6 +16,7 @@ use crate::{
         values::{
             arrays::{parse_ast_array_init, parse_ast_index_usage},
             binary::{Precedence, parse_ast_binary_operation},
+            casting::parse_ast_cast_into,
             conditions::parse_ast_inverse_condition,
             lits::parse_ast_literal,
             ptrs::{parse_ast_pointer_dereference, parse_ast_pointer_reference},
@@ -28,6 +29,7 @@ use crate::{
 
 pub mod arrays;
 pub mod binary;
+pub mod casting;
 pub mod conditions;
 pub mod lits;
 pub mod math;
@@ -212,6 +214,8 @@ pub fn parse_ast_post(
                 }
             }
         }
+
+        TokenKind::Into => parse_ast_cast_into(tokens, ind, first_node, start, ctx)?,
 
         TokenKind::AngelBracketOpen | TokenKind::AngelBracketClose => {
             parse_ast_binary_operation(tokens, ind, first_node, start, Precedence::Assignment, ctx)?
