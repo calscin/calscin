@@ -63,7 +63,9 @@ pub fn function_call_parsing_test() {
     let tokens = lexer_tokenize("test()", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let call = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let call = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let call_ref = ctx.nodes.get(&call);
 
     assert_eq!(
@@ -83,7 +85,9 @@ pub fn parse_call_parsing_args_test() {
         lexer_tokenize("test(testtwo(), 123, 4565)", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let call = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let call = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let call_ref = ctx.nodes.get(&call);
 
     if let ASTNodeKind::FunctionCall { name, arguments } = call_ref.kind.clone() {

@@ -24,7 +24,9 @@ fn parse_for_loop_test() {
 
     let mut ind = 0;
 
-    let for_loop = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let for_loop = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let for_loop_ref = ctx.nodes.get(&for_loop);
 
     if let ASTNodeKind::ForLoop {
@@ -73,7 +75,9 @@ fn parse_loop_test() {
     let tokens = lexer_tokenize("loop { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let loop_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let loop_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let loop_node_ref = ctx.nodes.get(&loop_node);
 
     if let ASTNodeKind::Loop { body } = loop_node_ref.kind.clone() {
@@ -106,7 +110,9 @@ fn parse_while_loop_test() {
 
     let mut ind = 0;
 
-    let while_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let while_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let while_node_ref = ctx.nodes.get(&while_node);
 
     if let ASTNodeKind::WhileLoop { condition, body } = while_node_ref.kind.clone() {
@@ -139,7 +145,9 @@ fn parse_if_statement_simple_test() {
         lexer_tokenize("if(true) { var s32 test; }", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let if_node_ref = ctx.nodes.get(&if_node);
 
     if let ASTNodeKind::IfStatement { branches } = if_node_ref.kind.clone() {
@@ -180,7 +188,9 @@ fn parse_if_statement_test() {
 
     let mut ind = 0;
 
-    let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let if_node = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let if_node_ref = ctx.nodes.get(&if_node);
 
     if let ASTNodeKind::IfStatement { branches } = if_node_ref.kind.clone() {

@@ -59,7 +59,9 @@ pub fn test_parse_variable_assign() {
     let tokens = lexer_tokenize("test = 588", "test.cal".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
-    let assign = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx).unwrap_cleanly();
+    let assign = parse_ast_node_body_member(&tokens, &mut ind, &mut ctx)
+        .unwrap()
+        .unwrap_cleanly();
     let assign_ref = ctx.nodes.get(&assign);
 
     if let ASTNodeKind::Assignment { variable, value } = assign_ref.kind.clone() {
