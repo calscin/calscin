@@ -19,6 +19,7 @@ Calscin is a programming language focusing on allowing everyone to build reliabl
 
 ## Quick Example
 ```calscin
+// This is a structure: a type containing fields
 prot struct myStruct {
 	s.32 test
 }
@@ -32,7 +33,10 @@ module myModule {
 }
 
 func main() {
+	// Since the variable was declared using the var keyword, it is immutable!
 	var myStruct myStructuredVariable = { test: 3 };
+
+	// Since the variable was declared using the mut keyword, it is mutable!
 	mut str myString = "Hello World";
 
 	myString = "Hello Calscin!"; 
