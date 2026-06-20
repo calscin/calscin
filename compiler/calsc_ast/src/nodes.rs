@@ -160,6 +160,11 @@ pub enum ASTNodeKind {
         body: Vec<ArenaHandle>,
     },
 
+    IntoCast {
+        val: ArenaHandle,
+        into: ASTType,
+    },
+
     None,
 }
 
