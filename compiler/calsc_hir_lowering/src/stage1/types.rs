@@ -14,6 +14,7 @@ use calsc_hir::{
     HIRContext,
     file::HIRFileContext,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
+    types::validate_type_for_storage,
 };
 use calsc_typing::{
     MutableFieldHavingType,
@@ -50,11 +51,10 @@ pub fn lower_ast_struct_declaration(
         }
 
         for field in fields {
-            base_type.add_field(
-                field.1,
-                lower_ast_type(field.0, &node, Some(base_type.clone()), file_ctx, ctx)?,
-                &node,
-            )?; // We can clone base_type to pass it to lower_ast_type since the base_type here wont be modified by lower_ast_type
+            let ty = lower_ast_type(field.0, &node, Some(base_type.clone()), file_ctx, ctx)?; // We can clone base_type to pass it to lower_ast_type since the base_type here wont be modified by lower_ast_type
+            validate_type_for_storage(&ty, &node)?;
+
+            base_type.add_field(field.1, ty, &node)?;
         }
 
         ctx.scope
