@@ -240,6 +240,38 @@ impl TransmutableType for Type {
         }
     }
 
+    fn can_cast(&self, into: Self) -> bool {
+        if self.is_real() != into.is_real() {
+            return false;
+        }
+
+        if self.can_transmute(into.clone()) {
+            return true; // Allow every transmutation to be done by casts.
+        }
+
+        match (self, into) {
+            (
+                Self::Array { size, inner },
+                Self::Array {
+                    size: into_size,
+                    inner: into_inner,
+                },
+            ) => *size == into_size && inner.can_cast(*into_inner),
+
+            (
+                Self::Reference { mutable, inner },
+                Self::Reference {
+                    mutable: into_mutable,
+                    inner: into_inner,
+                },
+            ) => *mutable == into_mutable && inner.can_cast(*into_inner),
+
+            (Self::Base(instance), Self::Base(into_instance)) => instance.can_cast(into_instance),
+
+            _ => false,
+        }
+    }
+
     fn can_transmute_weakly(&self, into: Self) -> bool {
         if self.is_real() != into.is_real() {
             return false;
