@@ -33,9 +33,17 @@ impl CommentContext {
 pub fn parse_ast_whole(tokens: &Vec<Token>) -> DiagResult<ASTContext> {
     let mut ind = 0;
     let mut ctx = ASTContext::new();
+    let mut comments = CommentContext::new();
 
     while tokens[ind].kind != TokenKind::Eof {
-        let node = parse_ast_top_level(tokens, &mut ind, &mut ctx)?;
+        let node = parse_ast_top_level(tokens, &mut ind, &mut ctx, &mut comments);
+
+        if node.is_none() {
+            continue;
+        }
+
+        let node = node.unwrap()?;
+
         ctx.tree.push(node);
     }
 

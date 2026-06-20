@@ -15,6 +15,7 @@ use crate::{
             for_loop::parse_ast_for_loop, ifelse::parse_ast_if_statement, loops::parse_ast_loop,
             while_loop::parse_ast_while_loop,
         },
+        ctx::CommentContext,
         func::{parse_extern_function_declaration, parse_function_declaration},
         import::parse_ast_import_statement,
         structs::{parse_ast_struct_decl_block, parse_ast_struct_declaration},
@@ -138,21 +139,44 @@ pub fn parse_ast_top_level(
     tokens: &Vec<Token>,
     ind: &mut usize,
     ctx: &mut ASTContext,
-) -> DiagResult<ArenaHandle> {
+    comments: &mut CommentContext,
+) -> Option<DiagResult<ArenaHandle>> {
     let i = match tokens[*ind].kind {
-        TokenKind::Public | TokenKind::Private | TokenKind::Protected => *ind + 1,
+        TokenKind::Public | TokenKind::Private | TokenKind::Protected => {
+            if matches!(
+                tokens[*ind + 1].kind,
+                TokenKind::Function | TokenKind::ExternFunc | TokenKind::Struct
+            ) {
+                *ind + 1
+            } else {
+                *ind
+            }
+        }
         _ => *ind,
     };
 
-    match tokens[i].kind {
-        TokenKind::Function => parse_function_declaration(tokens, ind, ctx),
-        TokenKind::ExternFunc => parse_extern_function_declaration(tokens, ind, ctx),
-        TokenKind::Struct => parse_ast_struct_declaration(tokens, ind, ctx),
-        TokenKind::Decl => parse_ast_struct_decl_block(tokens, ind, ctx),
-        TokenKind::Import => parse_ast_import_statement(tokens, ind, ctx),
-        TokenKind::Module => parse_ast_module(tokens, ind, ctx),
+    match &tokens[i].kind {
+        TokenKind::Function => Some(parse_function_declaration(tokens, ind, ctx)),
+        TokenKind::ExternFunc => Some(parse_extern_function_declaration(tokens, ind, ctx)),
+        TokenKind::Struct => Some(parse_ast_struct_declaration(tokens, ind, ctx)),
+        TokenKind::Decl => Some(parse_ast_struct_decl_block(tokens, ind, ctx)),
+        TokenKind::Import => Some(parse_ast_import_statement(tokens, ind, ctx)),
+        TokenKind::Module => Some(parse_ast_module(tokens, ind, ctx)),
 
-        _ => return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into()),
+        TokenKind::Comment(comment) => {
+            comments.push(comment.clone());
+            *ind += 1;
+
+            None
+        }
+
+        _ => {
+            return Some(Err(build_unexpected_token_error(
+                &tokens[*ind].kind,
+                &tokens[*ind],
+            )
+            .into()));
+        }
     }
 }
 
@@ -175,10 +199,20 @@ pub fn parse_ast_module(
     if tokens[*ind].kind == TokenKind::BraceOpen {
         *ind += 1; // {
 
+        let mut comments = CommentContext::new();
+
         let end = tokens[*ind].end.clone();
 
         while tokens[*ind].kind != TokenKind::BraceClose {
-            body.push(parse_ast_top_level(tokens, ind, ctx)?);
+            let res = parse_ast_top_level(tokens, ind, ctx, &mut comments);
+
+            if res.is_none() {
+                continue;
+            }
+
+            let res = res.unwrap();
+
+            body.push(res?);
         }
 
         *ind += 1; // }
