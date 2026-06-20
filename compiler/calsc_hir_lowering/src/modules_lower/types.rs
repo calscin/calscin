@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{build_expected_entry_type, build_internal_hir_node_leaked},
 };
-use calsc_hir::{BUILD_CACHE, file::HIRFileContext};
+use calsc_hir::{BUILD_CACHE, file::HIRFileContext, types::validate_type_for_storage};
 use calsc_modules::{
     lazy::LazyLoadedTypeLike,
     path::ModulePath,
@@ -109,28 +109,26 @@ pub fn lower_type<S: DiagnosticSource>(
     }
 }
 
-pub fn lower_type_node<S: DiagnosticSource>(
+pub fn lower_type_node(
     path: ModulePath,
     tree: &ModuleTree,
     node: ASTNode,
     hir_file_ctx: &HIRFileContext,
-    source: &S,
 ) -> DiagPossible {
     match node.kind {
         ASTNodeKind::StructDeclaration { .. } => {
-            lower_type_struct_decl(path, tree, node, hir_file_ctx, source)
+            lower_type_struct_decl(path, tree, node, hir_file_ctx)
         }
 
-        _ => return Err(build_internal_hir_node_leaked(&node, source).into()),
+        _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     }
 }
 
-pub fn lower_type_struct_decl<S: DiagnosticSource>(
+pub fn lower_type_struct_decl(
     path: ModulePath,
     tree: &ModuleTree,
     node: ASTNode,
     hir_file_ctx: &HIRFileContext,
-    source: &S,
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
@@ -142,23 +140,22 @@ pub fn lower_type_struct_decl<S: DiagnosticSource>(
         let mut container = BaseStructContainer::new(name);
 
         for field in fields {
-            container.add_field(
-                field.1,
-                lower_type(field.0, tree, hir_file_ctx, source)?,
-                source,
-            )?;
+            let ty = lower_type(field.0, tree, hir_file_ctx, &node)?;
+            validate_type_for_storage(&ty, &node)?;
+
+            container.add_field(field.1, ty, &node)?;
         }
 
         let mut base_type = BaseType::new(BaseTypeKind::Struct(container));
 
         for type_param in type_params {
-            base_type.append_type_parameter(type_param, source)?;
+            base_type.append_type_parameter(type_param, &node)?;
         }
 
         BUILD_CACHE.with_borrow_mut(|cache| cache.type_storage.map.insert(path, base_type));
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(&node, source).into());
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
 }
