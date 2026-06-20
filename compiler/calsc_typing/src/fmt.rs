@@ -1,5 +1,7 @@
 use std::fmt::Display;
 
+use calsc_diagnostics::fmt::fmt_list;
+
 use crate::{
     base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
     tree::Type,
@@ -89,13 +91,7 @@ impl Display for BaseTypeInstance {
         }
 
         if !self.type_parameters.is_empty() {
-            write!(f, "<{}", self.type_parameters[0])?;
-
-            for i in 1..self.type_parameters.len() {
-                write!(f, ", {}", self.type_parameters[i])?;
-            }
-
-            write!(f, ">")?;
+            write!(f, "<{}>", fmt_list(&self.type_parameters))?;
         }
 
         Ok(())
