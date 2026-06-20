@@ -108,7 +108,21 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
             '|' => TokenKind::Or,
             '+' => TokenKind::Plus,
             '*' => TokenKind::Star,
-            '/' => TokenKind::Slash,
+            '/' => {
+                match content.chars().nth(i + 1) {
+                    Some(v) => {
+                        if v == '/' {
+                            tokens.push(parse_comment(content, &mut i, &mut pos)?);
+                            continue;
+                        }
+                    }
+
+                    None => {}
+                };
+
+                TokenKind::Slash
+            }
+
             '\\' => TokenKind::BackSlash,
             '^' => TokenKind::Caret,
             '%' => TokenKind::Percent,
@@ -192,6 +206,39 @@ pub fn parse_keyword(
     *start_pos = end_pos.step_col(1);
 
     res
+}
+
+/// Parses a comment
+pub fn parse_comment(
+    content: &str,
+    ind: &mut usize,
+    start_pos: &mut FilePosition,
+) -> DiagResult<Token> {
+    let start = *ind;
+
+    *ind += 2; // first / + second /
+
+    while *ind < content.len() {
+        let c = match content.chars().nth(*ind) {
+            Some(v) => v,
+            None => break,
+        };
+
+        if c == '\n' {
+            break;
+        }
+
+        *ind += 1;
+    }
+
+    let end = *ind;
+    let end_pos = FilePosition::step_col(&start_pos, end - start);
+
+    let slice = content[start..end].to_string();
+
+    let res = Token::new(TokenKind::Comment(slice), start_pos.clone(), end_pos);
+
+    Ok(res)
 }
 
 /// Parses the given string at the given position as an number literal token.

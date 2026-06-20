@@ -70,6 +70,8 @@ fn lower_stage_0_append_pass_node(
             lower_stage_0_append_pass_module(node, ast_ctx, file_ctx, tree)
         }
 
+        ASTNodeKind::StructDeclBlock { .. } => Ok(()),
+
         ASTNodeKind::ImportStatement { .. } => Ok(()),
 
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),

@@ -185,6 +185,8 @@ pub enum TokenKind {
     /// A float literal (eg: `3.14`)
     FloatLiteral(f64),
 
+    Comment(String),
+
     /// The end of file
     Eof,
 
@@ -543,6 +545,7 @@ impl Display for TokenKind {
             Self::CharLiteral(char) => &format!("{}", char),
             Self::IntLiteral(val) => &format!("{}", val),
             Self::FloatLiteral(val) => &format!("{}", val),
+            Self::Comment(_) => "comment",
             Self::Eof => "",
             Self::Unknown => "Unknown token",
         };
