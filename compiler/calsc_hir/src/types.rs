@@ -1,8 +1,11 @@
 //! Builder utilities for types
 
 use calsc_diagnostics::{
-    DiagResult, DiagnosticSource,
-    diags::errors::{build_expected_size_specifiers_error, build_expected_type_parameters_error},
+    DiagPossible, DiagResult, DiagnosticSource,
+    diags::errors::{
+        build_expected_size_specifiers_error, build_expected_type_parameters_error,
+        build_type_not_static,
+    },
     result::CalscinResult,
 };
 use calsc_typing::{
@@ -12,6 +15,14 @@ use calsc_typing::{
 };
 
 use crate::{HIRContext, globalctx::key::GlobalContextKey};
+
+pub fn validate_type_for_storage<K: DiagnosticSource>(ty: &Type, source: &K) -> DiagPossible {
+    if !ty.is_static() {
+        return Err(build_type_not_static(ty, source).into());
+    }
+
+    Ok(())
+}
 
 pub fn make_int_type<K: DiagnosticSource>(
     signed: bool,

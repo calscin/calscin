@@ -30,6 +30,7 @@ enum ErrorCode {
     ExpectedCompileTimeType,
     NotIterable,
     InfiniteSize,
+    TypeNotStatic,
 
     // HIR local context
     AlreadyInScope,
@@ -483,5 +484,19 @@ pub fn build_type_infinite_size<S: DiagnosticSource, T: Display>(ty: &T, source:
         vec![],
         vec!["".to_string()],
         vec![format!("remove the inner {} field / type declaration", ty)],
+    )
+}
+
+pub fn build_type_not_static<S: DiagnosticSource, T: Display>(ty: &T, source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::TypeNotStatic as usize),
+        format!(
+            "type  {} is not static and the value might expire in the future",
+            ty
+        ),
+        Some(format!("static type mention of type {} here", ty)),
+        vec![],
+        vec!["this type is not static and potentially cannot hold a value for the entire duration of storage".to_string()],
+        vec![format!("replace {} by a static type (eg: integers, floats, ...)", ty)],
     )
 }
