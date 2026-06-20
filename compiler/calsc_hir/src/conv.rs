@@ -66,6 +66,7 @@ impl HIRNode {
                 HIRNodeKind::CastNode {
                     original: self.clone().push(ctx),
                     into: ty,
+                    explicit_cast: false,
                 },
                 self.start.clone(),
                 self.end.clone(),

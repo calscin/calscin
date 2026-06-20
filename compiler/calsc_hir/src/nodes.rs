@@ -160,6 +160,9 @@ pub enum HIRNodeKind {
     CastNode {
         original: ArenaHandle,
         into: Type,
+
+        /// Represents whenever the cast was done explicitly by the user (using into)
+        explicit_cast: bool,
     },
 }
 
