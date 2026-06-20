@@ -3,6 +3,28 @@ use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{ASTContext, parser::parse_ast_top_level};
 
+/// A context that stores current comments for a next element
+pub struct CommentContext {
+    pub comments: Vec<String>,
+}
+
+impl CommentContext {
+    pub fn new() -> Self {
+        Self { comments: vec![] }
+    }
+
+    pub fn push(&mut self, comment: String) {
+        self.comments.push(comment);
+    }
+
+    pub fn consume(&mut self) -> Vec<String> {
+        let vec = self.comments.clone();
+        self.comments.clear();
+
+        vec
+    }
+}
+
 /// Parses everything into the current [`ASTContext`].
 ///
 /// # Errors
