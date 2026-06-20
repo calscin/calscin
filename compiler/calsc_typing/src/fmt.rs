@@ -83,8 +83,6 @@ impl Display for BaseTypeInstance {
         write!(f, "{}", self.ty)?;
 
         if !self.size_specifiers.is_empty() {
-            write!(f, ".")?;
-
             for param in &self.size_specifiers {
                 write!(f, ".{}", param)?;
             }
