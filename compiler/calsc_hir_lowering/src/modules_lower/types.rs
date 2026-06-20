@@ -57,7 +57,7 @@ pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible
         let related_nodes = BUILD_CACHE.with_borrow(|cache| cache.nodes_to_entries[&path].clone());
 
         for node in related_nodes {
-            lower_type_node(path.clone(), tree, node, &hir_file_ctx, &source)?;
+            lower_type_node(path.clone(), tree, node, &hir_file_ctx)?;
         }
     } else {
         return Err(build_expected_entry_type(&"type".to_string(), &path, &source).into());
