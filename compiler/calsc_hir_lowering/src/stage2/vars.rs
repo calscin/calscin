@@ -13,6 +13,7 @@ use calsc_hir::{
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
+    types::validate_type_for_storage,
 };
 use calsc_utils::alloc::arena::ArenaHandle;
 
@@ -66,6 +67,8 @@ pub fn lower_ast_variable_declaration(
     } = node.kind.clone()
     {
         let var_type = lower_ast_type(var_type, &node, None, file_ctx, ctx)?;
+
+        validate_type_for_storage(&var_type, &node)?;
 
         let id = ctx.scope.mutate_entry(
             curr_ctx.clone().unwrap(),
