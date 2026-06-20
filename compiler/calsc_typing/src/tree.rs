@@ -139,6 +139,18 @@ impl Type {
 
         return self.as_base().ty.kind.is_numerical_lit();
     }
+
+    /// Checks if the type is static. A static type represents a type whose values cannot expire in type.
+    /// For example, an integer cannot expire
+    pub fn is_static(&self) -> bool {
+        match self {
+            Self::Base(_) => true,
+            Self::Reference { .. } => false,
+            Self::Array { size: _, inner } => inner.is_static(),
+            Self::TypeParameter { .. } => true,
+            Self::Void => false,
+        }
+    }
 }
 
 impl FieldHavingType for Type {
