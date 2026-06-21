@@ -24,6 +24,7 @@ use crate::stage2::{
     values::{
         binary::lower_ast_binary_expression,
         booleans::lower_hir_inverse_condition,
+        cast::lower_ast_cast,
         index::lower_ast_index_usage,
         lits::lower_ast_literal,
         lru::lower_ast_lru,
@@ -34,6 +35,7 @@ use crate::stage2::{
 
 pub mod binary;
 pub mod booleans;
+pub mod cast;
 pub mod index;
 pub mod lits;
 pub mod lru;
@@ -90,6 +92,8 @@ pub fn lower_ast_value(
         }
 
         ASTNodeKind::ArrayInit(_) => lower_ast_array_init(node, local_ctx, file_ctx, ctx, ast_ctx),
+
+        ASTNodeKind::IntoCast { .. } => lower_ast_cast(node, local_ctx, file_ctx, ctx, ast_ctx),
 
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     }
