@@ -136,6 +136,13 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
             )?),
         }),
 
+        ASTType::Pointer(mutable, b) => Ok(Type::Pointer {
+            mutable,
+            inner: Box::new(lower_ast_type_complex(
+                *b, origin, inst, true, file_ctx, ctx,
+            )?),
+        }),
+
         ASTType::Generic(a, b, c) => {
             if inst.is_some() {
                 let inst = inst.clone().unwrap();
