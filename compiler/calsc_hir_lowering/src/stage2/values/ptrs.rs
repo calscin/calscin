@@ -48,7 +48,7 @@ pub fn lower_ast_pointer_reference(
     ctx: &mut HIRContext,
     ast_ctx: &ASTContext,
 ) -> DiagResult<ArenaHandle> {
-    if let ASTNodeKind::PointerReference(val) = node.kind.clone() {
+    if let ASTNodeKind::PointerReference(val, mutable) = node.kind.clone() {
         let val_ref = ast_ctx.nodes.get(&val);
 
         let val = lower_ast_value(val_ref.clone(), local_ctx.clone(), file_ctx, ctx, ast_ctx)?;
@@ -60,7 +60,7 @@ pub fn lower_ast_pointer_reference(
         introduce_reference_ast(val.clone(), local_ctx.clone(), ctx)?;
 
         let node = HIRNode::new(
-            HIRNodeKind::PointerReference(val),
+            HIRNodeKind::PointerReference(val, mutable),
             node.start.clone(),
             node.end.clone(),
         );

@@ -41,7 +41,7 @@ pub enum HIRNodeKind {
 
     InverseCondition(ArenaHandle),
 
-    PointerReference(ArenaHandle),
+    PointerReference(ArenaHandle, bool),
     PointerDereference(ArenaHandle),
 
     Range {
@@ -225,8 +225,8 @@ impl HIRNode {
                 .get(&start)
                 .get_type(local_func_key, ctx, file_ctx)?,
 
-            HIRNodeKind::PointerReference(val) => Type::Reference {
-                mutable: true, // Mutable by default, will change
+            HIRNodeKind::PointerReference(val, mutable) => Type::Reference {
+                mutable,
                 inner: Box::new(
                     ctx.nodes
                         .get(&val)

@@ -60,7 +60,7 @@ pub fn lower_ast_value(
             lower_hir_inverse_condition(node, local_ctx, file_ctx, ctx, ast_ctx)
         }
 
-        ASTNodeKind::PointerReference(_) => {
+        ASTNodeKind::PointerReference(_, _) => {
             lower_ast_pointer_reference(node, local_ctx, file_ctx, ctx, ast_ctx)
         }
         ASTNodeKind::PointerDereference(_) => {
