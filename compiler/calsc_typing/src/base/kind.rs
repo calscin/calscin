@@ -164,19 +164,9 @@ impl TransmutableType for BaseTypeKind {
         }
 
         match (self, into) {
-            (
-                BaseTypeKind::Integer { signed },
-                BaseTypeKind::Floating {
-                    signed: into_signed,
-                },
-            ) => true,
+            (BaseTypeKind::Integer { signed: _ }, BaseTypeKind::Floating { signed: _ }) => true,
 
-            (
-                BaseTypeKind::Floating { signed },
-                BaseTypeKind::Integer {
-                    signed: into_signed,
-                },
-            ) => true,
+            (BaseTypeKind::Floating { signed: _ }, BaseTypeKind::Integer { signed: _ }) => true,
 
             (BaseTypeKind::Integer { .. }, BaseTypeKind::Integer { .. }) => true,
             (BaseTypeKind::Floating { .. }, BaseTypeKind::Floating { .. }) => true,

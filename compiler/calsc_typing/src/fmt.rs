@@ -68,12 +68,25 @@ impl Display for Type {
             }
             Self::TypeParameter { name, param_ind: _ } => write!(f, "{}", name),
             Self::Reference { mutable, inner } => {
+                write!(f, "{}&", *inner)?;
+
                 if *mutable {
-                    write!(f, "{}&mut", *inner)
-                } else {
-                    write!(f, "{}&", *inner)
+                    write!(f, " mut")?;
                 }
+
+                Ok(())
             }
+
+            Self::Pointer { mutable, inner } => {
+                write!(f, "{}*", *inner)?;
+
+                if *mutable {
+                    write!(f, " mut")?;
+                }
+
+                Ok(())
+            }
+
             Self::Base(base) => write!(f, "{}", base),
             Self::Void => write!(f, "void"),
         }

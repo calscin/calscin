@@ -25,6 +25,9 @@ pub enum Type {
     /// Represents a reference. By default every reference is mutable. This will be changed in future releases
     Reference { mutable: bool, inner: Box<Type> },
 
+    /// An unsafe version of [`Type::Reference`]
+    Pointer { mutable: bool, inner: Box<Type> },
+
     /// Represents an array of a given size
     Array {
         size: Option<usize>,
@@ -89,6 +92,7 @@ impl Type {
         match self {
             Self::Array { size: _, inner } => inner.is_real(),
             Self::Reference { mutable: _, inner } => inner.is_real(),
+            Self::Pointer { mutable: _, inner } => inner.is_real(),
             Self::TypeParameter { .. } => false,
             Self::Base(_) => true,
             Self::Void => false,
@@ -146,6 +150,7 @@ impl Type {
         match self {
             Self::Base(_) => true,
             Self::Reference { .. } => false,
+            Self::Pointer { mutable: _, inner } => inner.is_static(),
             Self::Array { size: _, inner } => inner.is_static(),
             Self::TypeParameter { .. } => true,
             Self::Void => false,
