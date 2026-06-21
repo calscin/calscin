@@ -45,6 +45,10 @@ pub fn lower_hir_cast(
     module: &mut Module,
     node: &HIRNode,
 ) -> DiagResult<BaseSSAValue> {
+    if val.value_type == into {
+        return Ok(val); // Handles pointer -> reference & reference -> pointer cases for example
+    }
+
     if let ValueType::Int(_, _) = val.value_type.clone() {
         let val =
             SSAIntValue::try_from(val.clone()).convert(node.start.clone(), node.end.clone())?;
