@@ -377,16 +377,25 @@ impl HIRNode {
 
     /// Does the node represent a mutable variable-like
     pub fn represents_mutable_variable(&self, ctx: &HIRContext) -> bool {
+        println!("{:#?}", self);
+
         match &self.kind {
             HIRNodeKind::VariableReference { .. } => true,
+
             HIRNodeKind::FieldReference {
                 val,
                 field_ind: _,
                 name: _,
             } => ctx.nodes.get(val).represents_mutable_variable(ctx),
+
             HIRNodeKind::PointerDereference(inner) => {
                 ctx.nodes.get(inner).represents_mutable_variable(ctx)
             }
+
+            HIRNodeKind::PointerReference(inner, mutable) => {
+                *mutable && ctx.nodes.get(inner).represents_mutable_variable(ctx)
+            }
+
             HIRNodeKind::IndexUsage {
                 val,
                 index: _,

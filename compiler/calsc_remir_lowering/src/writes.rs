@@ -1,4 +1,7 @@
-use calsc_diagnostics::{DiagPossible, DiagResult, diags::errors::build_internal_hir_node_leaked};
+use calsc_diagnostics::{
+    DiagPossible, DiagResult,
+    diags::errors::{build_expected_mutable, build_internal_hir_node_leaked},
+};
 use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
 use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
@@ -118,6 +121,10 @@ pub fn lower_hir_pointer_writable(
     let node_ref = ctx.nodes.get(&node);
 
     if let HIRNodeKind::PointerDereference(inner) = node_ref.kind.clone() {
+        if !node_ref.represents_mutable_variable(ctx) {
+            return Err(build_expected_mutable(node_ref).into());
+        }
+
         let inner = lower_hir_readable_pointer(inner, local_ctx, module, ctx)?;
 
         build_store(module, inner, write_into).convert(node_ref.start.clone(), node_ref.end.clone())

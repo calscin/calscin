@@ -49,7 +49,9 @@ pub fn lower_hir_value(
             Ok(lower_hir_inverse_condition(node, ctx, module, hirctx)?.into())
         }
 
-        HIRNodeKind::PointerReference(_) => lower_hir_pointer_reference(node, ctx, module, hirctx),
+        HIRNodeKind::PointerReference(_, _) => {
+            lower_hir_pointer_reference(node, ctx, module, hirctx)
+        }
         HIRNodeKind::PointerDereference(_) => {
             lower_hir_pointer_dereference(node, ctx, module, hirctx)
         }

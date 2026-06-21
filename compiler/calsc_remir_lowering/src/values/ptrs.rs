@@ -22,7 +22,7 @@ pub fn lower_hir_pointer_reference(
 ) -> DiagResult<BaseSSAValue> {
     let node_ref = ctx.nodes.get(&node);
 
-    if let HIRNodeKind::PointerReference(inner) = node_ref.kind.clone() {
+    if let HIRNodeKind::PointerReference(inner, _) = node_ref.kind.clone() {
         let inner = lower_hir_variable_reference(inner, local_ctx, module, ctx)?;
 
         if !inner.write_as_pointer {
