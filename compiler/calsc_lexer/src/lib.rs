@@ -34,6 +34,7 @@ pub const MODULE_HASH: u64 = fnvhash!("module");
 pub const PUB_HASH: u64 = fnvhash!("pub");
 pub const PROT_HASH: u64 = fnvhash!("prot");
 pub const PRIV_HASH: u64 = fnvhash!("priv");
+pub const INTO_HASH: u64 = fnvhash!("into");
 
 /// Converts raw texts into lexer tokens.
 /// # Examples
@@ -198,6 +199,7 @@ pub fn parse_keyword(
         PUB_HASH => TokenKind::Public,
         PROT_HASH => TokenKind::Protected,
         PRIV_HASH => TokenKind::Private,
+        INTO_HASH => TokenKind::Into,
         _ => TokenKind::Keyword(slice),
     };
 

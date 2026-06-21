@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
         build_expected_type_error, build_internal_hir_node_leaked, build_missing_field,
-        build_unexpected_type_error,
+        build_type_cast_failed, build_type_cast_failed_no_from, build_unexpected_type_error,
     },
 };
 use calsc_typing::{
@@ -66,6 +66,7 @@ impl HIRNode {
                 HIRNodeKind::CastNode {
                     original: self.clone().push(ctx),
                     into: ty,
+                    explicit_cast: false,
                 },
                 self.start.clone(),
                 self.end.clone(),
@@ -143,23 +144,31 @@ pub fn convert_numerical_literal_into(lit: HIRNode, ty: BaseTypeInstance) -> Dia
     let size = ty.size_specifiers[0];
     let signed = ty.ty.kind.get_signed_state();
 
-    if let HIRNodeKind::IntLiteral(val, _, _) = &lit.kind {
-        return Ok(HIRNode::new(
-            HIRNodeKind::IntLiteral(*val, size, signed),
-            lit.start.clone(),
-            lit.end.clone(),
-        ));
-    }
+    let kind = match &lit.kind {
+        HIRNodeKind::IntLiteral(val, _, _) => {
+            if ty.ty.kind.is_float() {
+                HIRNodeKind::FloatLiteral(*val as f64, size, signed)
+            } else if ty.ty.kind.is_int() {
+                HIRNodeKind::IntLiteral(*val, size, signed)
+            } else {
+                return Err(build_type_cast_failed_no_from(&ty, &lit).into());
+            }
+        }
 
-    if let HIRNodeKind::FloatLiteral(val, _, _) = &lit.kind {
-        return Ok(HIRNode::new(
-            HIRNodeKind::FloatLiteral(*val, size, signed),
-            lit.start.clone(),
-            lit.end.clone(),
-        ));
-    }
+        HIRNodeKind::FloatLiteral(val, _, _) => {
+            if ty.ty.kind.is_int() {
+                HIRNodeKind::IntLiteral(*val as i128, size, signed)
+            } else if ty.ty.kind.is_float() {
+                HIRNodeKind::FloatLiteral(*val, size, signed)
+            } else {
+                return Err(build_type_cast_failed_no_from(&ty, &lit).into());
+            }
+        }
 
-    return Err(build_internal_hir_node_leaked(&lit, &lit).into());
+        _ => return Err(build_internal_hir_node_leaked(&lit, &lit).into()),
+    };
+
+    Ok(HIRNode::new(kind, lit.start.clone(), lit.end.clone()))
 }
 
 pub fn weakly_transmute(curr_node: ArenaHandle, ty: Type, ctx: &mut HIRContext) {

@@ -53,7 +53,12 @@ pub trait MutableFieldHavingType {
     ) -> DiagPossible;
 }
 
-/// Represents a type that can potentially transmute into another type
+/// Represents a type that can potentially transmute into another type or cast.
+///
+/// There are two different type of type convertions:
+/// - **Transmutations**: Transmutations are conversions that are very cheap and cannot fail (eg: s.32 -> s.64).
+/// - **Casts**: Casts are conversions that are either unsafe or have a slight/significant runtime impact. Most casts are unsafe.
+///
 pub trait TransmutableType {
     /// Determines if the current type can be transmuted into the given type.
     fn can_transmute(&self, into: Self) -> bool;
@@ -61,4 +66,7 @@ pub trait TransmutableType {
     /// Determines if the current type can be transmuted into the given type.
     /// Determines that the self instance of type is weakly typed (infered) and can be further overriden.
     fn can_transmute_weakly(&self, into: Self) -> bool;
+
+    /// Determines if the current type can be cast into the given type.
+    fn can_cast(&self, into: Self) -> bool;
 }

@@ -16,6 +16,7 @@ use crate::{
     result::CalscinRemirResult,
     values::{
         bool::{lower_hir_compare, lower_hir_inverse_condition},
+        casts::lower_hir_cast_node,
         consts::{lower_hir_array_const, lower_hir_literal},
         math::lower_hir_math_operation,
         ptrs::{lower_hir_pointer_dereference, lower_hir_pointer_reference},
@@ -24,6 +25,7 @@ use crate::{
 };
 
 pub mod bool;
+pub mod casts;
 pub mod consts;
 pub mod math;
 pub mod ptrs;
@@ -81,6 +83,8 @@ pub fn lower_hir_value(
         HIRNodeKind::IndexUsage { .. } => lower_hir_index_usage(node, ctx, module, hirctx),
 
         HIRNodeKind::ArrayInit { .. } => lower_hir_array_const(node, ctx, module, hirctx),
+
+        HIRNodeKind::CastNode { .. } => lower_hir_cast_node(node, ctx, module, hirctx),
 
         _ => return Err(build_internal_hir_node_leaked(&node, node_ref).into()),
     }

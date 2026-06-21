@@ -158,6 +158,33 @@ impl TransmutableType for BaseTypeKind {
         }
     }
 
+    fn can_cast(&self, into: Self) -> bool {
+        if self == &into {
+            return true;
+        }
+
+        match (self, into) {
+            (
+                BaseTypeKind::Integer { signed },
+                BaseTypeKind::Floating {
+                    signed: into_signed,
+                },
+            ) => true,
+
+            (
+                BaseTypeKind::Floating { signed },
+                BaseTypeKind::Integer {
+                    signed: into_signed,
+                },
+            ) => true,
+
+            (BaseTypeKind::Integer { .. }, BaseTypeKind::Integer { .. }) => true,
+            (BaseTypeKind::Floating { .. }, BaseTypeKind::Floating { .. }) => true,
+
+            _ => false,
+        }
+    }
+
     fn can_transmute_weakly(&self, into: Self) -> bool {
         self.can_transmute(into)
     }
