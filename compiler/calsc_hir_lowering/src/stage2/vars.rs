@@ -6,7 +6,9 @@ use calsc_ast::{
 };
 use calsc_diagnostics::{
     DiagPossible, DiagResult,
-    diags::errors::{build_expected_mutable, build_internal_hir_node_leaked},
+    diags::errors::{
+        build_expected_mutable, build_expected_mutable_reference, build_internal_hir_node_leaked,
+    },
 };
 use calsc_hir::{
     HIRContext,
@@ -202,11 +204,17 @@ pub fn lower_ast_variable_assign(
             )?
             .push(ctx);
 
-        if !ctx
-            .nodes
-            .get(&variable)
-            .represents_mutable_variable(ctx, curr_ctx.clone(), &node)?
-        {
+        if !variable_ref.represents_mutable_variable(ctx, curr_ctx.clone(), &node)? {
+            if let HIRNodeKind::PointerDereference(inner) = variable_ref.kind.clone() {
+                return Err(build_expected_mutable_reference(
+                    &ctx.nodes
+                        .get(&inner)
+                        .get_type(curr_ctx, ctx, Some(file_ctx))?,
+                    &node,
+                )
+                .into());
+            }
+
             return Err(build_expected_mutable(&variable_ref).into());
         }
 
