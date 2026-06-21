@@ -40,5 +40,10 @@ pub fn apply_prelude_to_module_tree_lowering() {
             ModulePath::new_module_tree_prelude_path(vec!["char".into()]),
             BaseType::new(BaseTypeKind::Char),
         );
+
+        cache.type_storage.map.insert(
+            ModulePath::new_module_tree_prelude_path(vec!["size".into()]),
+            BaseType::new(BaseTypeKind::Size),
+        )
     });
 }

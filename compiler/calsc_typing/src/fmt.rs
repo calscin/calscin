@@ -13,6 +13,7 @@ impl Display for BaseTypeKind {
             Self::Boolean => "bool",
             Self::Char => "char",
             Self::String => "str",
+            Self::Size => "size",
             Self::Floating { signed } => {
                 if *signed {
                     "f"

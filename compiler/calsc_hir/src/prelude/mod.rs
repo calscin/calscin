@@ -26,6 +26,8 @@ pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K)
     let string_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::String));
     let char_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::Char));
 
+    let size_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::Size));
+
     scope.append(
         GlobalContextKey::new("bool".into()),
         bool_type,
@@ -70,6 +72,13 @@ pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K)
     scope.append(
         GlobalContextKey::new("char".into()).module_path(module_path.clone()),
         char_type,
+        Visibility::Uncopiable,
+        origin,
+    )?;
+
+    scope.append(
+        GlobalContextKey::new("size".into()).module_path(module_path.clone()),
+        size_type,
         Visibility::Uncopiable,
         origin,
     )?;
