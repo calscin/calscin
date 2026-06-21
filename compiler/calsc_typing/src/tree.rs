@@ -312,6 +312,14 @@ impl TransmutableType for Type {
                 },
             ) => !*mutable, // The !mutable == !inner_mutable case is handled by transmutation
 
+            (
+                Self::Base(instance),
+                Self::Pointer {
+                    mutable: _,
+                    inner: _,
+                },
+            ) => instance.ty.kind.is_size(),
+
             (Self::Base(instance), Self::Base(into_instance)) => instance.can_cast(into_instance),
 
             _ => false,
