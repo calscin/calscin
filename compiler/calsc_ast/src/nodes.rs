@@ -38,7 +38,7 @@ pub enum ASTNodeKind {
     /// The inverse condition representation (eg: !testS)
     InverseCondition(ArenaHandle),
 
-    PointerReference(ArenaHandle),
+    PointerReference(ArenaHandle, bool),
     PointerDereference(ArenaHandle),
 
     /// [start.end] -> incr

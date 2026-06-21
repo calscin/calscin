@@ -68,8 +68,6 @@ pub fn lower_ast_variable_declaration(
     {
         let var_type = lower_ast_type(var_type, &node, None, file_ctx, ctx)?;
 
-        validate_type_for_storage(&var_type, &node)?;
-
         let id = ctx.scope.mutate_entry(
             curr_ctx.clone().unwrap(),
             |entry| {

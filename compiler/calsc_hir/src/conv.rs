@@ -91,7 +91,7 @@ impl HIRNode {
             weakly_transmute(other_node.unwrap(), self_type.clone(), ctx);
         }
 
-        return Err(build_expected_type_error(&self_type, &ty, self).into());
+        return Err(build_expected_type_error(&ty, &self_type, self).into());
     }
 }
 

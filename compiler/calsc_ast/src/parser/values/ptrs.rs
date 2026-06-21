@@ -1,6 +1,6 @@
 use crate::ASTContext;
 use calsc_diagnostics::DiagResult;
-use calsc_lexer::toks::Token;
+use calsc_lexer::toks::{Token, TokenKind};
 use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::{
@@ -18,11 +18,21 @@ pub fn parse_ast_pointer_reference(
 
     *ind += 1; // &
 
+    let mutable = match tokens[*ind].kind {
+        TokenKind::Mut => {
+            *ind += 1; // mut
+
+            true
+        }
+
+        _ => false,
+    };
+
     let value = parse_ast_value(tokens, ind, false, false, true, ctx)?; // Doesn't allow post
 
     let end = tokens[*ind - 1].end.clone();
 
-    let node = ASTNode::new(ASTNodeKind::PointerReference(value), start, end);
+    let node = ASTNode::new(ASTNodeKind::PointerReference(value, mutable), start, end);
 
     Ok(node.push(ctx))
 }

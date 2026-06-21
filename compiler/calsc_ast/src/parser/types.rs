@@ -108,7 +108,17 @@ pub(crate) fn parse_type_step(
         TokenKind::And => {
             *ind += 1; // &
 
-            SimpleASTType::Reference(true)
+            let mutable = match tokens[*ind].kind {
+                TokenKind::Mut => {
+                    *ind += 1; // mut
+
+                    true
+                }
+
+                _ => false,
+            };
+
+            SimpleASTType::Reference(mutable)
         }
         TokenKind::BracketOpen => {
             *ind += 1; // [
