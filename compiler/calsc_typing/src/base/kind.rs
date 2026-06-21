@@ -30,6 +30,9 @@ pub enum BaseTypeKind {
 
     /// A boolean type
     Boolean,
+
+    /// A size type. Represents a size for something or a pointer
+    Size,
 }
 
 impl BaseTypeKind {
@@ -76,6 +79,7 @@ impl BaseTypeKind {
             Self::Boolean => "bool",
             Self::Char => "char",
             Self::String => "str",
+            Self::Size => "size",
             Self::Floating { signed } => {
                 if *signed {
                     "f"
