@@ -8,7 +8,7 @@ use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     builders::{
         build_bit_cast, build_float_change_size, build_float_to_int, build_int_change_size,
-        build_int_to_float,
+        build_int_to_float, build_int_to_ptr,
     },
     module::Module,
     values::{BaseSSAValue, ValueType, float::SSAFloatValue, int::SSAIntValue},
@@ -49,6 +49,8 @@ pub fn lower_hir_cast(
         return Ok(val); // Handles pointer -> reference & reference -> pointer cases for example
     }
 
+    println!("Cast {} -> {}", val.value_type, into);
+
     if let ValueType::Int(_, _) = val.value_type.clone() {
         let val =
             SSAIntValue::try_from(val.clone()).convert(node.start.clone(), node.end.clone())?;
@@ -62,6 +64,12 @@ pub fn lower_hir_cast(
 
             ValueType::Int(_, _) => {
                 return Ok(build_int_change_size(module, val, into)
+                    .convert(node.start.clone(), node.end.clone())?
+                    .into());
+            }
+
+            ValueType::Pointer(_) => {
+                return Ok(build_int_to_ptr(module, val, into)
                     .convert(node.start.clone(), node.end.clone())?
                     .into());
             }
