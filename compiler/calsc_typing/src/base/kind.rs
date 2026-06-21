@@ -59,6 +59,13 @@ impl BaseTypeKind {
         }
     }
 
+    pub fn is_size(&self) -> bool {
+        match self {
+            Self::Size => true,
+            _ => false,
+        }
+    }
+
     pub fn is_numerical_lit(&self) -> bool {
         match self {
             Self::Integer { .. } | Self::Floating { .. } => true,
@@ -180,6 +187,14 @@ impl TransmutableType for BaseTypeKind {
     }
 
     fn can_transmute_weakly(&self, into: Self) -> bool {
-        self.can_transmute(into)
+        if self.can_transmute(into.clone()) {
+            return true;
+        }
+
+        match (self, into) {
+            (BaseTypeKind::Integer { .. }, BaseTypeKind::Size) => true,
+
+            _ => false,
+        }
     }
 }

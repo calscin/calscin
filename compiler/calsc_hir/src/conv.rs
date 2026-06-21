@@ -178,7 +178,7 @@ pub fn weakly_transmute(curr_node: ArenaHandle, ty: Type, ctx: &mut HIRContext) 
         HIRNodeKind::IntLiteral(_, _, _) => {
             let base = ty.as_base();
 
-            if !base.ty.kind.is_int() {
+            if !base.ty.kind.is_int() && !base.ty.kind.is_size() {
                 panic!()
             }
 
