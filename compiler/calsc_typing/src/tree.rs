@@ -248,6 +248,22 @@ impl TransmutableType for Type {
                 },
             ) => *mutable == into_mutable && inner.can_transmute(*inner2),
 
+            (
+                Self::Pointer { mutable, inner: _ },
+                Self::Pointer {
+                    mutable: into_mutable,
+                    inner: _,
+                },
+            ) => *mutable == into_mutable || !into_mutable,
+
+            (
+                Self::Reference { mutable, inner: _ },
+                Self::Pointer {
+                    mutable: into_mutable,
+                    inner: _,
+                },
+            ) => *mutable == into_mutable || !into_mutable,
+
             (Self::Base(base), Self::Base(into_base)) => base.can_transmute(into_base),
 
             _ => false,
@@ -279,6 +295,22 @@ impl TransmutableType for Type {
                     inner: into_inner,
                 },
             ) => *mutable == into_mutable && inner.can_cast(*into_inner),
+
+            (
+                Self::Pointer { mutable, inner },
+                Self::Reference {
+                    mutable: into_mutable,
+                    inner: into_inner,
+                },
+            ) => *mutable == into_mutable && *inner == into_inner,
+
+            (
+                Self::Pointer { mutable, inner: _ },
+                Self::Pointer {
+                    mutable: _,
+                    inner: _,
+                },
+            ) => !*mutable, // The !mutable == !inner_mutable case is handled by transmutation
 
             (Self::Base(instance), Self::Base(into_instance)) => instance.can_cast(into_instance),
 
