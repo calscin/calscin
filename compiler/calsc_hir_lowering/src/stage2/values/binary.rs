@@ -68,14 +68,16 @@ pub fn lower_ast_binary_expression(
                 left_expr_type.clone(),
                 right_expr.clone(),
                 Some(left_expr.clone()),
-                local_ctx,
+                local_ctx.clone(),
                 ctx,
                 file_ctx,
             )?
             .push(ctx);
 
         if let BinaryOperator::Math(operator) = operator {
-            if operator.assigns && !left_expr_ref.represents_mutable_variable(ctx) {
+            if operator.assigns
+                && !left_expr_ref.represents_mutable_variable(ctx, local_ctx, &node)?
+            {
                 return Err(build_expected_mutable(&left_expr_ref).into());
             }
 

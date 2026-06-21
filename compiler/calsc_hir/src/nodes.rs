@@ -4,7 +4,6 @@ use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
-    result::CalscinResult,
     span::{Span, SpanKind},
 };
 use calsc_typing::{FieldHavingType, tree::Type};

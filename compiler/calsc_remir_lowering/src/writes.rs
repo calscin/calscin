@@ -121,7 +121,11 @@ pub fn lower_hir_pointer_writable(
     let node_ref = ctx.nodes.get(&node);
 
     if let HIRNodeKind::PointerDereference(inner) = node_ref.kind.clone() {
-        if !node_ref.represents_mutable_variable(ctx) {
+        if !node_ref.represents_mutable_variable(
+            ctx,
+            Some(local_ctx.local_key.clone()),
+            node_ref,
+        )? {
             return Err(build_expected_mutable(node_ref).into());
         }
 

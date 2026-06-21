@@ -13,7 +13,6 @@ use calsc_hir::{
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    types::validate_type_for_storage,
 };
 use calsc_utils::alloc::arena::ArenaHandle;
 
@@ -77,6 +76,7 @@ pub fn lower_ast_variable_declaration(
                         local_ctx.introduce_variable(
                             name.clone(),
                             var_type.clone(),
+                            mutable,
                             value.is_some(),
                             &node,
                         )
@@ -202,7 +202,11 @@ pub fn lower_ast_variable_assign(
             )?
             .push(ctx);
 
-        if !ctx.nodes.get(&variable).represents_mutable_variable(ctx) {
+        if !ctx
+            .nodes
+            .get(&variable)
+            .represents_mutable_variable(ctx, curr_ctx.clone(), &node)?
+        {
             return Err(build_expected_mutable(&variable_ref).into());
         }
 
