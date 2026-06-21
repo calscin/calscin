@@ -1,8 +1,6 @@
 use calsc_diagnostics::{
     DiagPossible, DiagResult,
-    diags::errors::{
-        build_expected_mutable, build_expected_mutable_reference, build_internal_hir_node_leaked,
-    },
+    diags::errors::{build_expected_mutable_reference, build_internal_hir_node_leaked},
 };
 use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
 use calsc_utils::alloc::arena::ArenaHandle;
@@ -139,7 +137,8 @@ pub fn lower_hir_pointer_writable(
             return Err(build_expected_mutable_reference(&ty, node_ref).into());
         }
 
-        let inner = lower_hir_readable_pointer(inner, local_ctx, module, ctx)?;
+        let inner = SSAPointerValue::try_from(lower_hir_value(inner, local_ctx, module, ctx)?)
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         build_store(module, inner, write_into).convert(node_ref.start.clone(), node_ref.end.clone())
     } else {
