@@ -264,6 +264,14 @@ impl TransmutableType for Type {
                 },
             ) => *mutable == into_mutable || !into_mutable,
 
+            (
+                Self::Base(instance),
+                Self::Pointer {
+                    mutable: _,
+                    inner: _,
+                },
+            ) => instance.ty.kind.is_size(),
+
             (Self::Base(base), Self::Base(into_base)) => base.can_transmute(into_base),
 
             _ => false,
@@ -311,14 +319,6 @@ impl TransmutableType for Type {
                     inner: _,
                 },
             ) => !*mutable, // The !mutable == !inner_mutable case is handled by transmutation
-
-            (
-                Self::Base(instance),
-                Self::Pointer {
-                    mutable: _,
-                    inner: _,
-                },
-            ) => instance.ty.kind.is_size(),
 
             (Self::Base(instance), Self::Base(into_instance)) => instance.can_cast(into_instance),
 
