@@ -169,14 +169,14 @@ impl TransmutableType for BaseTypeKind {
                 BaseTypeKind::Floating {
                     signed: into_signed,
                 },
-            ) => *signed == into_signed,
+            ) => true,
 
             (
                 BaseTypeKind::Floating { signed },
                 BaseTypeKind::Integer {
                     signed: into_signed,
                 },
-            ) => *signed == into_signed,
+            ) => true,
 
             (BaseTypeKind::Integer { .. }, BaseTypeKind::Integer { .. }) => true,
             (BaseTypeKind::Floating { .. }, BaseTypeKind::Floating { .. }) => true,

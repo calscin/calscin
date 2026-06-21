@@ -519,3 +519,17 @@ pub fn build_type_cast_failed<S: DiagnosticSource, T: Display>(
         vec![],
     )
 }
+
+pub fn build_type_cast_failed_no_from<S: DiagnosticSource, T: Display>(
+    into: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::TypeCastFailed as usize),
+        format!("type casting into {} failed!", into),
+        None,
+        vec![],
+        vec![],
+        vec![],
+    )
+}
