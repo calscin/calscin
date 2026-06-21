@@ -335,6 +335,12 @@ impl HIRNode {
                 ),
             },
 
+            HIRNodeKind::CastNode {
+                original: _,
+                into,
+                explicit_cast: _,
+            } => into.clone(),
+
             _ => Type::Void,
         };
 
