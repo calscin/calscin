@@ -411,10 +411,11 @@ impl HIRNode {
                 .get(val)
                 .represents_mutable_variable(ctx, local_func_key, source),
 
-            HIRNodeKind::PointerDereference(inner) => ctx
-                .nodes
-                .get(inner)
-                .represents_mutable_variable(ctx, local_func_key, source),
+            HIRNodeKind::PointerDereference(inner) => {
+                let ty = ctx.nodes.get(inner).get_type(local_func_key, ctx, None)?;
+
+                Ok(ty.is_type_mutable_compatible())
+            }
 
             HIRNodeKind::PointerReference(inner, mutable) => Ok(*mutable
                 && ctx.nodes.get(inner).represents_mutable_variable(
