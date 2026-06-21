@@ -32,6 +32,10 @@ pub fn lower_type(ty: Type) -> DiagResult<ValueType> {
             Ok(ValueType::Pointer(Box::new(lower_type(*inner)?)))
         }
 
+        Type::Pointer { mutable: _, inner } => {
+            Ok(ValueType::Reference(Box::new(lower_type(*inner)?)))
+        }
+
         Type::Array { size, inner } => Ok(ValueType::Array(Box::new(lower_type(*inner)?), size)),
 
         Type::TypeParameter { name, param_ind } => panic!(
