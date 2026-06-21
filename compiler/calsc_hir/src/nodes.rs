@@ -4,6 +4,7 @@ use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
+    result::CalscinResult,
     span::{Span, SpanKind},
 };
 use calsc_typing::{FieldHavingType, tree::Type};
@@ -376,33 +377,63 @@ impl HIRNode {
     }
 
     /// Does the node represent a mutable variable-like
-    pub fn represents_mutable_variable(&self, ctx: &HIRContext) -> bool {
-        println!("{:#?}", self);
-
+    pub fn represents_mutable_variable<S: DiagnosticSource>(
+        &self,
+        ctx: &HIRContext,
+        local_func_key: Option<GlobalContextKey>,
+        source: &S,
+    ) -> DiagResult<bool> {
         match &self.kind {
-            HIRNodeKind::VariableReference { .. } => true,
+            HIRNodeKind::VariableReference {
+                variable_index,
+                name: _,
+            } => {
+                if local_func_key.is_none() {
+                    return Ok(false); // Handles static variables potentially
+                }
+
+                let local_ctx = ctx
+                    .scope
+                    .get_entry_no_visibility(local_func_key.unwrap(), source)?
+                    .as_function(source)?
+                    .local_context
+                    .as_ref()
+                    .unwrap();
+
+                Ok(local_ctx.variables[*variable_index].mutable)
+            }
 
             HIRNodeKind::FieldReference {
                 val,
                 field_ind: _,
                 name: _,
-            } => ctx.nodes.get(val).represents_mutable_variable(ctx),
+            } => ctx
+                .nodes
+                .get(val)
+                .represents_mutable_variable(ctx, local_func_key, source),
 
-            HIRNodeKind::PointerDereference(inner) => {
-                ctx.nodes.get(inner).represents_mutable_variable(ctx)
-            }
+            HIRNodeKind::PointerDereference(inner) => ctx
+                .nodes
+                .get(inner)
+                .represents_mutable_variable(ctx, local_func_key, source),
 
-            HIRNodeKind::PointerReference(inner, mutable) => {
-                *mutable && ctx.nodes.get(inner).represents_mutable_variable(ctx)
-            }
+            HIRNodeKind::PointerReference(inner, mutable) => Ok(*mutable
+                && ctx.nodes.get(inner).represents_mutable_variable(
+                    ctx,
+                    local_func_key,
+                    source,
+                )?),
 
             HIRNodeKind::IndexUsage {
                 val,
                 index: _,
                 output_type: _,
-            } => ctx.nodes.get(val).represents_mutable_variable(ctx),
+            } => ctx
+                .nodes
+                .get(val)
+                .represents_mutable_variable(ctx, local_func_key, source),
 
-            _ => false,
+            _ => Ok(false),
         }
     }
 

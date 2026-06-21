@@ -6,7 +6,7 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
         build_expected_type_error, build_internal_hir_node_leaked, build_missing_field,
-        build_type_cast_failed, build_type_cast_failed_no_from, build_unexpected_type_error,
+        build_type_cast_failed_no_from, build_unexpected_type_error,
     },
 };
 use calsc_typing::{

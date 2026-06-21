@@ -6,6 +6,7 @@ use calsc_typing::tree::Type;
 #[derive(Clone)] // For MIR
 pub struct LocalContextVariable {
     pub introduced: usize,
+    pub mutable: bool,
 
     pub ty: Type,
 
@@ -19,8 +20,9 @@ pub struct LocalContextVariable {
 }
 
 impl LocalContextVariable {
-    pub fn new(ty: Type, introduced: usize, has_default: bool) -> Self {
+    pub fn new(ty: Type, introduced: usize, mutable: bool, has_default: bool) -> Self {
         Self {
+            mutable,
             introduced,
             ty,
             has_default,
