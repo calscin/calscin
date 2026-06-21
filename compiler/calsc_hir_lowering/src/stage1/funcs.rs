@@ -62,7 +62,7 @@ pub fn lower_ast_function_decl_first_stage(
         for argument in arguments {
             let ty = lower_ast_type(argument.0, &node, target.clone(), file_ctx, ctx)?;
 
-            local_ctx.introduce_variable(argument.1.clone(), ty.clone(), true, &node)?;
+            local_ctx.introduce_variable(argument.1.clone(), ty.clone(), false, true, &node)?;
             args.push((argument.1, ty));
         }
 

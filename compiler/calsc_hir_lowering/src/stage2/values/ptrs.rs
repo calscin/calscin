@@ -87,7 +87,9 @@ pub fn lower_ast_pointer_dereference(
             ast_ctx,
         )?;
 
-        if !ctx.nodes.get(&val).represents_pointer_referencable(ctx) {
+        let val_ref = ctx.nodes.get(&val);
+
+        if !val_ref.represents_pointer_referencable(ctx) {
             return Err(build_expected_referencable(&node).into());
         }
 

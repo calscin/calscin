@@ -177,6 +177,7 @@ pub fn lower_ast_for_loop(
                                 iterator_name.clone(),
                                 iterator_type.clone(),
                                 true,
+                                true,
                                 &node,
                             )
                     },

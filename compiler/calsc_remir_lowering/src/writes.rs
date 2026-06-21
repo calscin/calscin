@@ -1,6 +1,6 @@
 use calsc_diagnostics::{
     DiagPossible, DiagResult,
-    diags::errors::{build_expected_mutable, build_internal_hir_node_leaked},
+    diags::errors::{build_expected_mutable_reference, build_internal_hir_node_leaked},
 };
 use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
 use calsc_utils::alloc::arena::ArenaHandle;
@@ -121,11 +121,24 @@ pub fn lower_hir_pointer_writable(
     let node_ref = ctx.nodes.get(&node);
 
     if let HIRNodeKind::PointerDereference(inner) = node_ref.kind.clone() {
-        if !node_ref.represents_mutable_variable(ctx) {
-            return Err(build_expected_mutable(node_ref).into());
+        //if !node_ref.represents_mutable_variable(
+        // ctx,
+        // Some(local_ctx.local_key.clone()),
+        //node_ref,
+        //)? {
+        //return Err(build_expected_mutable(node_ref).into());
+        //}
+        //
+
+        let inner_ref = ctx.nodes.get(&inner);
+        let ty = inner_ref.get_type(Some(local_ctx.local_key.clone()), ctx, None)?;
+
+        if !ty.is_type_mutable_compatible() {
+            return Err(build_expected_mutable_reference(&ty, node_ref).into());
         }
 
-        let inner = lower_hir_readable_pointer(inner, local_ctx, module, ctx)?;
+        let inner = SSAPointerValue::try_from(lower_hir_value(inner, local_ctx, module, ctx)?)
+            .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         build_store(module, inner, write_into).convert(node_ref.start.clone(), node_ref.end.clone())
     } else {

@@ -151,6 +151,15 @@ impl Type {
             Self::Void => false,
         }
     }
+
+    /// Checks if the type is compatible for mutations.
+    /// This mostly concerns the reference type that might be immutable or immutable.
+    pub fn is_type_mutable_compatible(&self) -> bool {
+        match self {
+            Self::Reference { mutable, inner: _ } => *mutable,
+            _ => false,
+        }
+    }
 }
 
 impl FieldHavingType for Type {

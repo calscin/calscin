@@ -44,7 +44,7 @@ fn test_alive_variable() {
     let branch = ctx.start_branch();
 
     let var = ctx
-        .introduce_variable("test".into(), sample_type.clone(), false, &origin)
+        .introduce_variable("test".into(), sample_type.clone(), false, false, &origin)
         .unwrap_cleanly();
 
     assert!(ctx.is_variable_alive(var));
@@ -70,7 +70,7 @@ fn test_alive_variable_next_branch() {
     let branch = ctx.start_branch();
 
     let var = ctx
-        .introduce_variable_next_branch("test".into(), sample_type.clone(), false, &origin)
+        .introduce_variable_next_branch("test".into(), sample_type.clone(), false, false, &origin)
         .unwrap_cleanly();
 
     assert!(!ctx.is_variable_alive(var));
@@ -101,7 +101,7 @@ fn test_variable_gather() {
     let _ = ctx.start_branch();
 
     let var = ctx
-        .introduce_variable("test".into(), sample_type.clone(), false, &origin)
+        .introduce_variable("test".into(), sample_type.clone(), false, false, &origin)
         .unwrap_cleanly();
 
     ctx.introduce_variable_assign("test".into());

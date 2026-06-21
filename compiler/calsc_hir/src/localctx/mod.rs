@@ -114,6 +114,7 @@ impl LocalContext {
         &mut self,
         key: HashedString,
         t: Type,
+        mutable: bool,
         has_default: bool,
         branch: usize,
         origin: &K,
@@ -122,8 +123,7 @@ impl LocalContext {
             return Err(build_already_in_scope(&*key, origin).into());
         }
 
-        let var = LocalContextVariable::new(t, branch, has_default);
-
+        let var = LocalContextVariable::new(t, branch, mutable, has_default);
         let ind = self.variables.len();
         self.variables.push(var);
 
@@ -140,10 +140,11 @@ impl LocalContext {
         &mut self,
         key: HashedString,
         t: Type,
+        mutable: bool,
         has_default: bool,
         origin: &K,
     ) -> DiagResult<usize> {
-        self.introduce_variable_in_branch(key, t, has_default, self.current_branch, origin)
+        self.introduce_variable_in_branch(key, t, mutable, has_default, self.current_branch, origin)
     }
 
     /// Introduces a variable in the next branch
@@ -155,10 +156,18 @@ impl LocalContext {
         &mut self,
         key: HashedString,
         t: Type,
+        mutable: bool,
         has_default: bool,
         origin: &K,
     ) -> DiagResult<usize> {
-        self.introduce_variable_in_branch(key, t, has_default, self.current_branch + 1, origin)
+        self.introduce_variable_in_branch(
+            key,
+            t,
+            mutable,
+            has_default,
+            self.current_branch + 1,
+            origin,
+        )
     }
 
     pub fn introduce_variable_assign(&mut self, key: HashedString) {

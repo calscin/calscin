@@ -32,6 +32,7 @@ enum ErrorCode {
     InfiniteSize,
     TypeNotStatic,
     TypeCastFailed,
+    ExpectedMutableReference,
 
     // HIR local context
     AlreadyInScope,
@@ -531,5 +532,19 @@ pub fn build_type_cast_failed_no_from<S: DiagnosticSource, T: Display>(
         vec![],
         vec![],
         vec![],
+    )
+}
+
+pub fn build_expected_mutable_reference<S: DiagnosticSource, T: Display>(
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedMutableReference as usize),
+        format!("expected a mutable referencable object but got {}", ty),
+        None,
+        vec![],
+        vec!["make sure this reference is mutable".into()],
+        vec!["this errors means that the type you used cannot be used to perform mutable operations (eg: immutable reference)".to_string()],
     )
 }
