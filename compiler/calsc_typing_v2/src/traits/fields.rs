@@ -1,0 +1,60 @@
+//! Traits related to types
+
+use calsc_diagnostics::{
+    DiagPossible, DiagResult, DiagnosticSource,
+    diags::errors::{build_expected_field_type, build_missing_field},
+};
+use calsc_utils::hash::HashedString;
+
+use crate::types::TypeKind;
+
+/// A type that contains fields.
+pub trait FieldedType {
+    /// Determines if the type has the field with the given name.
+    fn has_field(&self, name: &HashedString) -> bool;
+
+    /// Gets the field type corresponding to the file with the given name.
+    ///
+    /// # Panics
+    /// This function will panic if the field doesn't exist, this is why it is unsafe. Consider using [`FieldedType::get_field_safe`] instead.
+    ///
+    unsafe fn get_field(&self, field: &HashedString) -> TypeKind;
+
+    /// Safely gets the type of a field.
+    ///
+    /// # Errors
+    /// This function will error if the type is not found.
+    ///
+    fn get_field_safe<S: DiagnosticSource>(
+        &self,
+        field: &HashedString,
+        source: &S,
+    ) -> DiagResult<TypeKind> {
+        if !self.has_field(field) {
+            return Err(build_missing_field(field, source).into());
+        }
+
+        unsafe { Ok(self.get_field(field)) }
+    }
+
+    /// Enforces a field to exist with the given type.
+    ///
+    /// # Errors
+    /// This function will error if the field doesn't eixst.
+    /// This function will error if the field isn't of the given type
+    ///
+    fn enforce_field<S: DiagnosticSource>(
+        &self,
+        field: &HashedString,
+        ty: &TypeKind,
+        source: &S,
+    ) -> DiagPossible {
+        let self_ty = self.get_field_safe(field, source)?;
+
+        if self_ty != *ty {
+            return Err(build_expected_field_type(field, ty, &self_ty, source).into());
+        }
+
+        Ok(())
+    }
+}

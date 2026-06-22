@@ -25,6 +25,7 @@ pub struct MutationState(pub bool);
 pub struct SizeParameter(pub usize);
 
 /// The kind of type. Represents types. Uses the arena allocator to contain inner types
+#[derive(PartialEq)]
 pub enum TypeKind {
     /// Represents a reference.
     ///

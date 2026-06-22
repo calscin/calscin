@@ -1,5 +1,5 @@
 //! Definitions for primitive types. Primitive types are the root of types and represent the actual concrete type.
-
+#[derive(PartialEq)]
 pub enum PrimitiveType {
     /// Represents an integer type with a given signed state.
     Int(bool),

@@ -596,3 +596,22 @@ pub fn build_type_already_has_field<S: DiagnosticSource, F: Display>(
         vec![format!("remove the second declaration for field {}", field)],
     )
 }
+
+pub fn build_expected_field_type<S: DiagnosticSource, F: Display, T: Display>(
+    field: &F,
+    expected: &T,
+    got: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedType as usize),
+        format!(
+            "expected {} field to be {} but field is {}",
+            field, expected, got
+        ),
+        Some(format!("expectation for field {} made here", field)),
+        vec![],
+        vec![],
+        vec![],
+    )
+}
