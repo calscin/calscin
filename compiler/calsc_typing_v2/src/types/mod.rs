@@ -2,11 +2,21 @@
 
 use calsc_utils::alloc::arena::ArenaHandle;
 
+use crate::types::primitive::PrimitiveType;
+
+pub mod primitive;
+
 /// The state of mutation of a type.
 /// A false value represents that the type is immutable.
 /// A true value represents that the type is mutable.
 #[derive(PartialEq, Eq, Hash)]
 pub struct MutationState(pub bool);
+
+/// The state of mutation of a type.
+/// A value of 0 represents that the size parameter is inactive
+/// A value of >= 1 represents the size of the size parameter.
+#[derive(PartialEq, Eq, Hash)]
+pub struct SizeParameter(pub usize);
 
 /// The kind of type. Represents types. Uses the arena allocator to contain inner types
 pub enum TypeKind {
@@ -41,4 +51,7 @@ pub enum TypeKind {
     ///
     /// The handle represents a [`TypeKind`]
     Segment(ArenaHandle),
+
+    /// A primitive type represents a primitive type instance with a size parameter.
+    Primitive(PrimitiveType, SizeParameter),
 }
