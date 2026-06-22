@@ -1,4 +1,6 @@
 //! Definitions for primitive types. Primitive types are the root of types and represent the actual concrete type.
+
+use crate::types::structs::StructContainer;
 #[derive(PartialEq)]
 pub enum PrimitiveType {
     /// Represents an integer type with a given signed state.
@@ -12,6 +14,9 @@ pub enum PrimitiveType {
 
     /// Represents a boolean type
     Boolean,
+
+    /// Represents a struct type
+    Struct(StructContainer),
 
     /// Represents a size type
     Size,

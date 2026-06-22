@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 calsc_utils = { path = "../calsc_utils" }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
+calsc_modules = { path = "../calsc_modules"}

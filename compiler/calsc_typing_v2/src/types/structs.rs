@@ -5,6 +5,7 @@ use std::collections::HashMap;
 use calsc_diagnostics::{
     DiagPossible, DiagnosticSource, diags::errors::build_type_already_has_field,
 };
+use calsc_modules::path::ModulePath;
 use calsc_utils::hash::HashedString;
 
 use crate::types::TypeKind;
@@ -18,6 +19,14 @@ pub struct UnNamedField(pub TypeKind);
 /// A container to hold fields. This container handles both [`NamedField`] and [`UnNamedField`] fields.
 pub struct FieldContainer {
     pub(crate) fields: HashMap<HashedString, UnNamedField>,
+}
+
+/// A container that holds information about a struct
+pub struct StructContainer {
+    pub name: HashedString,
+    pub module: ModulePath,
+
+    pub fields: FieldContainer,
 }
 
 impl FieldContainer {
@@ -55,5 +64,11 @@ impl FieldContainer {
 impl Into<UnNamedField> for NamedField {
     fn into(self) -> UnNamedField {
         UnNamedField(self.1)
+    }
+}
+
+impl PartialEq for StructContainer {
+    fn eq(&self, other: &Self) -> bool {
+        self.name == other.name && self.module == other.module
     }
 }
