@@ -166,6 +166,6 @@ impl TransmutableType for BaseType {
     }
 
     fn can_transmute_weakly(&self, into: Self) -> bool {
-        self.can_transmute(into)
+        self.kind.can_transmute_weakly(into.kind)
     }
 }

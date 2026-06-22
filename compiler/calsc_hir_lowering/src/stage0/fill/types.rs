@@ -73,6 +73,11 @@ pub fn lower_ast_type(
             inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
         },
 
+        ASTType::Pointer(mutable, inner) => LazyLoadedType::Pointer {
+            mutable,
+            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
+        },
+
         ASTType::Generic(path, size_specifier, type_parameters) => {
             let mut size_specifiers = vec![];
             let mut type_params = vec![];

@@ -83,6 +83,11 @@ pub fn lower_type<S: DiagnosticSource>(
             inner: Box::new(lower_type(*inner, tree, hir_file_ctx, source)?),
         }),
 
+        ASTType::Pointer(mutable, inner) => Ok(Type::Pointer {
+            mutable,
+            inner: Box::new(lower_type(*inner, tree, hir_file_ctx, source)?),
+        }),
+
         ASTType::Generic(name, size_specs, type_parameters) => {
             let mut lowered_type_params = vec![];
             let mut size_specifiers = vec![];

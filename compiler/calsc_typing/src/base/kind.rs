@@ -30,6 +30,9 @@ pub enum BaseTypeKind {
 
     /// A boolean type
     Boolean,
+
+    /// A size type. Represents a size for something or a pointer
+    Size,
 }
 
 impl BaseTypeKind {
@@ -56,6 +59,13 @@ impl BaseTypeKind {
         }
     }
 
+    pub fn is_size(&self) -> bool {
+        match self {
+            Self::Size => true,
+            _ => false,
+        }
+    }
+
     pub fn is_numerical_lit(&self) -> bool {
         match self {
             Self::Integer { .. } | Self::Floating { .. } => true,
@@ -76,6 +86,7 @@ impl BaseTypeKind {
             Self::Boolean => "bool",
             Self::Char => "char",
             Self::String => "str",
+            Self::Size => "size",
             Self::Floating { signed } => {
                 if *signed {
                     "f"
@@ -164,19 +175,9 @@ impl TransmutableType for BaseTypeKind {
         }
 
         match (self, into) {
-            (
-                BaseTypeKind::Integer { signed },
-                BaseTypeKind::Floating {
-                    signed: into_signed,
-                },
-            ) => true,
+            (BaseTypeKind::Integer { signed: _ }, BaseTypeKind::Floating { signed: _ }) => true,
 
-            (
-                BaseTypeKind::Floating { signed },
-                BaseTypeKind::Integer {
-                    signed: into_signed,
-                },
-            ) => true,
+            (BaseTypeKind::Floating { signed: _ }, BaseTypeKind::Integer { signed: _ }) => true,
 
             (BaseTypeKind::Integer { .. }, BaseTypeKind::Integer { .. }) => true,
             (BaseTypeKind::Floating { .. }, BaseTypeKind::Floating { .. }) => true,
@@ -186,6 +187,14 @@ impl TransmutableType for BaseTypeKind {
     }
 
     fn can_transmute_weakly(&self, into: Self) -> bool {
-        self.can_transmute(into)
+        if self.can_transmute(into.clone()) {
+            return true;
+        }
+
+        match (self, into) {
+            (BaseTypeKind::Integer { .. }, BaseTypeKind::Size) => true,
+
+            _ => false,
+        }
     }
 }
