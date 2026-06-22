@@ -2,14 +2,17 @@
 
 use std::path::PathBuf;
 
-use calsc_diagnostics::{DiagPossible, PosDiagnosticSource};
+use calsc_diagnostics::{DiagPossible, PosDiagnosticSource, file::FileDiagnosticPos};
 use calsc_hir::HIRContext;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
-use remir_llvm::{LLVMBridge, compile_llvm};
+use remir_llvm::{LLVMBridge, build_llvm, compile_llvm};
 
-use crate::funcs::{lower_hir_function_decl, lower_hir_function_decl_none};
+use crate::{
+    funcs::{lower_hir_function_decl, lower_hir_function_decl_none},
+    result::CalscinRemirResult,
+};
 
 pub mod body;
 pub mod control;
@@ -62,10 +65,12 @@ pub fn lower_hir_context(ctx: HIRContext, module: &mut Module) -> DiagPossible {
 pub fn compile_file(
     ctx: HIRContext,
     out: PathBuf,
+    file_in: PathBuf,
     module_name: String,
     target: BuildTargetMode,
 ) -> DiagPossible {
     let mut module = Module::new(module_name.clone());
+    let file_source = FileDiagnosticPos::new(file_in);
 
     lower_hir_context(ctx, &mut module)?;
 
@@ -77,13 +82,22 @@ pub fn compile_file(
 
     let mut bridge = LLVMBridge::new();
 
+    if !target.requires_object_files() {
+        build_llvm(&mut bridge, &mut module)?;
+
+        bridge.modules[&module_name].print_to_file(out).unwrap();
+
+        return Ok(());
+    }
+
     compile_llvm(
         &mut bridge,
         &mut module,
         remir::OptimizationLevel::Default,
         out,
         GLOBAL_STATE.with_borrow(|state| state.build.use_pie),
-    )?;
+    )
+    .convert_source(&file_source)?;
 
     Ok(())
 }

@@ -13,6 +13,7 @@ pub fn lower_type_base(ty: BaseTypeInstance) -> DiagResult<ValueType> {
         BaseTypeKind::Integer { signed } => Ok(ValueType::Int(signed, ty.size_specifiers[0])),
         BaseTypeKind::Floating { signed: _ } => Ok(ValueType::Float(ty.size_specifiers[0])),
         BaseTypeKind::String => Ok(ValueType::new_any_pointer()),
+        BaseTypeKind::Size => Ok(ValueType::Int(false, usize::BITS as usize)), // TODO: change this with target instead of current machine
         BaseTypeKind::Struct(_) => {
             let mut type_fields = vec![];
 
@@ -29,6 +30,10 @@ pub fn lower_type(ty: Type) -> DiagResult<ValueType> {
     match ty {
         Type::Base(instance) => lower_type_base(instance),
         Type::Reference { mutable: _, inner } => {
+            Ok(ValueType::Pointer(Box::new(lower_type(*inner)?)))
+        }
+
+        Type::Pointer { mutable: _, inner } => {
             Ok(ValueType::Pointer(Box::new(lower_type(*inner)?)))
         }
 

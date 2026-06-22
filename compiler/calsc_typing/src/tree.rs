@@ -25,6 +25,9 @@ pub enum Type {
     /// Represents a reference. By default every reference is mutable. This will be changed in future releases
     Reference { mutable: bool, inner: Box<Type> },
 
+    /// An unsafe version of [`Type::Reference`]
+    Pointer { mutable: bool, inner: Box<Type> },
+
     /// Represents an array of a given size
     Array {
         size: Option<usize>,
@@ -45,6 +48,7 @@ impl Type {
         match self {
             Self::Reference { mutable: _, inner } => *inner.clone(),
             Self::Array { size: _, inner } => *inner.clone(),
+            Self::Pointer { mutable: _, inner } => *inner.clone(),
 
             _ => panic!("The type {} doesn't hold any inner type", self),
         }
@@ -89,6 +93,7 @@ impl Type {
         match self {
             Self::Array { size: _, inner } => inner.is_real(),
             Self::Reference { mutable: _, inner } => inner.is_real(),
+            Self::Pointer { mutable: _, inner } => inner.is_real(),
             Self::TypeParameter { .. } => false,
             Self::Base(_) => true,
             Self::Void => false,
@@ -146,6 +151,7 @@ impl Type {
         match self {
             Self::Base(_) => true,
             Self::Reference { .. } => false,
+            Self::Pointer { mutable: _, inner } => inner.is_static(),
             Self::Array { size: _, inner } => inner.is_static(),
             Self::TypeParameter { .. } => true,
             Self::Void => false,
@@ -157,6 +163,7 @@ impl Type {
     pub fn is_type_mutable_compatible(&self) -> bool {
         match self {
             Self::Reference { mutable, inner: _ } => *mutable,
+            Self::Pointer { mutable, inner: _ } => *mutable,
             _ => false,
         }
     }
@@ -243,6 +250,30 @@ impl TransmutableType for Type {
                 },
             ) => *mutable == into_mutable && inner.can_transmute(*inner2),
 
+            (
+                Self::Pointer { mutable, inner: _ },
+                Self::Pointer {
+                    mutable: into_mutable,
+                    inner: _,
+                },
+            ) => *mutable == into_mutable || !into_mutable,
+
+            (
+                Self::Reference { mutable, inner: _ },
+                Self::Pointer {
+                    mutable: into_mutable,
+                    inner: _,
+                },
+            ) => *mutable == into_mutable || !into_mutable,
+
+            (
+                Self::Base(instance),
+                Self::Pointer {
+                    mutable: _,
+                    inner: _,
+                },
+            ) => instance.ty.kind.is_size(),
+
             (Self::Base(base), Self::Base(into_base)) => base.can_transmute(into_base),
 
             _ => false,
@@ -274,6 +305,22 @@ impl TransmutableType for Type {
                     inner: into_inner,
                 },
             ) => *mutable == into_mutable && inner.can_cast(*into_inner),
+
+            (
+                Self::Pointer { mutable, inner },
+                Self::Reference {
+                    mutable: into_mutable,
+                    inner: into_inner,
+                },
+            ) => *mutable == into_mutable && *inner == into_inner,
+
+            (
+                Self::Pointer { mutable, inner: _ },
+                Self::Pointer {
+                    mutable: _,
+                    inner: _,
+                },
+            ) => !*mutable, // The !mutable == !inner_mutable case is handled by transmutation
 
             (Self::Base(instance), Self::Base(into_instance)) => instance.can_cast(into_instance),
 

@@ -12,7 +12,7 @@ use crate::{
 
 // Is triggered whenever the Lexer cannot parse something (eg: cannot parse literals).
 
-enum ErrorCode {
+pub enum ErrorCode {
     CannotParse,
     UnexpectedToken,
     ExpectedToken,

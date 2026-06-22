@@ -18,9 +18,15 @@ use crate::path::ElementPath;
 pub enum ASTType {
     /// Represents a reference node. The parameter represents the inner type.
     ///
-    /// # Example    
+    /// # Example
     /// `s32&` would be `Reference(false, Generic(s32))`
     Reference(bool, Box<ASTType>),
+
+    /// Represents a pointer node. The parameter represents the inner type.
+    ///
+    /// # Example
+    /// `s32*` would be `Pointer(false, Generic(s32))`
+    Pointer(bool, Box<ASTType>),
 
     /// Represents an array. The first parameter determines the array size and should be an integer literal. The second parameter is the inner type.
     ///
@@ -48,6 +54,7 @@ pub enum ASTType {
 #[cfg_attr(feature = "debug", derive(Debug))]
 pub enum SimpleASTType {
     Reference(bool),
+    Pointer(bool),
     Array(Option<usize>),
     Generic(ElementPath, Option<usize>, Vec<ASTType>),
 }
@@ -92,7 +99,17 @@ impl Display for ASTType {
                 write!(f, "{}&", inner)?;
 
                 if *mutable {
-                    write!(f, "mut")?;
+                    write!(f, " mut")?;
+                }
+
+                Ok(())
+            }
+
+            Self::Pointer(mutable, inner) => {
+                write!(f, "{}*", inner)?;
+
+                if *mutable {
+                    write!(f, " mut")?;
                 }
 
                 Ok(())
