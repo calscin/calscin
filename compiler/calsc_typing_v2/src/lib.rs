@@ -2,5 +2,6 @@
 //! This version will properly use diagnostics and arena allocation
 
 pub mod allocs;
+pub mod ctx;
 pub mod traits;
 pub mod types;

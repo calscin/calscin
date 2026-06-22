@@ -4,9 +4,9 @@ use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{build_expected_field_type, build_missing_field},
 };
-use calsc_utils::hash::HashedString;
+use calsc_utils::{display_with_to_string, hash::HashedString};
 
-use crate::types::TypeKind;
+use crate::{ctx::TypeCtx, types::TypeKind};
 
 /// A type that contains fields.
 pub trait FieldedType {
@@ -47,12 +47,19 @@ pub trait FieldedType {
         &self,
         field: &HashedString,
         ty: &TypeKind,
+        ctx: &TypeCtx,
         source: &S,
     ) -> DiagPossible {
         let self_ty = self.get_field_safe(field, source)?;
 
         if self_ty != *ty {
-            return Err(build_expected_field_type(field, ty, &self_ty, source).into());
+            return Err(build_expected_field_type(
+                field,
+                &display_with_to_string(ty, &ctx.type_kind_arena),
+                &display_with_to_string(&self_ty, &ctx.type_kind_arena),
+                source,
+            )
+            .into());
         }
 
         Ok(())
