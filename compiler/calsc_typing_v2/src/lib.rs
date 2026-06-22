@@ -1,1 +1,4 @@
+//! The renovated typing system of Calscin. Allows the handling of type parameters and more.
+//! This version will properly use diagnostics and arena allocation
 
+pub mod types;
