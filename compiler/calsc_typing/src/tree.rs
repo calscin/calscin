@@ -48,6 +48,7 @@ impl Type {
         match self {
             Self::Reference { mutable: _, inner } => *inner.clone(),
             Self::Array { size: _, inner } => *inner.clone(),
+            Self::Pointer { mutable: _, inner } => *inner.clone(),
 
             _ => panic!("The type {} doesn't hold any inner type", self),
         }
@@ -162,6 +163,7 @@ impl Type {
     pub fn is_type_mutable_compatible(&self) -> bool {
         match self {
             Self::Reference { mutable, inner: _ } => *mutable,
+            Self::Pointer { mutable, inner: _ } => *mutable,
             _ => false,
         }
     }

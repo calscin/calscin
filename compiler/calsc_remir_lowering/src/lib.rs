@@ -7,7 +7,7 @@ use calsc_hir::HIRContext;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 use calsc_utils::pos::FilePosition;
 use remir::module::Module;
-use remir_llvm::{LLVMBridge, compile_llvm};
+use remir_llvm::{LLVMBridge, build_llvm, compile_llvm};
 
 use crate::{
     funcs::{lower_hir_function_decl, lower_hir_function_decl_none},
@@ -81,6 +81,14 @@ pub fn compile_file(
     }
 
     let mut bridge = LLVMBridge::new();
+
+    if !target.requires_object_files() {
+        build_llvm(&mut bridge, &mut module)?;
+
+        bridge.modules[&module_name].print_to_file(out).unwrap();
+
+        return Ok(());
+    }
 
     compile_llvm(
         &mut bridge,

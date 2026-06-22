@@ -49,8 +49,6 @@ pub fn lower_hir_cast(
         return Ok(val); // Handles pointer -> reference & reference -> pointer cases for example
     }
 
-    println!("Cast {} -> {}", val.value_type, into);
-
     if let ValueType::Int(_, _) = val.value_type.clone() {
         let val =
             SSAIntValue::try_from(val.clone()).convert(node.start.clone(), node.end.clone())?;
