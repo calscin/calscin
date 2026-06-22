@@ -8,6 +8,7 @@ use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::types::primitive::PrimitiveType;
 
+pub mod fmt;
 pub mod primitive;
 
 /// The state of mutation of a type.
