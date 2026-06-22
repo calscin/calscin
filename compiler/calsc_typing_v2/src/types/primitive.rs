@@ -1,6 +1,7 @@
 //! Definitions for primitive types. Primitive types are the root of types and represent the actual concrete type.
 
-use crate::types::structs::StructContainer;
+use calsc_utils::alloc::arena::ArenaHandle;
+
 #[derive(PartialEq)]
 pub enum PrimitiveType {
     /// Represents an integer type with a given signed state.
@@ -16,7 +17,10 @@ pub enum PrimitiveType {
     Boolean,
 
     /// Represents a struct type
-    Struct(StructContainer),
+    ///
+    /// The handle represents a [`StructContainer`][`crate::types::structs::StructContainer`]
+    ///
+    Struct(ArenaHandle),
 
     /// Represents a size type
     Size,
