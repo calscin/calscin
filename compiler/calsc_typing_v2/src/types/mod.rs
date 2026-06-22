@@ -62,12 +62,18 @@ pub enum TypeKind {
 }
 
 impl SizeParameter {
+    /// Is the size parameter valid / active.
     pub fn is_active(&self) -> bool {
         self.0 > 0
     }
 }
 
 impl TypeKind {
+    /// Safely creates a new primitive by checking the need of size parameters.
+    ///
+    /// # Errors
+    /// This function will error if the primitive requires a size specifier and there isn't one and vice-versa.
+    ///
     pub fn new_primitive<S: DiagnosticSource>(
         primitive: PrimitiveType,
         param: SizeParameter,
