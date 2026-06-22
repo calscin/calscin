@@ -1,6 +1,6 @@
 //! Utilities to use inside of the Calscin compiler.
 
-use std::fmt::Display;
+use std::fmt::{Display, Formatter};
 
 pub mod alloc;
 pub mod cmp;
@@ -103,6 +103,6 @@ impl<A: Clone, B: Clone> Clone for Either<A, B> {
     }
 }
 
-pub trait DisplayWith<K, O: Display> {
-    fn fmt(&self, k: K) -> O;
+pub trait DisplayWith<K> {
+    fn fmt(&self, k: K, f: &mut Formatter<'_>) -> std::fmt::Result;
 }
