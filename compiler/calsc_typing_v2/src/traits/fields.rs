@@ -56,8 +56,8 @@ pub trait FieldedType {
         if self_ty != *ty {
             return Err(build_expected_field_type(
                 field,
-                &display_with_to_string(ty, &ctx.type_kind_arena),
-                &display_with_to_string(&self_ty, &ctx.type_kind_arena),
+                &display_with_to_string(ty, &ctx),
+                &display_with_to_string(&self_ty, &ctx),
                 source,
             )
             .into());

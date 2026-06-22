@@ -4,9 +4,9 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_no_require_type_parameter, build_requires_type_parameter},
 };
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
-use crate::types::primitive::PrimitiveType;
+use crate::{ctx::TypeCtx, types::primitive::PrimitiveType};
 
 pub mod fmt;
 pub mod primitive;
@@ -79,14 +79,23 @@ impl TypeKind {
     pub fn new_primitive<S: DiagnosticSource>(
         primitive: PrimitiveType,
         param: SizeParameter,
+        ctx: &TypeCtx,
         source: &S,
     ) -> DiagResult<Self> {
         if primitive.requires_size_parameter() != param.is_active() {
             if !primitive.requires_size_parameter() {
-                return Err(build_no_require_type_parameter(&primitive, source).into());
+                return Err(build_no_require_type_parameter(
+                    &display_with_to_string(&primitive, ctx),
+                    source,
+                )
+                .into());
             }
 
-            return Err(build_requires_type_parameter(&primitive, source).into());
+            return Err(build_requires_type_parameter(
+                &display_with_to_string(&primitive, ctx),
+                source,
+            )
+            .into());
         }
 
         return Ok(Self::Primitive(primitive, param));

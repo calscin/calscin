@@ -1,22 +1,24 @@
 use std::fmt::Display;
 
-use calsc_utils::DisplayWith;
+use calsc_utils::{DisplayWith, display_with_to_string};
 
 use crate::{
-    allocs::TypeKindArena,
+    ctx::TypeCtx,
     types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
 
-impl Display for PrimitiveType {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl DisplayWith<&TypeCtx> for PrimitiveType {
+    fn fmt(&self, k: &TypeCtx, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            PrimitiveType::Int(signed) => write!(f, "{}", if *signed { "s" } else { "u" }),
-            PrimitiveType::Float => write!(f, "f"),
-            PrimitiveType::Str => write!(f, "str"),
-            PrimitiveType::Boolean => write!(f, "bool"),
-            PrimitiveType::Size => write!(f, "size"),
-            PrimitiveType::Struct(container) => {
-                write!(f, "{}::{}", container.module, container.name)
+            Self::Int(signed) => write!(f, "{}", if *signed { "s" } else { "u" }),
+            Self::Float => write!(f, "f"),
+            Self::Boolean => write!(f, "bool"),
+            Self::Str => write!(f, "str"),
+            Self::Size => write!(f, "size"),
+            Self::Struct(container) => {
+                let arena_ref = k.struct_container_arena.get(container);
+
+                write!(f, "{}::{}", arena_ref.module, arena_ref.name)
             }
         }
     }
@@ -42,34 +44,36 @@ impl Display for SizeParameter {
     }
 }
 
-impl DisplayWith<&TypeKindArena> for TypeKind {
-    fn fmt(&self, k: &TypeKindArena, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl DisplayWith<&TypeCtx> for TypeKind {
+    fn fmt(&self, k: &TypeCtx, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Reference(mutation, handle) => {
-                k.get(handle).fmt(k, f)?;
+                k.type_kind_arena.get(handle).fmt(k, f)?;
 
                 write!(f, "&{}", mutation)
             }
 
             Self::Pointer(mutation, handle) => {
-                k.get(handle).fmt(k, f)?;
+                k.type_kind_arena.get(handle).fmt(k, f)?;
 
                 write!(f, "*{}", mutation)
             }
 
             Self::Array(size, handle) => {
-                k.get(handle).fmt(k, f)?;
+                k.type_kind_arena.get(handle).fmt(k, f)?;
 
                 write!(f, "[{}]", size)
             }
 
             Self::Segment(handle) => {
-                k.get(handle).fmt(k, f)?;
+                k.type_kind_arena.get(handle).fmt(k, f)?;
 
                 write!(f, "[]")
             }
 
-            Self::Primitive(primitive, size_param) => write!(f, "{}{}", primitive, size_param),
+            Self::Primitive(primitive, size_param) => {
+                write!(f, "{}{}", &display_with_to_string(primitive, k), size_param)
+            }
         }
     }
 }
