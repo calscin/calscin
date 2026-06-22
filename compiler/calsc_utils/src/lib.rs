@@ -1,5 +1,7 @@
 //! Utilities to use inside of the Calscin compiler.
 
+use std::fmt::Display;
+
 pub mod alloc;
 pub mod cmp;
 pub mod fs;
@@ -47,7 +49,7 @@ impl<A, B> Either<A, B> {
     ///
     /// # Panics
     /// Panics if the [`Either`] is not of type [`A`]
-    ///     
+    ///
     /// # Example
     /// ```
     /// use calsc_utils::Either;
@@ -67,7 +69,7 @@ impl<A, B> Either<A, B> {
     ///
     /// # Panics
     /// Panics if the [`Either`] is not of type [`B`]
-    ///     
+    ///
     /// # Example
     /// ```
     /// use calsc_utils::Either;
@@ -99,4 +101,8 @@ impl<A: Clone, B: Clone> Clone for Either<A, B> {
             Self::B(val) => Self::B(val.clone()),
         }
     }
+}
+
+pub trait DisplayWith<K, O: Display> {
+    fn fmt(&self, k: K) -> O;
 }
