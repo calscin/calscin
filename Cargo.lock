@@ -186,6 +186,10 @@ dependencies = [
 ]
 
 [[package]]
+name = "calsc_typing_v2"
+version = "0.1.0"
+
+[[package]]
 name = "calsc_utils"
 version = "0.0.0"
 
