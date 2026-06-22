@@ -32,7 +32,7 @@ pub enum GlobalContextValue {
 
     Function(HIRFunction),
 
-    Intrinsic(Intrinsics),
+    Intrinsic(Intrinsics, Type, Vec<Type>),
 }
 
 impl GlobalContextValue {
@@ -91,9 +91,14 @@ impl GlobalContextValue {
     /// # Errors
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a module import
     ///
-    pub fn as_intrinsic<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<Intrinsics> {
+    pub fn as_intrinsic<K: DiagnosticSource>(
+        &self,
+        origin: &K,
+    ) -> DiagResult<(Intrinsics, Type, Vec<Type>)> {
         match self {
-            Self::Intrinsic(intrinsic) => Ok(intrinsic.clone()),
+            Self::Intrinsic(intrinsic, return_type, arguments) => {
+                Ok((intrinsic.clone(), return_type.clone(), arguments.clone()))
+            }
 
             _ => {
                 return Err(
