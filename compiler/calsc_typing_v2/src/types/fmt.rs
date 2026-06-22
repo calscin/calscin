@@ -15,6 +15,9 @@ impl Display for PrimitiveType {
             PrimitiveType::Str => write!(f, "str"),
             PrimitiveType::Boolean => write!(f, "bool"),
             PrimitiveType::Size => write!(f, "size"),
+            PrimitiveType::Struct(container) => {
+                write!(f, "{}::{}", container.module, container.name)
+            }
         }
     }
 }
