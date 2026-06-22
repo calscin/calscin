@@ -1,6 +1,8 @@
 //! Definitions for primitive types. Primitive types are the root of types and represent the actual concrete type.
 
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
+
+use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
 
 #[derive(PartialEq, Clone)]
 pub enum PrimitiveType {
@@ -34,6 +36,33 @@ impl PrimitiveType {
             Self::Float => true,
 
             _ => false,
+        }
+    }
+}
+
+impl FieldedType for PrimitiveType {
+    fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
+        match self {
+            Self::Struct(container) => ctx
+                .struct_container_arena
+                .get(container)
+                .fields
+                .has_field(name, ctx),
+
+            _ => false,
+        }
+    }
+
+    unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
+        match self {
+            Self::Struct(container) => unsafe {
+                ctx.struct_container_arena
+                    .get(container)
+                    .fields
+                    .get_field(field, ctx)
+            },
+
+            _ => panic!("Type cannot hold field"),
         }
     }
 }
