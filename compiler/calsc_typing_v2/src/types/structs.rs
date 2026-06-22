@@ -8,7 +8,7 @@ use calsc_diagnostics::{
 use calsc_modules::path::ModulePath;
 use calsc_utils::hash::HashedString;
 
-use crate::types::TypeKind;
+use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
 
 /// Represents a named field.
 pub struct NamedField(pub HashedString, pub TypeKind);
@@ -58,6 +58,16 @@ impl FieldContainer {
         let named = NamedField(format!("{}", self.fields.len()).into(), unnamed.0);
 
         self.append_named(named, source)
+    }
+}
+
+impl FieldedType for FieldContainer {
+    fn has_field(&self, name: &HashedString, _ctx: &TypeCtx) -> bool {
+        self.fields.contains_key(&name)
+    }
+
+    unsafe fn get_field(&self, field: &HashedString, _ctx: &TypeCtx) -> TypeKind {
+        self.fields[&field].0.clone()
     }
 }
 

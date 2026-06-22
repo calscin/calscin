@@ -2,7 +2,7 @@
 
 use calsc_utils::alloc::arena::ArenaHandle;
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum PrimitiveType {
     /// Represents an integer type with a given signed state.
     Int(bool),

@@ -15,17 +15,17 @@ pub mod structs;
 /// The state of mutation of a type.
 /// A false value represents that the type is immutable.
 /// A true value represents that the type is mutable.
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct MutationState(pub bool);
 
 /// The state of mutation of a type.
 /// A value of 0 represents that the size parameter is inactive
 /// A value of >= 1 represents the size of the size parameter.
-#[derive(PartialEq, Eq, Hash)]
+#[derive(PartialEq, Eq, Hash, Clone)]
 pub struct SizeParameter(pub usize);
 
 /// The kind of type. Represents types. Uses the arena allocator to contain inner types
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone)]
 pub enum TypeKind {
     /// Represents a reference.
     ///
