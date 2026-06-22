@@ -11,14 +11,14 @@ use crate::{ctx::TypeCtx, types::TypeKind};
 /// A type that contains fields.
 pub trait FieldedType {
     /// Determines if the type has the field with the given name.
-    fn has_field(&self, name: &HashedString) -> bool;
+    fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool;
 
     /// Gets the field type corresponding to the file with the given name.
     ///
     /// # Panics
     /// This function will panic if the field doesn't exist, this is why it is unsafe. Consider using [`FieldedType::get_field_safe`] instead.
     ///
-    unsafe fn get_field(&self, field: &HashedString) -> TypeKind;
+    unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind;
 
     /// Safely gets the type of a field.
     ///
@@ -28,13 +28,14 @@ pub trait FieldedType {
     fn get_field_safe<S: DiagnosticSource>(
         &self,
         field: &HashedString,
+        ctx: &TypeCtx,
         source: &S,
     ) -> DiagResult<TypeKind> {
-        if !self.has_field(field) {
+        if !self.has_field(field, ctx) {
             return Err(build_missing_field(field, source).into());
         }
 
-        unsafe { Ok(self.get_field(field)) }
+        unsafe { Ok(self.get_field(field, ctx)) }
     }
 
     /// Enforces a field to exist with the given type.
@@ -50,7 +51,7 @@ pub trait FieldedType {
         ctx: &TypeCtx,
         source: &S,
     ) -> DiagPossible {
-        let self_ty = self.get_field_safe(field, source)?;
+        let self_ty = self.get_field_safe(field, ctx, source)?;
 
         if self_ty != *ty {
             return Err(build_expected_field_type(
