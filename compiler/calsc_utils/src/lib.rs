@@ -1,6 +1,9 @@
 //! Utilities to use inside of the Calscin compiler.
 
-use std::fmt::{Display, Formatter};
+use std::{
+    fmt::{Display, Formatter},
+    marker::PhantomData,
+};
 
 pub mod alloc;
 pub mod cmp;
@@ -103,6 +106,28 @@ impl<A: Clone, B: Clone> Clone for Either<A, B> {
     }
 }
 
-pub trait DisplayWith<K> {
+pub struct DisplayWithWrapper<'a, K: Clone, T: DisplayWith<K>> {
+    k: K,
+    t: &'a T,
+    marker: PhantomData<T>,
+}
+
+impl<K: Clone, T: DisplayWith<K>> Display for DisplayWithWrapper<'_, K, T> {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        self.t.fmt(self.k.clone(), f)
+    }
+}
+
+pub trait DisplayWith<K: Clone> {
     fn fmt(&self, k: K, f: &mut Formatter<'_>) -> std::fmt::Result;
+}
+
+pub fn display_with_to_string<K: Clone, T: DisplayWith<K>>(dw: &T, k: K) -> String {
+    let wrapper = DisplayWithWrapper {
+        k,
+        t: dw,
+        marker: PhantomData,
+    };
+
+    format!("{}", wrapper)
 }
