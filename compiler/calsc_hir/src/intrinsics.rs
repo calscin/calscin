@@ -1,5 +1,7 @@
 //! The intrinsics in Calscin.
 
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub enum Intrinsics {
     /// Allocates a specific amount of bytes in the stack
     /// `std::intrinsics::alloca`

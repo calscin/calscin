@@ -10,7 +10,8 @@ use calsc_modules::path::ModulePath;
 use calsc_typing::{base::BaseType, tree::Type};
 
 use crate::{
-    funcs::HIRFunction, globalctx::key::GlobalContextKey, types::safely_make_type_instance,
+    funcs::HIRFunction, globalctx::key::GlobalContextKey, intrinsics::Intrinsics,
+    types::safely_make_type_instance,
 };
 
 /// An entry / value inside of the global context.
@@ -30,6 +31,8 @@ pub enum GlobalContextValue {
     Module(ModulePath),
 
     Function(HIRFunction),
+
+    Intrinsic(Intrinsics),
 }
 
 impl GlobalContextValue {
@@ -79,6 +82,23 @@ impl GlobalContextValue {
 
             _ => {
                 return Err(build_expected_entry_type(&"path".to_string(), self, origin).into());
+            }
+        }
+    }
+
+    /// Converts the [`GlobalContextValue`] into a module import entry and returns the [`ModulePath`] associated with it.
+    ///
+    /// # Errors
+    /// This function will error on the given [`DiagnosticSource`] if the entry is not a module import
+    ///
+    pub fn as_intrinsic<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<Intrinsics> {
+        match self {
+            Self::Intrinsic(intrinsic) => Ok(intrinsic.clone()),
+
+            _ => {
+                return Err(
+                    build_expected_entry_type(&"intrinsic".to_string(), self, origin).into(),
+                );
             }
         }
     }
@@ -230,6 +250,13 @@ impl GlobalContextValue {
             _ => false,
         }
     }
+
+    pub fn is_intrinsic(&self) -> bool {
+        match self {
+            Self::Intrinsic(_) => true,
+            _ => false,
+        }
+    }
 }
 
 impl Display for GlobalContextValue {
@@ -240,6 +267,7 @@ impl Display for GlobalContextValue {
             Self::TypeAlias(_) => "type alias",
             Self::Function(_) => "function",
             Self::AnotherReference(_) => "reference to another entry",
+            Self::Intrinsic(_) => "function (intrinsic)",
         };
 
         write!(f, "{}", s)
