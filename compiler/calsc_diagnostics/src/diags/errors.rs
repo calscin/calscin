@@ -5,7 +5,7 @@ use std::fmt::{Debug, Display};
 use calsc_utils::pos::FilePosition;
 
 use crate::{
-    Diagnostic, DiagnosticCode, DiagnosticSource, Level, PosDiagnosticSource,
+    Diagnostic, DiagnosticCode, DiagnosticSource, Level, PosDiagnosticSource, diags,
     fmt::fmt_list,
     span::{Span, SpanKind},
 };
@@ -33,6 +33,8 @@ enum ErrorCode {
     TypeNotStatic,
     TypeCastFailed,
     ExpectedMutableReference,
+
+    NewWrongSizeSpecifier,
 
     // HIR local context
     AlreadyInScope,
@@ -546,5 +548,36 @@ pub fn build_expected_mutable_reference<S: DiagnosticSource, T: Display>(
         vec![],
         vec!["make sure this reference is mutable".into()],
         vec!["this errors means that the type you used cannot be used to perform mutable operations (eg: immutable reference)".to_string()],
+    )
+}
+
+pub fn build_requires_type_parameter<S: DiagnosticSource, T: Display>(
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::NewWrongSizeSpecifier as usize),
+        format!("type {} requires a size specifier", ty),
+        None,
+        vec![],
+        vec![
+            "this type requires a size specifier in order to specify the size of said type"
+                .to_string(),
+        ],
+        vec![format!("replace {} with {}.size", ty, ty)],
+    )
+}
+
+pub fn build_no_require_type_parameter<S: DiagnosticSource, T: Display>(
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::NewWrongSizeSpecifier as usize),
+        format!("type {} does not require a size specifier!", ty),
+        Some("size specifier introduced here".to_string()),
+        vec![],
+        vec!["this type does not need a size specifier, it should then be removed".to_string()],
+        vec![format!("remove .size from {}.size", ty)],
     )
 }

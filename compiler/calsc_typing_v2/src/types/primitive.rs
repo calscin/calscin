@@ -16,3 +16,15 @@ pub enum PrimitiveType {
     /// Represents a size type
     Size,
 }
+
+impl PrimitiveType {
+    /// Checks whenther the [`PrimitiveType`] requires a size specifier to be created.
+    pub fn requires_size_parameter(&self) -> bool {
+        match self {
+            Self::Int(_) => true,
+            Self::Float => true,
+
+            _ => false,
+        }
+    }
+}

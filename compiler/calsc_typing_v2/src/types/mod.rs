@@ -1,5 +1,9 @@
 //! The kind of type used.
 
+use calsc_diagnostics::{
+    DiagResult, DiagnosticSource,
+    diags::errors::{build_no_require_type_parameter, build_requires_type_parameter},
+};
 use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::types::primitive::PrimitiveType;
@@ -54,4 +58,28 @@ pub enum TypeKind {
 
     /// A primitive type represents a primitive type instance with a size parameter.
     Primitive(PrimitiveType, SizeParameter),
+}
+
+impl SizeParameter {
+    pub fn is_active(&self) -> bool {
+        self.0 > 0
+    }
+}
+
+impl TypeKind {
+    pub fn new_primitive<S: DiagnosticSource>(
+        primitive: PrimitiveType,
+        param: SizeParameter,
+        source: &S,
+    ) -> DiagResult<Self> {
+        if primitive.requires_size_parameter() != param.is_active() {
+            if !primitive.requires_size_parameter() {
+                return Err(build_no_require_type_parameter(&primitive, source).into());
+            }
+
+            return Err(build_requires_type_parameter(&primitive, source).into());
+        }
+
+        return Ok(Self::Primitive(primitive, param));
+    }
 }
