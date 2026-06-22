@@ -4,9 +4,9 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_no_require_type_parameter, build_requires_type_parameter},
 };
-use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string, hash::HashedString};
 
-use crate::{ctx::TypeCtx, types::primitive::PrimitiveType};
+use crate::{ctx::TypeCtx, traits::FieldedType, types::primitive::PrimitiveType};
 
 pub mod fmt;
 pub mod primitive;
@@ -99,5 +99,29 @@ impl TypeKind {
         }
 
         return Ok(Self::Primitive(primitive, param));
+    }
+}
+
+impl FieldedType for TypeKind {
+    fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
+        match self {
+            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).has_field(name, ctx),
+            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).has_field(name, ctx),
+            Self::Primitive(primitive, _) => primitive.has_field(name, ctx),
+
+            _ => false,
+        }
+    }
+
+    unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
+        unsafe {
+            match self {
+                Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_field(field, ctx),
+                Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_field(field, ctx),
+                Self::Primitive(primitive, _) => primitive.get_field(field, ctx),
+
+                _ => panic!("Type cannot hold fields!"),
+            }
+        }
     }
 }
