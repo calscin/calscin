@@ -35,6 +35,7 @@ enum ErrorCode {
     ExpectedMutableReference,
 
     NewWrongSizeSpecifier,
+    NewTypeAlreadyHasField,
 
     // HIR local context
     AlreadyInScope,
@@ -579,5 +580,19 @@ pub fn build_no_require_type_parameter<S: DiagnosticSource, T: Display>(
         vec![],
         vec!["this type does not need a size specifier, it should then be removed".to_string()],
         vec![format!("remove .size from {}.size", ty)],
+    )
+}
+
+pub fn build_type_already_has_field<S: DiagnosticSource, F: Display>(
+    field: &F,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::NewTypeAlreadyHasField as usize),
+        format!("type already has field {} in it's declaration", field),
+        None,
+        vec![],
+        vec!["the field {} is declared twice with the same name!".into()],
+        vec![format!("remove the second declaration for field {}", field)],
     )
 }

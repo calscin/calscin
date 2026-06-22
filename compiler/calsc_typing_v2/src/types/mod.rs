@@ -10,6 +10,7 @@ use crate::types::primitive::PrimitiveType;
 
 pub mod fmt;
 pub mod primitive;
+pub mod structs;
 
 /// The state of mutation of a type.
 /// A false value represents that the type is immutable.
