@@ -128,6 +128,25 @@ impl TypeKind {
             _ => true,
         }
     }
+
+    pub fn is_directly_numeric(&self) -> bool {
+        match self {
+            Self::Primitive(primitive, _) => primitive.is_numeric(),
+            _ => false,
+        }
+    }
+
+    pub fn as_primitive(&self) -> PrimitiveType {
+        match self {
+            Self::Primitive(primitive, _) => primitive.clone(),
+
+            #[cfg(feature = "debug")]
+            _ => panic!("Direct type of {:#?} is not primitive!", self),
+
+            #[cfg(not(feature = "debug"))]
+            _ => panic!("Direct type of type is not primitive!"),
+        }
+    }
 }
 
 impl FieldedType for TypeKind {

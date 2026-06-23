@@ -9,10 +9,9 @@ use calsc_diagnostics::{
         build_type_cast_failed_no_from, build_unexpected_type_error,
     },
 };
-use calsc_typing::{
-    FieldHavingType, TransmutableType, base::instance::BaseTypeInstance, tree::Type,
-};
-use calsc_utils::alloc::arena::ArenaHandle;
+
+use calsc_typing_v2::{into::TypeTransmutation, types::TypeKind};
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::{
     HIRContext,
@@ -29,7 +28,7 @@ impl HIRNode {
     ///
     pub fn use_as(
         &self,
-        ty: Type,
+        ty: &TypeKind,
         curr_node: ArenaHandle,
         other_node: Option<ArenaHandle>,
         local_func_key: Option<GlobalContextKey>,
@@ -47,25 +46,25 @@ impl HIRNode {
             );
         }
 
-        if self.get_type(local_func_key.clone(), ctx, Some(file_ctx))? == Type::Void {
+        if self.get_type(local_func_key.clone(), ctx, Some(file_ctx))? == TypeKind::Void {
             return Err(build_unexpected_type_error(&"void".to_string(), self).into());
         }
 
-        if self.is_numerical_lit() && ty.is_direct_numeric_generic() {
-            return convert_numerical_literal_into(self.clone(), ty.as_base());
+        if self.is_numerical_lit() && ty.is_directly_numeric() {
+            return convert_numerical_literal_into(self.clone(), ty.as_primitive());
         }
 
-        let self_type: Type = self.get_type(local_func_key.clone(), ctx, Some(file_ctx))?;
+        let self_type: TypeKind = self.get_type(local_func_key.clone(), ctx, Some(file_ctx))?;
 
-        if self_type == ty {
+        if &self_type == ty {
             return Ok(self.clone());
         }
 
-        if self_type.can_transmute(ty.clone()) {
+        if self_type.can_transmute(ty, &ctx.type_ctx) {
             let node = HIRNode::new(
                 HIRNodeKind::CastNode {
                     original: self.clone().push(ctx),
-                    into: ty,
+                    into: ty.clone(),
                     explicit_cast: false,
                 },
                 self.start.clone(),
@@ -75,7 +74,7 @@ impl HIRNode {
             return Ok(node);
         }
 
-        if self.is_weakly_typed(ctx) && self_type.can_transmute_weakly(ty.clone()) {
+        if self.is_weakly_typed(ctx) && self_type.can_transmute_weakly(ty, &ctx.type_ctx) {
             weakly_transmute(curr_node, ty, ctx);
 
             return Ok(self.clone());
@@ -86,18 +85,23 @@ impl HIRNode {
                 .nodes
                 .get(other_node.as_ref().unwrap())
                 .is_weakly_typed(ctx)
-            && ty.can_transmute_weakly(self_type.clone())
+            && ty.can_transmute_weakly(&self_type, &ctx.type_ctx)
         {
             weakly_transmute(other_node.unwrap(), self_type.clone(), ctx);
         }
 
-        return Err(build_expected_type_error(&ty, &self_type, self).into());
+        return Err(build_expected_type_error(
+            &display_with_to_string(ty, &ctx.type_ctx),
+            &display_with_to_string(&self_type, &ctx.type_ctx),
+            self,
+        )
+        .into());
     }
 }
 
 pub fn convert_structured_init_into<K: DiagnosticSource>(
     structured_init: HIRNode,
-    ty: Type,
+    ty: TypeKind,
     local_func_key: Option<GlobalContextKey>,
     origin: &K,
     ctx: &mut HIRContext,

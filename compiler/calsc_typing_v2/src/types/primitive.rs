@@ -45,6 +45,10 @@ impl PrimitiveType {
             _ => false,
         }
     }
+
+    pub fn is_numeric(&self) -> bool {
+        matches!(self, Self::Int(_) | Self::Float | Self::Size)
+    }
 }
 
 impl FieldedType for PrimitiveType {
