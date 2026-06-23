@@ -210,7 +210,7 @@ impl HIRNode {
 
         let ty = match self.kind.clone() {
             HIRNodeKind::IntLiteral(_, size, signed) => TypeKind::make_int_type(signed, size),
-            HIRNodeKind::FloatLiteral(_, size, signed) => TypeKind::make_float_type(size),
+            HIRNodeKind::FloatLiteral(_, size, _) => TypeKind::make_float_type(size),
             HIRNodeKind::StringLiteral(_) => TypeKind::make_str_type(),
             HIRNodeKind::CharLiteral(_) => TypeKind::make_int_type(false, 8),
             HIRNodeKind::BooleanLiteral(_) => TypeKind::make_bool_type(),
@@ -220,27 +220,28 @@ impl HIRNode {
                 start,
                 end: _,
                 increment: _,
-            } => ctx
-                .nodes
-                .get(&start)
-                .get_type(local_func_key, ctx, file_ctx)?,
+            } => {
+                let node = ctx.nodes.get(&start).clone();
+
+                node.get_type(local_func_key, ctx, file_ctx)?
+            }
 
             HIRNodeKind::PointerReference(val, mutable) => {
-                let ty = ctx
-                    .nodes
-                    .get(&val)
-                    .get_type(local_func_key, ctx, file_ctx)?;
+                let val = ctx.nodes.get(&val).clone();
+
+                let ty = val.get_type(local_func_key, ctx, file_ctx)?;
                 let ty = ctx.type_ctx.type_kind_arena.append(ty);
 
                 TypeKind::Reference(mutable, ty)
             }
 
-            HIRNodeKind::PointerDereference(val) => ctx
-                .nodes
-                .get(&val)
-                .get_type(local_func_key, ctx, file_ctx)?
-                .get_inner(&ctx.type_ctx)
-                .clone(),
+            HIRNodeKind::PointerDereference(val) => {
+                let val = ctx.nodes.get(&val).clone();
+
+                val.get_type(local_func_key, ctx, file_ctx)?
+                    .get_inner(&ctx.type_ctx)
+                    .clone()
+            }
 
             HIRNodeKind::MathExpression {
                 left_expr,
@@ -250,9 +251,9 @@ impl HIRNode {
                 if operator.assigns {
                     TypeKind::Void
                 } else {
-                    ctx.nodes
-                        .get(&left_expr)
-                        .get_type(local_func_key, ctx, file_ctx)?
+                    let node = ctx.nodes.get(&left_expr).clone();
+
+                    node.get_type(local_func_key, ctx, file_ctx)?
                 }
             }
 
@@ -261,10 +262,8 @@ impl HIRNode {
                 field_ind: _,
                 name,
             } => {
-                let ty = ctx
-                    .nodes
-                    .get(&val)
-                    .get_type(local_func_key, ctx, file_ctx)?;
+                let val = ctx.nodes.get(&val).clone();
+                let ty = val.get_type(local_func_key, ctx, file_ctx)?;
 
                 if ty.has_field(&name, &ctx.type_ctx) {
                     ty.get_field_safe(&name, &ctx.type_ctx, self)?
@@ -328,11 +327,9 @@ impl HIRNode {
             } => output_type,
 
             HIRNodeKind::ArrayInit { vals } => {
-                let ty = ctx
-                    .nodes
-                    .get(&vals[0])
-                    .get_type(local_func_key, ctx, file_ctx)?;
+                let val = ctx.nodes.get(&vals[0]).clone();
 
+                let ty = val.get_type(local_func_key, ctx, file_ctx)?;
                 let ty = ctx.type_ctx.type_kind_arena.append(ty);
 
                 TypeKind::Array(vals.len(), ty)

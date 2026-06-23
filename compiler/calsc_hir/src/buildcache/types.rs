@@ -1,10 +1,10 @@
 use std::collections::HashMap;
 
 use calsc_modules::path::ModulePath;
-use calsc_typing::base::BaseType;
+use calsc_typing_v2::types::primitive::PrimitiveType;
 
 pub struct ResolvedTypeCache {
-    pub map: HashMap<ModulePath, BaseType>,
+    pub map: HashMap<ModulePath, PrimitiveType>,
 }
 
 impl ResolvedTypeCache {
