@@ -24,6 +24,7 @@ pub struct UnNamedField(pub TypeKind);
 #[derive(Clone)]
 pub struct FieldContainer {
     pub(crate) fields: HashMap<HashedString, UnNamedField>,
+    pub(crate) fields_order: Vec<HashedString>,
 }
 
 /// A container that holds information about a struct
@@ -40,6 +41,7 @@ impl FieldContainer {
     pub fn new() -> Self {
         Self {
             fields: HashMap::new(),
+            fields_order: vec![],
         }
     }
 
@@ -52,6 +54,7 @@ impl FieldContainer {
             return Err(build_type_already_has_field(&named.0, source).into());
         }
 
+        self.fields_order.push(named.0.clone());
         self.fields.insert(named.0.clone(), named.into());
 
         Ok(())
@@ -71,6 +74,10 @@ impl FieldContainer {
 impl FieldedType for FieldContainer {
     fn has_field(&self, name: &HashedString, _ctx: &TypeCtx) -> bool {
         self.fields.contains_key(&name)
+    }
+
+    fn get_fields(&self, _ctx: &TypeCtx) -> Vec<HashedString> {
+        self.fields_order.clone()
     }
 
     unsafe fn get_field(&self, field: &HashedString, _ctx: &TypeCtx) -> TypeKind {

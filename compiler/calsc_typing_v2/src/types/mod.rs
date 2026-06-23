@@ -160,6 +160,16 @@ impl FieldedType for TypeKind {
         }
     }
 
+    fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString> {
+        match self {
+            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_fields(ctx),
+            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_fields(ctx),
+            Self::Primitive(primitive, _) => primitive.get_fields(ctx),
+
+            _ => vec![],
+        }
+    }
+
     unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
         unsafe {
             match self {

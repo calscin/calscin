@@ -64,6 +64,18 @@ impl FieldedType for PrimitiveType {
         }
     }
 
+    fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString> {
+        match self {
+            Self::Struct(container) => ctx
+                .struct_container_arena
+                .get(container)
+                .fields
+                .get_fields(ctx),
+
+            _ => vec![],
+        }
+    }
+
     unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
         match self {
             Self::Struct(container) => unsafe {

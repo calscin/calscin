@@ -20,6 +20,9 @@ pub trait FieldedType {
     ///
     unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind;
 
+    /// gets the list of field names
+    fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString>;
+
     /// Safely gets the type of a field.
     ///
     /// # Errors
