@@ -4,11 +4,8 @@ use calsc_modules::{
     tree::{ModuleTree, collect::ModuleTreeCollector},
 };
 
-use crate::modules_lower::{
-    prelude::apply_prelude_to_module_tree_lowering, types::lower_type_from_tree,
-};
+use crate::modules_lower::types::lower_type_from_tree;
 
-pub mod prelude;
 pub mod types;
 
 pub fn lower_types_from_stage_0(tree: &ModuleTree) -> DiagPossible {
