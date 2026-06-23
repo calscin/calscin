@@ -12,8 +12,9 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_typing::iter::IterableType;
-use calsc_utils::alloc::arena::ArenaHandle;
+
+use calsc_typing_v2::traits::IterableType;
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::stage2::values::lower_ast_value;
 
@@ -33,12 +34,16 @@ pub fn lower_ast_index_usage(
             ast_ctx,
         )?;
 
-        let val_ref = ctx.nodes.get(&val);
-
+        let val_ref = ctx.nodes.get(&val).clone();
         let val_type = val_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
-        if !val_type.is_iterable_at_all() {
-            return Err(build_not_iterable(None, &val_type, val_ref).into());
+        if !val_type.is_iterable_at_all(&ctx.type_ctx) {
+            return Err(build_not_iterable(
+                None,
+                &display_with_to_string(&val_type, &ctx.type_ctx),
+                &val_ref,
+            )
+            .into());
         }
 
         let index = lower_ast_value(
@@ -53,7 +58,7 @@ pub fn lower_ast_index_usage(
 
         let index = index_ref
             .use_as(
-                val_type.get_iterator_type(),
+                &val_type.get_iterator_type(&ctx.type_ctx),
                 index.clone(),
                 None,
                 local_ctx.clone(),
@@ -62,7 +67,7 @@ pub fn lower_ast_index_usage(
             )?
             .push(ctx);
 
-        let output_type = val_type.get_iterator_output_type();
+        let output_type = val_type.get_iterator_output_type(&ctx.type_ctx);
 
         let node = HIRNode::new(
             HIRNodeKind::IndexUsage {

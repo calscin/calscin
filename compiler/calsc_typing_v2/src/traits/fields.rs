@@ -23,6 +23,8 @@ pub trait FieldedType {
     /// gets the list of field names
     fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString>;
 
+    fn get_field_index(&self, field: &HashedString, ctx: &TypeCtx) -> usize;
+
     /// Safely gets the type of a field.
     ///
     /// # Errors

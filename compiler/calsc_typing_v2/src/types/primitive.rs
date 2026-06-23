@@ -95,6 +95,18 @@ impl FieldedType for PrimitiveType {
         }
     }
 
+    fn get_field_index(&self, field: &HashedString, ctx: &TypeCtx) -> usize {
+        match self {
+            Self::Struct(container) => ctx
+                .struct_container_arena
+                .get(container)
+                .fields
+                .get_field_index(field, ctx),
+
+            _ => panic!("Type cannot hold field"),
+        }
+    }
+
     unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
         match self {
             Self::Struct(container) => unsafe {

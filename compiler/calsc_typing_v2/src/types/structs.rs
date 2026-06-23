@@ -23,7 +23,7 @@ pub struct UnNamedField(pub TypeKind);
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct FieldContainer {
-    pub(crate) fields: HashMap<HashedString, UnNamedField>,
+    pub(crate) fields: HashMap<HashedString, (UnNamedField, usize)>,
     pub(crate) fields_order: Vec<HashedString>,
 }
 
@@ -65,7 +65,8 @@ impl FieldContainer {
         }
 
         self.fields_order.push(named.0.clone());
-        self.fields.insert(named.0.clone(), named.into());
+        self.fields
+            .insert(named.0.clone(), (named.into(), self.fields_order.len() - 1));
 
         Ok(())
     }
@@ -91,7 +92,11 @@ impl FieldedType for FieldContainer {
     }
 
     unsafe fn get_field(&self, field: &HashedString, _ctx: &TypeCtx) -> TypeKind {
-        self.fields[&field].0.clone()
+        self.fields[&field].0.0.clone()
+    }
+
+    fn get_field_index(&self, field: &HashedString, _ctx: &TypeCtx) -> usize {
+        self.fields[&field].1
     }
 }
 

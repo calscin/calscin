@@ -188,6 +188,16 @@ impl FieldedType for TypeKind {
         }
     }
 
+    fn get_field_index(&self, field: &HashedString, ctx: &TypeCtx) -> usize {
+        match self {
+            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_field_index(field, ctx),
+            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_field_index(field, ctx),
+            Self::Primitive(primitive, _) => primitive.get_field_index(field, ctx),
+
+            _ => panic!("Type cannot hold fields!"),
+        }
+    }
+
     unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
         unsafe {
             match self {

@@ -1,5 +1,4 @@
 use calsc_ast::{
-    ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     path::ElementPath,
     types::ASTType,

@@ -15,8 +15,9 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_typing::TransmutableType;
-use calsc_utils::alloc::arena::ArenaHandle;
+
+use calsc_typing_v2::into::{TypeCasting, TypeTransmutation};
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
 
@@ -35,19 +36,28 @@ pub fn lower_ast_cast(
             ctx,
             ast_ctx,
         )?;
-        let val_type = ctx
-            .nodes
-            .get(&val)
-            .get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
-        let into = lower_ast_type(into, &node, None, file_ctx, ctx)?;
+        let val_ref = ctx.nodes.get(&val).clone();
 
-        if !val_type.can_cast(into.clone()) {
-            return Err(build_type_cast_failed(&val_type, &into, &node).into());
+        let val_type = val_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
+
+        let into = lower_ast_type(into, &node, file_ctx, ctx)?;
+
+        if !val_type.can_cast(&into, &ctx.type_ctx) {
+            return Err(build_type_cast_failed(
+                &display_with_to_string(&val_type, &ctx.type_ctx),
+                &display_with_to_string(&into, &ctx.type_ctx),
+                &node,
+            )
+            .into());
         }
 
-        if val_type.can_transmute(into.clone()) {
-            build_useless_cast(&val_type, &into, &node);
+        if val_type.can_transmute(&into, &ctx.type_ctx) {
+            build_useless_cast(
+                &display_with_to_string(&val_type, &ctx.type_ctx),
+                &display_with_to_string(&into, &ctx.type_ctx),
+                &node,
+            );
         }
 
         let node = HIRNode::new(
