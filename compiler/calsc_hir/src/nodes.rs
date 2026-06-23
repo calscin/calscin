@@ -7,7 +7,10 @@ use calsc_diagnostics::{
     span::{Span, SpanKind},
 };
 
-use calsc_typing_v2::types::{MutationState, TypeKind};
+use calsc_typing_v2::{
+    traits::FieldedType,
+    types::{MutationState, TypeKind},
+};
 use calsc_utils::{
     alloc::arena::ArenaHandle, cmp::CompareOperator, hash::HashedString, math::MathOperator,
     pos::FilePosition,
@@ -267,10 +270,10 @@ impl HIRNode {
                     .get(&val)
                     .get_type(local_func_key, ctx, file_ctx)?;
 
-                if ty.has_field(name.clone()) {
-                    ty.get_field_type(name)
+                if ty.has_field(&name, &ctx.type_ctx) {
+                    ty.get_field_safe(&name, &ctx.type_ctx, self)?
                 } else {
-                    Type::Void
+                    TypeKind::Void
                 }
             }
 
@@ -281,7 +284,7 @@ impl HIRNode {
                 variable_index,
             } => {
                 if local_func_key.is_none() {
-                    Type::Void
+                    TypeKind::Void
                 } else {
                     let entry;
 
@@ -345,7 +348,7 @@ impl HIRNode {
                 explicit_cast: _,
             } => into.clone(),
 
-            _ => Type::Void,
+            _ => TypeKind::Void,
         };
 
         Ok(ty)
@@ -410,32 +413,34 @@ impl HIRNode {
                 val,
                 field_ind: _,
                 name: _,
-            } => ctx
-                .nodes
-                .get(val)
-                .represents_mutable_variable(ctx, local_func_key, source),
+            } => {
+                let node = ctx.nodes.get(val).clone();
 
-            HIRNodeKind::PointerDereference(inner) => {
-                let ty = ctx.nodes.get(inner).get_type(local_func_key, ctx, None)?;
-
-                Ok(ty.is_type_mutable_compatible())
+                node.represents_mutable_variable(ctx, local_func_key, source)
             }
 
-            HIRNodeKind::PointerReference(inner, mutable) => Ok(mutable.0
-                && ctx.nodes.get(inner).represents_mutable_variable(
-                    ctx,
-                    local_func_key,
-                    source,
-                )?),
+            HIRNodeKind::PointerDereference(inner) => {
+                let node = ctx.nodes.get(inner).clone();
+                let ty = node.get_type(local_func_key, ctx, None)?;
+
+                Ok(ty.is_mutation_compatible())
+            }
+
+            HIRNodeKind::PointerReference(inner, mutable) => {
+                let node = ctx.nodes.get(inner).clone();
+
+                Ok(mutable.0 && node.represents_mutable_variable(ctx, local_func_key, source)?)
+            }
 
             HIRNodeKind::IndexUsage {
                 val,
                 index: _,
                 output_type: _,
-            } => ctx
-                .nodes
-                .get(val)
-                .represents_mutable_variable(ctx, local_func_key, source),
+            } => {
+                let node = ctx.nodes.get(val).clone();
+
+                node.represents_mutable_variable(ctx, local_func_key, source)
+            }
 
             _ => Ok(false),
         }

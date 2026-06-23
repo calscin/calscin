@@ -117,6 +117,17 @@ impl TypeKind {
             ),
         }
     }
+
+    /// Checks whenther the type is compatible with mutation operations.
+    /// This mostly will be used for references and pointers
+    pub fn is_mutation_compatible(&self) -> bool {
+        match self {
+            Self::Pointer(mutable, _) => mutable.0,
+            Self::Reference(mutable, _) => mutable.0,
+
+            _ => true,
+        }
+    }
 }
 
 impl FieldedType for TypeKind {
