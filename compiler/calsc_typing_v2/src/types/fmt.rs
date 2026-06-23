@@ -1,6 +1,5 @@
 use std::fmt::Display;
 
-use calsc_diagnostics::fmt::fmt_list;
 use calsc_utils::{DisplayWith, display_with_list, display_with_to_string};
 
 use crate::{
