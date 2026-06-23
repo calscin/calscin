@@ -85,6 +85,8 @@ impl DisplayWith<&TypeCtx> for TypeKind {
             Self::Primitive(primitive, size_param) => {
                 write!(f, "{}{}", &display_with_to_string(primitive, k), size_param)
             }
+
+            Self::Void => write!(f, "void"),
         }
     }
 }

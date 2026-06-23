@@ -16,16 +16,19 @@ pub struct NamedField(pub HashedString, pub TypeKind);
 
 /// Represents an unnamed field.
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub struct UnNamedField(pub TypeKind);
 
 /// A container to hold fields. This container handles both [`NamedField`] and [`UnNamedField`] fields.
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub struct FieldContainer {
     pub(crate) fields: HashMap<HashedString, UnNamedField>,
 }
 
 /// A container that holds information about a struct
 #[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub struct StructContainer {
     pub name: HashedString,
     pub module: ModulePath,

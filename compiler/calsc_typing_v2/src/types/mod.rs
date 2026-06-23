@@ -62,6 +62,9 @@ pub enum TypeKind {
 
     /// A primitive type represents a primitive type instance with a size parameter.
     Primitive(PrimitiveType, SizeParameter),
+
+    /// Represents a void type. A void type basically means that the value has no type
+    Void,
 }
 
 impl SizeParameter {
@@ -100,6 +103,19 @@ impl TypeKind {
         }
 
         return Ok(Self::Primitive(primitive, param));
+    }
+
+    pub fn get_inner<'a>(&self, ctx: &'a TypeCtx) -> &'a TypeKind {
+        match self {
+            Self::Array(_, inner) => ctx.type_kind_arena.get(inner),
+            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner),
+            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner),
+
+            _ => panic!(
+                "Type {} doesn't contain any inner type",
+                display_with_to_string(self, ctx)
+            ),
+        }
     }
 }
 
