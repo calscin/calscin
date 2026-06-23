@@ -1,6 +1,6 @@
 //! Declarations for HIR functions
 
-use calsc_typing::{base::BaseType, tree::Type};
+use calsc_typing_v2::types::TypeKind;
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext};
@@ -24,19 +24,15 @@ pub struct HIRFunction {
     /// Represents the key related to the function
     pub name: GlobalContextKey,
 
-    /// The type at the origin of this function
-    /// Is used for type parameters
-    pub origin_type: Option<BaseType>,
-
     /// The local context
     /// Is present in stage 1 and stage 2 functions
     pub local_context: Option<LocalContext>,
 
     /// The return type of the function
-    pub return_type: Type,
+    pub return_type: TypeKind,
 
     /// The arguments of the function
-    pub arguments: Vec<(HashedString, Type)>,
+    pub arguments: Vec<(HashedString, TypeKind)>,
 
     /// The implementation node
     /// Is present only in stage 2 functions
@@ -51,15 +47,13 @@ pub struct HIRFunction {
 impl HIRFunction {
     pub fn new_extern(
         name: GlobalContextKey,
-        origin_type: Option<BaseType>,
-        return_type: Type,
-        arguments: Vec<(HashedString, Type)>,
+        return_type: TypeKind,
+        arguments: Vec<(HashedString, TypeKind)>,
         triple_dot_position: Option<usize>,
         is_main_function: bool,
     ) -> Self {
         Self {
             name,
-            origin_type,
             local_context: None,
             return_type,
             arguments,
@@ -72,14 +66,12 @@ impl HIRFunction {
     pub fn new_stage_1(
         name: GlobalContextKey,
         local_ctx: LocalContext,
-        origin_type: Option<BaseType>,
-        return_type: Type,
-        arguments: Vec<(HashedString, Type)>,
+        return_type: TypeKind,
+        arguments: Vec<(HashedString, TypeKind)>,
         is_main_function: bool,
     ) -> Self {
         Self {
             name,
-            origin_type,
             local_context: Some(local_ctx),
             return_type,
             arguments,
