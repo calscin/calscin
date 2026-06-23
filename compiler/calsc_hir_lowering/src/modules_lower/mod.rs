@@ -4,7 +4,7 @@ use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, collect::ModuleTreeCollector},
 };
-use calsc_typing_v2::prelude::apply_prelude;
+use calsc_typing_v2::{ctx::TypeCtx, prelude::apply_prelude};
 
 use crate::modules_lower::types::lower_type_from_tree;
 
@@ -12,6 +12,8 @@ pub mod types;
 
 pub fn lower_types_from_stage_0(tree: &ModuleTree) -> DiagPossible {
     // Setup the prelude environment.
+
+    let mut type_ctx = TypeCtx::new();
 
     BUILD_CACHE
         .with_borrow_mut(|cache| apply_prelude(&mut cache.type_storage, &PanicDiagnosticSource()));
@@ -25,7 +27,7 @@ pub fn lower_types_from_stage_0(tree: &ModuleTree) -> DiagPossible {
     );
 
     for ty in types {
-        lower_type_from_tree(ty.1, tree)?;
+        lower_type_from_tree(ty.1, tree, &mut type_ctx)?;
     }
 
     Ok(())
