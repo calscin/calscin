@@ -150,6 +150,21 @@ impl TypeKind {
             _ => panic!("Direct type of type is not primitive!"),
         }
     }
+
+    pub fn is_static(&self, ctx: &TypeCtx) -> bool {
+        match self {
+            Self::Primitive(_, _) => true,
+            Self::Reference(_, _) => false,
+            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).is_static(ctx),
+            Self::Array(_, inner) => ctx.type_kind_arena.get(inner).is_static(ctx),
+            Self::Segment(inner) => ctx.type_kind_arena.get(inner).is_static(ctx),
+            Self::Void => false,
+        }
+    }
+
+    pub fn is_safe_for_struct_storage(&self, ctx: &TypeCtx) -> bool {
+        self.is_static(ctx)
+    }
 }
 
 impl FieldedType for TypeKind {

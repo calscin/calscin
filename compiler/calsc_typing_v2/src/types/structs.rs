@@ -37,6 +37,16 @@ pub struct StructContainer {
     pub fields: FieldContainer,
 }
 
+impl StructContainer {
+    pub fn new(name: HashedString, path: ModulePath) -> Self {
+        Self {
+            name,
+            module: path,
+            fields: FieldContainer::new(),
+        }
+    }
+}
+
 impl FieldContainer {
     pub fn new() -> Self {
         Self {

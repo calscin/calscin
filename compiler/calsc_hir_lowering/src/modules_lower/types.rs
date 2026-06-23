@@ -4,27 +4,34 @@ use calsc_ast::{
 };
 use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
-    diags::errors::{build_expected_entry_type, build_internal_hir_node_leaked},
+    diags::errors::{
+        build_expected_entry_type, build_internal_hir_node_leaked, build_type_not_static,
+    },
 };
-use calsc_hir::{BUILD_CACHE, file::HIRFileContext, types::validate_type_for_storage};
+use calsc_hir::{BUILD_CACHE, file::HIRFileContext};
 use calsc_modules::{
     lazy::LazyLoadedTypeLike,
     path::ModulePath,
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
-use calsc_typing::{
-    MutableFieldHavingType,
-    base::{
-        BaseType, instance::BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer,
+use calsc_typing_v2::{
+    ctx::TypeCtx,
+    types::{
+        MutationState, SizeParameter, TypeKind,
+        primitive::PrimitiveType,
+        structs::{NamedField, StructContainer},
     },
-    tree::Type,
 };
-use calsc_utils::hash::HashedCounter;
+use calsc_utils::{display_with_to_string, hash::HashedCounter};
 
 use crate::stage0::fill::types::lower_stage0_key;
 
-pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible {
+pub fn lower_type_from_tree(
+    path: ModulePath,
+    tree: &ModuleTree,
+    type_ctx: &mut TypeCtx,
+) -> DiagPossible {
     let already_built = BUILD_CACHE.with_borrow(|cache| cache.type_storage.map.contains_key(&path));
 
     if already_built {
@@ -42,7 +49,7 @@ pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible
 
         // Lower each dependency first so that the type can be safely resolved
         for dependency in &dependencies.map {
-            lower_type_from_tree(dependency.0.clone(), tree)?;
+            lower_type_from_tree(dependency.0.clone(), tree, type_ctx)?;
         }
 
         // We first build a HIR file context with the current module path to allow for same-module resolution
@@ -57,7 +64,7 @@ pub fn lower_type_from_tree(path: ModulePath, tree: &ModuleTree) -> DiagPossible
         let related_nodes = BUILD_CACHE.with_borrow(|cache| cache.nodes_to_entries[&path].clone());
 
         for node in related_nodes {
-            lower_type_node(path.clone(), tree, node, &hir_file_ctx)?;
+            lower_type_node(path.clone(), tree, node, &hir_file_ctx, type_ctx)?;
         }
     } else {
         return Err(build_expected_entry_type(&"type".to_string(), &path, &source).into());
@@ -70,29 +77,33 @@ pub fn lower_type<S: DiagnosticSource>(
     ty: ASTType,
     tree: &ModuleTree,
     hir_file_ctx: &HIRFileContext,
+    type_ctx: &mut TypeCtx,
     source: &S,
-) -> DiagResult<Type> {
+) -> DiagResult<TypeKind> {
     match ty {
-        ASTType::Array(size, inner) => Ok(Type::Array {
-            size,
-            inner: Box::new(lower_type(*inner, tree, hir_file_ctx, source)?),
-        }),
+        ASTType::Array(size, inner) => {
+            let inner = lower_type(*inner, tree, hir_file_ctx, type_ctx, source)?;
+            let inner = type_ctx.type_kind_arena.append(inner);
 
-        ASTType::Reference(mutable, inner) => Ok(Type::Reference {
-            mutable,
-            inner: Box::new(lower_type(*inner, tree, hir_file_ctx, source)?),
-        }),
-
-        ASTType::Generic(name, size_specs, type_parameters) => {
-            let mut lowered_type_params = vec![];
-            let mut size_specifiers = vec![];
-
-            for param in type_parameters {
-                lowered_type_params.push(lower_type(param, tree, hir_file_ctx, source)?);
+            if size.is_some() {
+                Ok(TypeKind::Array(size.unwrap(), inner))
+            } else {
+                Ok(TypeKind::Segment(inner))
             }
+        }
+
+        ASTType::Reference(mutable, inner) => {
+            let inner = lower_type(*inner, tree, hir_file_ctx, type_ctx, source)?;
+            let inner = type_ctx.type_kind_arena.append(inner);
+
+            Ok(TypeKind::Reference(MutationState(mutable), inner))
+        }
+
+        ASTType::Generic(name, size_specs, _) => {
+            let mut size_specifier = 0;
 
             if size_specs.is_some() {
-                size_specifiers.push(size_specs.unwrap());
+                size_specifier = size_specs.unwrap();
             }
 
             let (mut path, element_name) = lower_stage0_key(name, hir_file_ctx, tree);
@@ -100,12 +111,10 @@ pub fn lower_type<S: DiagnosticSource>(
 
             let raw_type = BUILD_CACHE.with_borrow(|state| state.type_storage.map[&path].clone());
 
-            let instance = BaseTypeInstance::new(raw_type, size_specifiers, lowered_type_params);
-
-            Ok(Type::Base(instance))
+            Ok(TypeKind::Primitive(raw_type, SizeParameter(size_specifier)))
         }
 
-        ASTType::Void => Ok(Type::Void),
+        ASTType::Void => Ok(TypeKind::Void),
     }
 }
 
@@ -114,10 +123,11 @@ pub fn lower_type_node(
     tree: &ModuleTree,
     node: ASTNode,
     hir_file_ctx: &HIRFileContext,
+    type_ctx: &mut TypeCtx,
 ) -> DiagPossible {
     match node.kind {
         ASTNodeKind::StructDeclaration { .. } => {
-            lower_type_struct_decl(path, tree, node, hir_file_ctx)
+            lower_type_struct_decl(path, tree, node, hir_file_ctx, type_ctx)
         }
 
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
@@ -129,30 +139,39 @@ pub fn lower_type_struct_decl(
     tree: &ModuleTree,
     node: ASTNode,
     hir_file_ctx: &HIRFileContext,
+    type_ctx: &mut TypeCtx,
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
-        type_params,
+        type_params: _,
         fields,
         visibility: _,
     } = node.kind.clone()
     {
-        let mut container = BaseStructContainer::new(name);
+        let mut container = StructContainer::new(name, hir_file_ctx.current_module.clone());
 
         for field in fields {
-            let ty = lower_type(field.0, tree, hir_file_ctx, &node)?;
-            validate_type_for_storage(&ty, &node)?;
+            let ty = lower_type(field.0, tree, hir_file_ctx, type_ctx, &node)?;
 
-            container.add_field(field.1, ty, &node)?;
+            if !ty.is_safe_for_struct_storage(type_ctx) {
+                return Err(
+                    build_type_not_static(&display_with_to_string(&ty, type_ctx), &node).into(),
+                );
+            }
+
+            container
+                .fields
+                .append_named(NamedField(field.1, ty), &node)?;
         }
 
-        let mut base_type = BaseType::new(BaseTypeKind::Struct(container));
+        let container = type_ctx.struct_container_arena.append(container);
 
-        for type_param in type_params {
-            base_type.append_type_parameter(type_param, &node)?;
-        }
-
-        BUILD_CACHE.with_borrow_mut(|cache| cache.type_storage.map.insert(path, base_type));
+        BUILD_CACHE.with_borrow_mut(|cache| {
+            cache
+                .type_storage
+                .map
+                .insert(path, PrimitiveType::Struct(container))
+        });
 
         Ok(())
     } else {
