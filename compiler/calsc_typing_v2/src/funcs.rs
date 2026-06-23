@@ -10,14 +10,14 @@ pub struct NamedFunction {
 }
 
 /// Represents a function without a name
-pub struct UnnamedFunction {
+pub struct UnNamedFunction {
     pub return_type: TypeKind,
     pub argument: Vec<TypeKind>,
 }
 
-impl Into<UnnamedFunction> for NamedFunction {
-    fn into(self) -> UnnamedFunction {
-        UnnamedFunction {
+impl Into<UnNamedFunction> for NamedFunction {
+    fn into(self) -> UnNamedFunction {
+        UnNamedFunction {
             return_type: self.return_type,
             argument: self.arguments,
         }
