@@ -17,11 +17,7 @@ use calsc_utils::{
 };
 
 use crate::{
-    HIRContext,
-    file::HIRFileContext,
-    globalctx::key::GlobalContextKey,
-    ifs::IfStatementBranch,
-    types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
+    HIRContext, file::HIRFileContext, globalctx::key::GlobalContextKey, ifs::IfStatementBranch,
 };
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
@@ -213,12 +209,12 @@ impl HIRNode {
         }
 
         let ty = match self.kind.clone() {
-            HIRNodeKind::IntLiteral(_, size, signed) => make_int_type(signed, size, self, ctx),
-            HIRNodeKind::FloatLiteral(_, size, signed) => make_float_type(signed, size, self, ctx),
-            HIRNodeKind::StringLiteral(_) => make_string_type(self, ctx),
-            HIRNodeKind::CharLiteral(_) => make_char_type(self, ctx),
-            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self, ctx),
-            HIRNodeKind::InverseCondition(_) => make_bool_type(self, ctx),
+            HIRNodeKind::IntLiteral(_, size, signed) => TypeKind::make_int_type(signed, size),
+            HIRNodeKind::FloatLiteral(_, size, signed) => TypeKind::make_float_type(size),
+            HIRNodeKind::StringLiteral(_) => TypeKind::make_str_type(),
+            HIRNodeKind::CharLiteral(_) => TypeKind::make_int_type(false, 8),
+            HIRNodeKind::BooleanLiteral(_) => TypeKind::make_bool_type(),
+            HIRNodeKind::InverseCondition(_) => TypeKind::make_bool_type(),
 
             HIRNodeKind::Range {
                 start,
@@ -277,7 +273,7 @@ impl HIRNode {
                 }
             }
 
-            HIRNodeKind::CompareExpression { .. } => make_bool_type(self, ctx),
+            HIRNodeKind::CompareExpression { .. } => TypeKind::make_bool_type(),
 
             HIRNodeKind::VariableReference {
                 name: _,
