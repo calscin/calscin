@@ -9,3 +9,9 @@ pub trait TypeTransmutation {
     /// into account that self is weakly typed
     fn can_transmute_weakly(&self, into: &Self) -> bool;
 }
+
+/// The trait responsible for type casting convertions.
+pub trait TypeCasting {
+    /// Can the given type cast into the provided [`Self`] variant.
+    fn can_cast(&self, into: &Self) -> bool;
+}
