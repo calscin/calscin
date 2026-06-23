@@ -6,12 +6,14 @@ use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_expected_entry_type, build_unexpected_type_alias_additional_parameters},
 };
-use calsc_modules::path::ModulePath;
-use calsc_typing::{base::BaseType, tree::Type};
 
-use crate::{
-    funcs::HIRFunction, globalctx::key::GlobalContextKey, types::safely_make_type_instance,
+use calsc_modules::path::ModulePath;
+use calsc_typing_v2::{
+    ctx::TypeCtx,
+    types::{SizeParameter, TypeKind, primitive::PrimitiveType},
 };
+
+use crate::{funcs::HIRFunction, globalctx::key::GlobalContextKey};
 
 /// An entry / value inside of the global context.
 /// This shouldn't be clonable due to the inner data modification not being able to be synced
@@ -19,10 +21,10 @@ use crate::{
 #[derive(Clone)] // For MIR
 pub enum GlobalContextValue {
     /// Represents a type-based entry
-    Type(BaseType),
+    Type(PrimitiveType),
 
     /// Represents a type alias
-    TypeAlias(Type),
+    TypeAlias(TypeKind),
 
     AnotherReference(GlobalContextKey),
 
@@ -34,7 +36,7 @@ pub enum GlobalContextValue {
 
 impl GlobalContextValue {
     /// Creates a new [`GlobalContextValue`] from the
-    pub fn new_type(inst: BaseType) -> Self {
+    pub fn new_type(inst: PrimitiveType) -> Self {
         Self::Type(inst)
     }
 
@@ -43,7 +45,7 @@ impl GlobalContextValue {
     /// # Errors
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type
     ///
-    pub fn as_type<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<BaseType> {
+    pub fn as_type<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<PrimitiveType> {
         match self {
             Self::Type(inst) => Ok(inst.clone()),
 
@@ -56,7 +58,7 @@ impl GlobalContextValue {
     /// # Errors
     /// This function will error on the given [`DiagnosticSource`] if the entry is not a type alias
     ///
-    pub fn as_type_alias<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<Type> {
+    pub fn as_type_alias<K: DiagnosticSource>(&self, origin: &K) -> DiagResult<TypeKind> {
         match self {
             Self::TypeAlias(ty) => Ok(ty.clone()),
 
@@ -88,23 +90,19 @@ impl GlobalContextValue {
     pub fn craft_type<K: DiagnosticSource>(
         &self,
         origin: &K,
-        size_specifiers: Vec<usize>,
-        type_parameters: Vec<Type>,
-    ) -> DiagResult<Type> {
+        ctx: &TypeCtx,
+        size_parameter: SizeParameter,
+    ) -> DiagResult<TypeKind> {
         match self {
             Self::TypeAlias(ty) => {
-                if size_specifiers.is_empty() && type_parameters.is_empty() {
+                if !size_parameter.is_active() {
                     Ok(ty.clone())
                 } else {
                     Err(build_unexpected_type_alias_additional_parameters(origin).into())
                 }
             }
-            Self::Type(ty) => Ok(Type::Base(safely_make_type_instance(
-                ty.clone(),
-                size_specifiers,
-                type_parameters,
-                origin,
-            )?)),
+
+            Self::Type(ty) => TypeKind::new_primitive(ty.clone(), size_parameter, ctx, origin),
 
             _ => return Err(build_expected_entry_type(&"type".to_string(), self, origin).into()),
         }
@@ -136,7 +134,7 @@ impl GlobalContextValue {
     ///
     pub fn mutate_type<K: DiagnosticSource, F, R>(&mut self, func: F, origin: &K) -> DiagResult<R>
     where
-        F: FnOnce(&mut BaseType) -> R,
+        F: FnOnce(&mut PrimitiveType) -> R,
     {
         match self {
             Self::Type(inst) => Ok(func(inst)),
@@ -158,7 +156,7 @@ impl GlobalContextValue {
         origin: &K,
     ) -> DiagResult<R>
     where
-        F: FnOnce(&mut Type) -> R,
+        F: FnOnce(&mut TypeKind) -> R,
     {
         match self {
             Self::TypeAlias(inst) => Ok(func(inst)),
