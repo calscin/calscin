@@ -3,5 +3,6 @@
 
 pub mod allocs;
 pub mod ctx;
+pub mod funcs;
 pub mod traits;
 pub mod types;
