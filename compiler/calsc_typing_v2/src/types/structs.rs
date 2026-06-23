@@ -11,17 +11,21 @@ use calsc_utils::hash::HashedString;
 use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
 
 /// Represents a named field.
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct NamedField(pub HashedString, pub TypeKind);
 
 /// Represents an unnamed field.
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct UnNamedField(pub TypeKind);
 
 /// A container to hold fields. This container handles both [`NamedField`] and [`UnNamedField`] fields.
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct FieldContainer {
     pub(crate) fields: HashMap<HashedString, UnNamedField>,
 }
 
 /// A container that holds information about a struct
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct StructContainer {
     pub name: HashedString,
     pub module: ModulePath,

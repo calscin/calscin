@@ -4,6 +4,7 @@ use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(PartialEq, Clone)]
 pub enum PrimitiveType {
     /// Represents an integer type with a given signed state.

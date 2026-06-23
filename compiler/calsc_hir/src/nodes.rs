@@ -6,7 +6,8 @@ use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_typing::{FieldHavingType, tree::Type};
+
+use calsc_typing_v2::types::TypeKind;
 use calsc_utils::{
     alloc::arena::ArenaHandle, cmp::CompareOperator, hash::HashedString, math::MathOperator,
     pos::FilePosition,
@@ -64,7 +65,7 @@ pub enum HIRNodeKind {
 
     VariableDeclaration {
         mutable: bool,
-        var_type: Type,
+        var_type: TypeKind,
 
         value: Option<ArenaHandle>,
 
