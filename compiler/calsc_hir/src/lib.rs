@@ -19,7 +19,6 @@ pub mod imports;
 pub mod localctx;
 pub mod nodes;
 pub mod prelude;
-pub mod types;
 
 thread_local! {
     pub static BUILD_CACHE: RefCell<BuildCache> = RefCell::new(BuildCache::new());

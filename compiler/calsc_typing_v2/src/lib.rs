@@ -2,6 +2,7 @@
 //! This version will properly use diagnostics and arena allocation
 
 pub mod allocs;
+pub mod builders;
 pub mod ctx;
 pub mod funcs;
 pub mod into;
