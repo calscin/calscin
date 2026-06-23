@@ -12,17 +12,12 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
     localctx::LocalContext,
 };
-use calsc_typing::{
-    base::BaseType,
-    func::{MutableDeclBlockAffectedType, TypedFunction},
-    tree::Type,
-};
+use calsc_typing_v2::types::TypeKind;
 
 use crate::{convert_visibility, stage1::types::lower_ast_type};
 
 pub fn lower_ast_function_decl_first_stage(
     node: ASTNode,
-    target: Option<BaseType>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
 ) -> DiagPossible {
@@ -39,10 +34,6 @@ pub fn lower_ast_function_decl_first_stage(
         let mut key =
             GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
-        if target.is_some() {
-            key = key.associated_type(target.clone().unwrap());
-        }
-
         let is_main_function = key.name == "main".into() && key.module_path.path.len() == 0;
 
         if is_main_function {
@@ -50,7 +41,7 @@ pub fn lower_ast_function_decl_first_stage(
         }
 
         let mut args = vec![];
-        let ret_type = lower_ast_type(return_type, &node, target.clone(), file_ctx, ctx)?;
+        let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;
 
         let mut local_ctx = LocalContext::new(
             name.clone(),
@@ -60,7 +51,7 @@ pub fn lower_ast_function_decl_first_stage(
         );
 
         for argument in arguments {
-            let ty = lower_ast_type(argument.0, &node, target.clone(), file_ctx, ctx)?;
+            let ty = lower_ast_type(argument.0, &node, file_ctx, ctx)?;
 
             local_ctx.introduce_variable(argument.1.clone(), ty.clone(), false, true, &node)?;
             args.push((argument.1, ty));
@@ -71,37 +62,13 @@ pub fn lower_ast_function_decl_first_stage(
                 return Err(build_restricted_arument_type(&vec!["void".to_string()], &node).into());
             }
 
-            if ret_type != Type::Void {
+            if ret_type != TypeKind::Void {
                 return Err(build_restricted_return_type(&"void".to_string(), &node).into());
             }
         }
 
-        if target.is_some() {
-            let k = GlobalContextKey::new(target.clone().unwrap().kind.get_name());
-
-            let mut argument_types = vec![];
-
-            for arg in &args {
-                argument_types.push(arg.1.clone());
-            }
-
-            let typed = TypedFunction::new((*name).clone(), argument_types, ret_type.clone());
-
-            ctx.scope.mutate_entry(
-                k,
-                |entry| entry.mutate_type(|typ| typ.add_function(name, typed, &node), &node),
-                &node,
-            )???;
-        }
-
-        let func = HIRFunction::new_stage_1(
-            key.clone(),
-            local_ctx,
-            target,
-            ret_type,
-            args,
-            is_main_function,
-        );
+        let func =
+            HIRFunction::new_stage_1(key.clone(), local_ctx, ret_type, args, is_main_function);
 
         let _ = ctx
             .scope
@@ -131,22 +98,15 @@ pub fn lower_ast_extern_function(
         let key = GlobalContextKey::new(name.clone());
 
         let mut args = vec![];
-        let ret_type = lower_ast_type(return_type, &node, None, file_ctx, ctx)?;
+        let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;
 
         for argument in arguments {
-            let ty = lower_ast_type(argument.0, &node, None, file_ctx, ctx)?;
+            let ty = lower_ast_type(argument.0, &node, file_ctx, ctx)?;
 
             args.push((argument.1, ty));
         }
 
-        let func = HIRFunction::new_extern(
-            key.clone(),
-            None,
-            ret_type,
-            args,
-            triple_dot_position,
-            false,
-        );
+        let func = HIRFunction::new_extern(key.clone(), ret_type, args, triple_dot_position, false);
 
         let _ = ctx
             .scope
