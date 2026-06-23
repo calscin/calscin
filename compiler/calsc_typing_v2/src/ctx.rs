@@ -1,6 +1,6 @@
 //! The context of the type system.
 
-use crate::allocs::{StructContainerArena, TypeKindArena};
+use crate::allocs::{StructContainerArena, TypeKindArena, TypedFunctionArena};
 
 /// The typing context. Holds temporary / permanent information (eg: allocators).
 /// This context should be passed instead of individual references as it doesn't add additional cost to pass.
@@ -10,6 +10,9 @@ pub struct TypeCtx {
 
     /// The arena allocator used for [`StructContainer`][`crate::types::structs::StructContainer`]
     pub struct_container_arena: StructContainerArena,
+
+    /// The arena allocator used for [`TypedFunction`][`crate::funcs::TypedFunction`]
+    pub typed_function_arena: TypedFunctionArena,
 }
 
 impl TypeCtx {
@@ -17,6 +20,7 @@ impl TypeCtx {
         Self {
             type_kind_arena: TypeKindArena::new(),
             struct_container_arena: StructContainerArena::new(),
+            typed_function_arena: TypedFunctionArena::new(),
         }
     }
 }

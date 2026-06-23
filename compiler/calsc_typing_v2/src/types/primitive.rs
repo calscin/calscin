@@ -2,7 +2,7 @@
 
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{ctx::TypeCtx, funcs::TypedFunction, traits::FieldedType, types::TypeKind};
+use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
 
 #[derive(PartialEq, Clone)]
 pub enum PrimitiveType {
