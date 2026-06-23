@@ -24,6 +24,9 @@ pub struct MutationState(pub bool);
 #[derive(PartialEq, Eq, Hash, Clone, Debug)]
 pub struct SizeParameter(pub usize);
 
+/// A primitive held inside of [`TypeKind`]
+pub struct HeldPrimitive(pub PrimitiveType, pub SizeParameter);
+
 /// The kind of type. Represents types. Uses the arena allocator to contain inner types
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(PartialEq, Clone)]
@@ -136,9 +139,9 @@ impl TypeKind {
         }
     }
 
-    pub fn as_primitive(&self) -> PrimitiveType {
+    pub fn as_primitive(&self) -> HeldPrimitive {
         match self {
-            Self::Primitive(primitive, _) => primitive.clone(),
+            Self::Primitive(primitive, size) => HeldPrimitive(primitive.clone(), size.clone()),
 
             #[cfg(feature = "debug")]
             _ => panic!("Direct type of {:#?} is not primitive!", self),

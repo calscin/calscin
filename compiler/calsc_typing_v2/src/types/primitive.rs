@@ -49,6 +49,25 @@ impl PrimitiveType {
     pub fn is_numeric(&self) -> bool {
         matches!(self, Self::Int(_) | Self::Float | Self::Size)
     }
+
+    pub fn is_int(&self) -> bool {
+        matches!(self, Self::Int(_))
+    }
+
+    pub fn is_float(&self) -> bool {
+        matches!(self, Self::Float)
+    }
+
+    pub fn is_size(&self) -> bool {
+        matches!(self, Self::Size)
+    }
+
+    pub fn get_signed_state(&self) -> bool {
+        match self {
+            Self::Int(signed) => *signed,
+            _ => false,
+        }
+    }
 }
 
 impl FieldedType for PrimitiveType {
