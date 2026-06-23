@@ -2,7 +2,7 @@
 
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
+use crate::{ctx::TypeCtx, funcs::TypedFunction, traits::FieldedType, types::TypeKind};
 
 #[derive(PartialEq, Clone)]
 pub enum PrimitiveType {
@@ -23,6 +23,12 @@ pub enum PrimitiveType {
     /// The handle represents a [`StructContainer`][`crate::types::structs::StructContainer`]
     ///
     Struct(ArenaHandle),
+
+    /// Represents a reference to a function or lambda
+    ///
+    /// The handle represents a [`TypedFunction`][`crate::funcs::TypedFunction`]
+    ///
+    Function(ArenaHandle),
 
     /// Represents a size type
     Size,
