@@ -131,3 +131,14 @@ pub fn display_with_to_string<K: Clone, T: DisplayWith<K>>(dw: &T, k: K) -> Stri
 
     format!("{}", wrapper)
 }
+
+pub fn display_with_list<K: Clone, T: DisplayWith<K>>(dw: &[T], k: K) -> String {
+    let mut str = display_with_to_string(&dw[0], k.clone());
+
+    for i in 1..dw.len() {
+        str += ",";
+        str += &display_with_to_string(&dw[i], k.clone());
+    }
+
+    str
+}

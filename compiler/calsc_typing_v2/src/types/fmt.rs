@@ -1,6 +1,7 @@
 use std::fmt::Display;
 
-use calsc_utils::{DisplayWith, display_with_to_string};
+use calsc_diagnostics::fmt::fmt_list;
+use calsc_utils::{DisplayWith, display_with_list, display_with_to_string};
 
 use crate::{
     ctx::TypeCtx,
@@ -19,6 +20,17 @@ impl DisplayWith<&TypeCtx> for PrimitiveType {
                 let arena_ref = k.struct_container_arena.get(container);
 
                 write!(f, "{}::{}", arena_ref.module, arena_ref.name)
+            }
+
+            Self::Function(func) => {
+                let arena_ref = k.typed_function_arena.get(func);
+
+                write!(
+                    f,
+                    "func ({}) -> {}",
+                    display_with_list(&arena_ref.arguments, k),
+                    display_with_to_string(&arena_ref.return_type, k)
+                )
             }
         }
     }

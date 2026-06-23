@@ -5,5 +5,5 @@ use crate::types::TypeKind;
 #[derive(PartialEq, Clone)]
 pub struct TypedFunction {
     pub return_type: TypeKind,
-    pub argument: Vec<TypeKind>,
+    pub arguments: Vec<TypeKind>,
 }
