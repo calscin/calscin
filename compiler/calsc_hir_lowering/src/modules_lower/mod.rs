@@ -1,8 +1,10 @@
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, panics::PanicDiagnosticSource};
+use calsc_hir::BUILD_CACHE;
 use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, collect::ModuleTreeCollector},
 };
+use calsc_typing_v2::prelude::apply_prelude;
 
 use crate::modules_lower::types::lower_type_from_tree;
 
@@ -11,7 +13,8 @@ pub mod types;
 pub fn lower_types_from_stage_0(tree: &ModuleTree) -> DiagPossible {
     // Setup the prelude environment.
 
-    apply_prelude_to_module_tree_lowering();
+    BUILD_CACHE
+        .with_borrow_mut(|cache| apply_prelude(&mut cache.type_storage, &PanicDiagnosticSource()));
 
     let mut types = vec![];
 
