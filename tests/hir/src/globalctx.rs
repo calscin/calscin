@@ -10,9 +10,7 @@ use calsc_hir::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalCon
 #[cfg(test)]
 use calsc_modules::visibility::Visibility;
 
-#[cfg(test)]
-use calsc_typing::base::{BaseType, kind::BaseTypeKind};
-
+use calsc_typing::types::primitive::PrimitiveType;
 #[cfg(test)]
 use calsc_utils::pos::FilePosition;
 
@@ -24,8 +22,7 @@ fn globalctx_entry_retrival_test() {
 
     let key = GlobalContextKey::new("test".into());
 
-    let type_entry = BaseType::new(BaseTypeKind::Boolean);
-    let entry = GlobalContextValue::Type(type_entry.clone());
+    let entry = GlobalContextValue::Type(PrimitiveType::Boolean);
 
     globalctx
         .append(key.clone(), entry, Visibility::Public, &origin)
@@ -35,7 +32,10 @@ fn globalctx_entry_retrival_test() {
         .get_entry_no_visibility(key, &origin)
         .unwrap_cleanly();
 
-    assert_eq!(entry.as_type(&origin).unwrap_cleanly(), type_entry);
+    assert_eq!(
+        entry.as_type(&origin).unwrap_cleanly(),
+        PrimitiveType::Boolean
+    );
 }
 
 #[test]
@@ -56,8 +56,10 @@ fn globalctx_type_mutation_test() {
 
     let key = GlobalContextKey::new("test".into());
 
-    let type_entry = BaseType::new(BaseTypeKind::Boolean);
-    let second_type_entry = BaseType::new(BaseTypeKind::Floating { signed: true });
+    let type_entry = PrimitiveType::Boolean;
+
+    let second_entry_type = PrimitiveType::Float;
+
     let entry = GlobalContextValue::Type(type_entry.clone());
 
     globalctx
@@ -79,7 +81,7 @@ fn globalctx_type_mutation_test() {
         .mutate_entry(
             key.clone(),
             |val| {
-                val.mutate_type(|ty| *ty = second_type_entry.clone(), &origin)
+                val.mutate_type(|ty| *ty = second_entry_type.clone(), &origin)
                     .unwrap_cleanly()
             },
             &origin,
@@ -94,6 +96,6 @@ fn globalctx_type_mutation_test() {
             .unwrap_cleanly()
             .as_type(&origin)
             .unwrap_cleanly(),
-        second_type_entry
+        second_entry_type
     );
 }

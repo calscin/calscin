@@ -2,38 +2,50 @@
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 
 #[cfg(test)]
+use calsc_modules::path::ModulePath;
+
+#[cfg(test)]
 use calsc_typing::{
-    FieldHavingType, MutableFieldHavingType,
-    base::{
-        BaseType, instance::BaseTypeInstance, kind::BaseTypeKind, structs::BaseStructContainer,
+    ctx::TypeCtx,
+    traits::FieldedType,
+    types::{
+        TypeKind,
+        primitive::PrimitiveType,
+        structs::{NamedField, StructContainer},
     },
-    tree::Type,
 };
 
 #[test]
 fn test_field_retrival_no_struct() {
-    let base = BaseType::new(BaseTypeKind::Boolean);
+    let ctx = TypeCtx::new();
 
-    assert!(!base.has_field("test".into()));
+    let base = TypeKind::make_bool_type();
+
+    assert!(!base.has_field(&"test".into(), &ctx));
 }
 
 #[test]
 fn test_field_retrival_struct() {
     let source = PosDiagnosticSource::new(Default::default(), Default::default());
+    let mut type_ctx = TypeCtx::new();
 
-    let field_ty = Type::Base(BaseTypeInstance::new(
-        BaseType::new(BaseTypeKind::Integer { signed: true }),
-        vec![12],
-        vec![],
-    ));
-    let mut container = BaseStructContainer::new("test".into());
+    let field_ty = TypeKind::make_int_type(true, 12);
+
+    let mut container = StructContainer::new("test".into(), ModulePath::new("".into(), vec![]));
 
     container
-        .add_field("test_field".into(), field_ty.clone(), &source)
+        .fields
+        .append_named(NamedField("test_field".into(), field_ty.clone()), &source)
         .unwrap_cleanly();
 
-    let ty = BaseType::new(BaseTypeKind::Struct(container));
+    let container = type_ctx.struct_container_arena.append(container);
 
-    assert!(ty.has_field("test_field".into()));
-    assert_eq!(ty.get_field_type("test_field".into()), field_ty);
+    let ty = PrimitiveType::Struct(container);
+
+    assert!(ty.has_field(&"test_field".into(), &type_ctx));
+    assert_eq!(
+        ty.get_field_safe(&"test_field".into(), &type_ctx, &source)
+            .unwrap_cleanly(),
+        field_ty
+    );
 }

@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 calsc_typing = { path = "../../compiler/calsc_typing", features = ["debug"] }
 calsc_diagnostics = { path = "../../compiler/calsc_diagnostics" }
+calsc_modules = { path = "../../compiler/calsc_modules"}
