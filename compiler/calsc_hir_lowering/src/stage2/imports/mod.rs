@@ -26,6 +26,9 @@ pub fn import_function<S: DiagnosticSource>(
     origin: &S,
 ) -> DiagPossible {
     let name = path_to_append.last();
+
+    println!("{}", path_to_append);
+
     let key = GlobalContextKey::new(name.clone()).module_path(path_to_append.everything_but_last());
 
     let return_type = lower_module_path_type(return_type, origin, ctx)?;
@@ -82,6 +85,8 @@ pub fn import_module<S: DiagnosticSource>(
         let mut path_to_append_to = path_to_append.clone();
         path_to_append_to.append_single_bit(element.0);
 
+        println!("Element path: {}", path_to_append_to);
+
         import_element(element.1, path_to_append_to, ctx, origin)?;
     }
 
@@ -110,6 +115,8 @@ pub fn import_element<S: DiagnosticSource>(
 pub fn lower_hir_key(path: ElementPath, hir_ctx: &HIRFileContext) -> ModulePath {
     // We don't need to care about the prelude here since it'll be automatically imported anyways
 
+    println!("{:#?}", path);
+
     if path.relative {
         let mut hir_path = hir_ctx.current_module.clone();
 
@@ -121,7 +128,7 @@ pub fn lower_hir_key(path: ElementPath, hir_ctx: &HIRFileContext) -> ModulePath 
     } else {
         ModulePath::new(
             path.members[0].clone(),
-            path.members[1..path.members.len() - 1].to_vec(),
+            path.members[1..path.members.len()].to_vec(),
         )
     }
 }

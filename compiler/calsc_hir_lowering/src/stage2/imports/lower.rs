@@ -22,6 +22,8 @@ pub fn lower_import_statement(
     if let ASTNodeKind::ImportStatement { path, kind } = node.kind.clone() {
         let path = lower_hir_key(path, file_ctx);
 
+        println!("Lowered {}", path);
+
         let module = GLOBAL_STATE
             .with_borrow(|state| Ok(state.module_tree.traverse_to(path.clone(), &node)?.clone()))?;
         let module_inner;
@@ -43,16 +45,18 @@ pub fn lower_import_statement(
             }
 
             ImportKind::Module => {
-                let mut path = file_ctx.current_module.clone();
-                path.append_single_bit(path.last());
+                let mut new_path = file_ctx.current_module.clone();
+                new_path.append_single_bit(path.last());
 
-                import_module(module_inner, path, ctx, &node)?
+                println!("Appending to {}", new_path);
+
+                import_module(module_inner, new_path, ctx, &node)?
             }
 
             _ => todo!(),
         };
 
-        todo!()
+        Ok(())
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
     }
