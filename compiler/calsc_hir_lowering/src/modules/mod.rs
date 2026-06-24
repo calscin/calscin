@@ -8,6 +8,7 @@ use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
+use calsc_typing::prelude::apply_prelude;
 use calsc_utils::path::to_absolute_path;
 
 use crate::{
@@ -37,7 +38,7 @@ pub fn build_module_tree(file_path: PathBuf) -> DiagResult<ModuleTree> {
             module.imported = true;
         }
 
-        apply_stage0_prelude(&mut tree, &dummy_source)?;
+        apply_prelude(&mut tree, &dummy_source)?;
     }
 
     seek_module_tree_folder(folder, module_path, &mut tree)?;

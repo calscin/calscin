@@ -65,14 +65,6 @@ pub fn build() {
 
         module_tree.clean();
 
-        let mut entries = vec![];
-
-        module_tree.collect_entries(
-            &|entry| entry.is_type(),
-            ModulePath::new("".into(), vec![]),
-            &mut entries,
-        );
-
         lower_types_from_stage_0(&module_tree).unwrap_cleanly();
 
         GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
