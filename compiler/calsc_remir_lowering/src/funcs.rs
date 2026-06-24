@@ -5,7 +5,8 @@ use calsc_diagnostics::{
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
 };
-use calsc_typing::tree::Type;
+
+use calsc_typing_v2::types::TypeKind;
 use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     block::vars::BlockVariable,
@@ -60,8 +61,8 @@ pub fn lower_hir_function_call(
 
 pub fn lower_hir_function_decl_none(
     key: GlobalContextKey,
-    arguments: Vec<Type>,
-    return_type: Type,
+    arguments: Vec<TypeKind>,
+    return_type: TypeKind,
     is_main_function: bool,
     module: &mut Module,
 ) -> DiagPossible {
