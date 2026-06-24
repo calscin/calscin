@@ -1,6 +1,8 @@
+use calsc_ast::path::ElementPath;
 use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_hir::{
     BUILD_CACHE, HIRContext,
+    file::HIRFileContext,
     funcs::HIRFunction,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
@@ -13,6 +15,8 @@ use calsc_modules::{
 use calsc_utils::hash::HashedString;
 
 use crate::stage2::types::lower_module_path_type;
+
+pub mod lower;
 
 pub fn import_function<S: DiagnosticSource>(
     return_type: LazyLoadedType,
@@ -100,5 +104,24 @@ pub fn import_element<S: DiagnosticSource>(
         ModuleTreeEntry::Module(module) => import_module(module, path_to_append, ctx, origin),
 
         _ => panic!("Entry isn't filled yet"),
+    }
+}
+
+pub fn lower_hir_key(path: ElementPath, hir_ctx: &HIRFileContext) -> ModulePath {
+    // We don't need to care about the prelude here since it'll be automatically imported anyways
+
+    if path.relative {
+        let mut hir_path = hir_ctx.current_module.clone();
+
+        for elem in path.members {
+            hir_path.append_single_bit(elem);
+        }
+
+        hir_path
+    } else {
+        ModulePath::new(
+            path.members[0].clone(),
+            path.members[1..path.members.len() - 1].to_vec(),
+        )
     }
 }
