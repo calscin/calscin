@@ -120,7 +120,7 @@ dependencies = [
  "calsc_diagnostics",
  "calsc_modules",
  "calsc_state",
- "calsc_typing_v2",
+ "calsc_typing",
  "calsc_utils",
 ]
 
@@ -134,7 +134,7 @@ dependencies = [
  "calsc_lexer",
  "calsc_modules",
  "calsc_state",
- "calsc_typing_v2",
+ "calsc_typing",
  "calsc_utils",
 ]
 
@@ -162,7 +162,7 @@ dependencies = [
  "calsc_diagnostics",
  "calsc_hir",
  "calsc_state",
- "calsc_typing_v2",
+ "calsc_typing",
  "calsc_utils",
  "remir",
  "remir_llvm",
@@ -178,14 +178,6 @@ dependencies = [
 
 [[package]]
 name = "calsc_typing"
-version = "0.0.0"
-dependencies = [
- "calsc_diagnostics",
- "calsc_utils",
-]
-
-[[package]]
-name = "calsc_typing_v2"
 version = "0.1.0"
 dependencies = [
  "calsc_diagnostics",
@@ -558,6 +550,7 @@ name = "typing"
 version = "0.1.0"
 dependencies = [
  "calsc_diagnostics",
+ "calsc_modules",
  "calsc_typing",
 ]
 
