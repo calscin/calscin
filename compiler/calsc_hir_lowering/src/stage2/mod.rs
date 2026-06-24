@@ -10,7 +10,7 @@ use calsc_ast::{
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 
-use crate::stage2::funcs::lower_ast_function_decl;
+use crate::stage2::{funcs::lower_ast_function_decl, imports::lower::lower_import_statement};
 
 pub mod control;
 pub mod funcs;
@@ -53,7 +53,9 @@ pub fn lower_hir_stage_2_node(
 
         ASTNodeKind::Module { .. } => lower_hir_stage_2_module(node, file_ctx, ctx, ast_context)?,
 
-        ASTNodeKind::ImportStatement { .. } => {}
+        ASTNodeKind::ImportStatement { .. } => {
+            lower_import_statement(node, file_ctx, ctx, ast_context)?
+        }
 
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     }
