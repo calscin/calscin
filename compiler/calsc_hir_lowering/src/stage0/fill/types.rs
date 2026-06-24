@@ -40,7 +40,7 @@ pub fn lower_stage0_key(
 
 pub fn lower_ast_type_base(
     name: ElementPath,
-    size_specifiers: Vec<usize>,
+    size_specifiers: usize,
     tree: &ModuleTree,
     hir_file_ctx: &HIRFileContext,
 ) -> LazyLoadedType {
@@ -77,10 +77,10 @@ pub fn lower_ast_type(
         },
 
         ASTType::Generic(path, size_specifier) => {
-            let mut size_specifiers = vec![];
+            let mut size_specifiers = 0;
 
             if size_specifier.is_some() {
-                size_specifiers.push(size_specifier.unwrap());
+                size_specifiers = size_specifier.unwrap();
             }
 
             lower_ast_type_base(path, size_specifiers, tree, hir_file_ctx)

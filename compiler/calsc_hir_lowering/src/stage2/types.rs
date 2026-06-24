@@ -1,0 +1,57 @@
+use calsc_diagnostics::{DiagResult, DiagnosticSource};
+use calsc_hir::{BUILD_CACHE, HIRContext};
+use calsc_modules::{lazy::LazyLoadedType, tree::ModuleTree};
+use calsc_typing::types::{MutationState, SizeParameter, TypeKind};
+
+pub fn lower_module_path_type<S: DiagnosticSource>(
+    ty: LazyLoadedType,
+    module_path: &ModuleTree,
+    origin: &S,
+    hir_ctx: &mut HIRContext,
+) -> DiagResult<TypeKind> {
+    match ty {
+        LazyLoadedType::Base {
+            module_path,
+            element_name,
+            size_specifiers,
+        } => {
+            let mut new_path = module_path.clone();
+            new_path.append_single_bit(element_name);
+
+            let primitive =
+                BUILD_CACHE.with_borrow(|cache| cache.type_storage.map[&new_path].clone());
+
+            Ok(TypeKind::Primitive(
+                primitive,
+                SizeParameter(size_specifiers),
+            ))
+        }
+
+        LazyLoadedType::Array { size, inner } => {
+            let inner = lower_module_path_type(*inner, module_path, origin, hir_ctx)?;
+            let inner = hir_ctx.type_ctx.type_kind_arena.append(inner);
+
+            if size.is_some() {
+                Ok(TypeKind::Array(size.unwrap(), inner))
+            } else {
+                Ok(TypeKind::Segment(inner))
+            }
+        }
+
+        LazyLoadedType::Pointer { mutable, inner } => {
+            let inner = lower_module_path_type(*inner, module_path, origin, hir_ctx)?;
+            let inner = hir_ctx.type_ctx.type_kind_arena.append(inner);
+
+            Ok(TypeKind::Pointer(MutationState(mutable), inner))
+        }
+
+        LazyLoadedType::Reference { mutable, inner } => {
+            let inner = lower_module_path_type(*inner, module_path, origin, hir_ctx)?;
+            let inner = hir_ctx.type_ctx.type_kind_arena.append(inner);
+
+            Ok(TypeKind::Reference(MutationState(mutable), inner))
+        }
+
+        LazyLoadedType::Void => Ok(TypeKind::Void),
+    }
+}

@@ -18,12 +18,7 @@ pub enum LazyLoadedType {
         module_path: ModulePath,
         element_name: HashedString,
 
-        size_specifiers: Vec<usize>,
-    },
-
-    TypeParameter {
-        name: HashedString,
-        param_ind: usize,
+        size_specifiers: usize,
     },
 
     Reference {
