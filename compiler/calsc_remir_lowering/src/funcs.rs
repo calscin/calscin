@@ -30,6 +30,9 @@ pub fn lower_hir_function_call(
 
     if let HIRNodeKind::FunctionCall { func, arguments } = node_ref.kind.clone() {
         let name = format!("{}", func);
+
+        println!("Callee {}", name);
+
         let reference_label = match module.get_function_by_name(name.clone()) {
             Some(v) => v,
             None => return Err(build_cannot_find_element_no_closest(&name, &node_ref).into()),
@@ -39,6 +42,8 @@ pub fn lower_hir_function_call(
 
         for argument in arguments {
             let v = lower_hir_value(argument, local_ctx, module, hirctx)?;
+
+            println!("- {}", v);
 
             lowered_arguments.push(v);
         }

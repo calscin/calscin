@@ -13,6 +13,7 @@ use calsc_hir::{
     HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
+    localctx,
     nodes::{HIRNode, HIRNodeKind},
 };
 use calsc_typing::types::TypeKind;
@@ -145,16 +146,41 @@ pub fn lower_ast_function_call(
     if let ASTNodeKind::FunctionCall { name, arguments } = node.kind.clone() {
         let key = lower_ast_key(name, &node, true, file_ctx, ctx)?;
 
+        let argument_types: Vec<_> = ctx
+            .scope
+            .get_entry_no_visibility(key.clone(), &node)?
+            .as_function(&node)?
+            .arguments
+            .iter()
+            .map(|entry| entry.1.clone())
+            .collect();
+
         let mut hir_arguments = vec![];
 
+        let mut argument_ind = 0;
         for argument in arguments {
-            hir_arguments.push(lower_ast_value(
+            let val = lower_ast_value(
                 ASTNode::clone(ast_ctx.nodes.get(&argument)),
                 local_ctx.clone(),
                 file_ctx,
                 ctx,
                 ast_ctx,
-            )?);
+            )?;
+
+            let val_ref = ctx.nodes.get(&val).clone();
+
+            let new_val = val_ref.use_as(
+                &argument_types[argument_ind],
+                val,
+                None,
+                local_ctx.clone(),
+                ctx,
+                file_ctx,
+            )?;
+
+            hir_arguments.push(ctx.nodes.append(new_val));
+
+            argument_ind += 1;
         }
 
         let is_function = ctx
