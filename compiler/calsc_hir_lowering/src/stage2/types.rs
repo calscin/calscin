@@ -1,11 +1,7 @@
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_hir::{BUILD_CACHE, HIRContext};
-use calsc_modules::{lazy::{LazyLoadedType}};
-use calsc_typing::types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType};
-
-pub fn lower_module_path_type_base<S: DiagnosticSource>(ty: LazyLoadedType, origin: &S, hir_ctx: &mut HIRContext) -> DiagResult<PrimitiveType> {
-    let primitive = BUILD_CACHE.with_borrow(|cache| cache.type_storage.map[&ty.])
-}
+use calsc_modules::lazy::LazyLoadedType;
+use calsc_typing::types::{MutationState, SizeParameter, TypeKind};
 
 pub fn lower_module_path_type<S: DiagnosticSource>(
     ty: LazyLoadedType,

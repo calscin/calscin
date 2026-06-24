@@ -23,7 +23,7 @@ pub fn lower_import_statement(
         let path = lower_hir_key(path, file_ctx);
 
         let module = GLOBAL_STATE
-            .with_borrow(|state| state.module_tree.traverse_mutably_to(path.clone(), &node))?;
+            .with_borrow(|state| Ok(state.module_tree.traverse_to(path.clone(), &node)?.clone()))?;
         let module_inner;
 
         if let ModuleTreeEntry::Module(module) = module {
