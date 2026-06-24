@@ -28,21 +28,6 @@ pub fn parse_ast_struct_declaration(
     let name: HashedString = tokens[*ind].expects_keyword()?.into();
     *ind += 1; // keyword
 
-    let mut type_params = vec![];
-
-    if tokens[*ind].kind == TokenKind::AngelBracketOpen {
-        *ind += 1; // <
-
-        type_params = parse_ast_list(
-            tokens,
-            ind,
-            &mut |tokens, ind| Ok(HashedString::from(tokens[*ind].expects_keyword()?)),
-            TokenKind::AngelBracketClose,
-            true,
-            true,
-        )?; // Auto increments
-    }
-
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1;
 
@@ -60,7 +45,6 @@ pub fn parse_ast_struct_declaration(
     let node = ASTNode::new(
         ASTNodeKind::StructDeclaration {
             name,
-            type_params,
             fields,
             visibility,
         },

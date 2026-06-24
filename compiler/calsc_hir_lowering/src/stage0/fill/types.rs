@@ -41,7 +41,6 @@ pub fn lower_stage0_key(
 pub fn lower_ast_type_base(
     name: ElementPath,
     size_specifiers: Vec<usize>,
-    type_parameters: Vec<LazyLoadedType>,
     tree: &ModuleTree,
     hir_file_ctx: &HIRFileContext,
 ) -> LazyLoadedType {
@@ -53,7 +52,6 @@ pub fn lower_ast_type_base(
         module_path: key,
         element_name,
         size_specifiers,
-        type_parameters,
     }
 }
 
@@ -73,19 +71,14 @@ pub fn lower_ast_type(
             inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
         },
 
-        ASTType::Generic(path, size_specifier, type_parameters) => {
+        ASTType::Generic(path, size_specifier) => {
             let mut size_specifiers = vec![];
-            let mut type_params = vec![];
-
-            for param in type_parameters {
-                type_params.push(lower_ast_type(param, tree, hir_file_ctx));
-            }
 
             if size_specifier.is_some() {
                 size_specifiers.push(size_specifier.unwrap());
             }
 
-            lower_ast_type_base(path, size_specifiers, type_params, tree, hir_file_ctx)
+            lower_ast_type_base(path, size_specifiers, tree, hir_file_ctx)
         }
 
         ASTType::Void => LazyLoadedType::Void,

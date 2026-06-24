@@ -24,8 +24,6 @@ pub struct LazyLoadedRawType {
     pub kind: LazyLoadedRawTypeKind,
 
     pub functions: HashMap<HashedString, (Vec<(HashedString, LazyLoadedType)>, LazyLoadedType)>,
-    pub type_params: HashMap<HashedString, usize>,
-    pub type_params_iter: Vec<HashedString>,
 }
 
 impl LazyLoadedRawType {
@@ -33,8 +31,6 @@ impl LazyLoadedRawType {
         Self {
             kind,
             functions: HashMap::new(),
-            type_params: HashMap::new(),
-            type_params_iter: vec![],
         }
     }
 

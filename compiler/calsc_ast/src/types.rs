@@ -2,8 +2,6 @@
 
 use std::fmt::Display;
 
-use calsc_diagnostics::fmt::fmt_list;
-
 use crate::path::ElementPath;
 
 /// The AST representation of type. Works on a tree-like structure where nodes can have an "inner" child node that is deeper.
@@ -18,7 +16,7 @@ use crate::path::ElementPath;
 pub enum ASTType {
     /// Represents a reference node. The parameter represents the inner type.
     ///
-    /// # Example    
+    /// # Example
     /// `s32&` would be `Reference(false, Generic(s32))`
     Reference(bool, Box<ASTType>),
 
@@ -31,14 +29,11 @@ pub enum ASTType {
     Array(Option<usize>, Box<ASTType>),
 
     /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`. The second parameter represents the size specifier
-    /// The third parameter represents any type parameters
     ///
     ///
     /// # Example
-    /// `s32` would be `Generic(s32, None, [])`
-    ///
-    /// `s.32<test>` would be `Generic(s, 32, [test])`
-    Generic(ElementPath, Option<usize>, Vec<ASTType>),
+    /// `s32` would be `Generic(s32, None)`
+    Generic(ElementPath, Option<usize>),
 
     /// The void type
     Void,
@@ -49,13 +44,13 @@ pub enum ASTType {
 pub enum SimpleASTType {
     Reference(bool),
     Array(Option<usize>),
-    Generic(ElementPath, Option<usize>, Vec<ASTType>),
+    Generic(ElementPath, Option<usize>),
 }
 
 impl SimpleASTType {
     pub fn is_generic(&self) -> bool {
         match self {
-            Self::Generic(_, _, _) => true,
+            Self::Generic(_, _) => true,
             _ => false,
         }
     }
@@ -64,15 +59,11 @@ impl SimpleASTType {
 impl Display for ASTType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Generic(name, size_params, type_params) => {
+            Self::Generic(name, size_params) => {
                 write!(f, "{}", name)?;
 
                 if size_params.is_some() {
                     write!(f, ".{}", size_params.as_ref().unwrap())?;
-                }
-
-                if !type_params.is_empty() {
-                    write!(f, "<{}>", fmt_list(type_params))?;
                 }
 
                 Ok(())

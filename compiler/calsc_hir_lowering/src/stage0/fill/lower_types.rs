@@ -17,7 +17,6 @@ pub fn lower_ast_type_struct_declaration(
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
-        type_params,
         fields,
         visibility,
     } = node.kind.clone()
@@ -47,15 +46,7 @@ pub fn lower_ast_type_struct_declaration(
             field_order,
         };
 
-        let mut raw_type = LazyLoadedRawType::new(kind);
-
-        let mut ind = 0;
-        for param in type_params {
-            raw_type.type_params.insert(param.clone(), ind);
-            raw_type.type_params_iter.push(param);
-
-            ind += 1;
-        }
+        let raw_type = LazyLoadedRawType::new(kind);
 
         let mut path_to_append_to = file_ctx.current_module.clone();
         path_to_append_to.path.push(name);

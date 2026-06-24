@@ -144,7 +144,6 @@ pub enum ASTNodeKind {
 
     StructDeclaration {
         name: HashedString,
-        type_params: Vec<HashedString>,
         fields: Vec<(ASTType, HashedString)>,
         visibility: Option<Visibility>,
     },
@@ -207,7 +206,6 @@ impl ASTNode {
             } => name.clone(),
             ASTNodeKind::StructDeclaration {
                 name,
-                type_params: _,
                 fields: _,
                 visibility: _,
             } => name.clone(),

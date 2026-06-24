@@ -32,7 +32,6 @@ pub fn lower_ast_struct_declaration(
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
-        type_params: _,
         fields,
         visibility,
     } = node.kind.clone()
@@ -81,12 +80,12 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
 ) -> DiagResult<PrimitiveType> {
-    if let ASTType::Generic(a, b, c) = ty.clone() {
-        if b.is_some() || !c.is_empty() {
+    if let ASTType::Generic(generic, size_param) = ty.clone() {
+        if size_param.is_some() {
             return Err(build_expected_simple_type(origin).into());
         }
 
-        let ty = lower_ast_generic_base(a, 0, origin, file_ctx, ctx)?;
+        let ty = lower_ast_generic_base(generic, 0, origin, file_ctx, ctx)?;
 
         if let TypeKind::Primitive(primitive, size) = ty {
             if size.is_active() {
@@ -151,14 +150,14 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
             Ok(TypeKind::Reference(MutationState(mutable), inner))
         }
 
-        ASTType::Generic(a, b, _) => {
+        ASTType::Generic(generic, size_param) => {
             let mut size_specifiers = 0;
 
-            if b.is_some() {
-                size_specifiers = b.unwrap();
+            if size_param.is_some() {
+                size_specifiers = size_param.unwrap();
             }
 
-            let ty = lower_ast_generic_base(a, size_specifiers, origin, file_ctx, ctx)?;
+            let ty = lower_ast_generic_base(generic, size_specifiers, origin, file_ctx, ctx)?;
 
             Ok(ty)
         }

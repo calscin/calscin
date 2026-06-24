@@ -14,7 +14,6 @@ pub fn lower_stage_0_append_pass_struct_declaration(
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
-        type_params: _,
         fields: _,
         visibility,
     } = node.kind.clone()

@@ -99,7 +99,7 @@ pub fn lower_type<S: DiagnosticSource>(
             Ok(TypeKind::Reference(MutationState(mutable), inner))
         }
 
-        ASTType::Generic(name, size_specs, _) => {
+        ASTType::Generic(name, size_specs) => {
             let mut size_specifier = 0;
 
             if size_specs.is_some() {
@@ -143,7 +143,6 @@ pub fn lower_type_struct_decl(
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
-        type_params: _,
         fields,
         visibility: _,
     } = node.kind.clone()
