@@ -78,6 +78,10 @@ pub(crate) fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTT
         SimpleASTType::Reference(mutable) => {
             ASTType::Reference(*mutable, Box::new(lower_simple_type(simples, ind - 1)))
         }
+
+        SimpleASTType::Pointer(mutable) => {
+            ASTType::Pointer(*mutable, Box::new(lower_simple_type(simples, ind - 1)))
+        }
     };
 
     res
@@ -120,6 +124,23 @@ pub(crate) fn parse_type_step(
 
             SimpleASTType::Reference(mutable)
         }
+
+        TokenKind::Star => {
+            *ind += 1;
+
+            let mutable = match tokens[*ind].kind {
+                TokenKind::Mut => {
+                    *ind += 1;
+
+                    true
+                }
+
+                _ => false,
+            };
+
+            SimpleASTType::Pointer(mutable)
+        }
+
         TokenKind::BracketOpen => {
             *ind += 1; // [
 

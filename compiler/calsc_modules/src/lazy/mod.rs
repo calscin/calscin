@@ -31,6 +31,11 @@ pub enum LazyLoadedType {
         inner: Box<LazyLoadedType>,
     },
 
+    Pointer {
+        mutable: bool,
+        inner: Box<LazyLoadedType>,
+    },
+
     Array {
         size: Option<usize>,
         inner: Box<LazyLoadedType>,

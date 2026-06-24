@@ -170,6 +170,7 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let _ = compile_file(
         hir_ctx,
         out_file.clone(),
+        file.clone(),
         file.file_name().unwrap().to_str().unwrap().to_string(),
         target.clone(),
     );

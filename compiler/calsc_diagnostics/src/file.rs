@@ -21,7 +21,7 @@ impl FileDiagnosticPos {
 
         let last_line_len = lines[lines.len() - 1].len();
 
-        let end = FilePosition::new(file.clone(), lines.len(), last_line_len);
+        let end = FilePosition::new(file.clone(), lines.len() - 1, last_line_len);
 
         Self {
             file: file.clone(),

@@ -30,6 +30,8 @@ pub enum HIRNodeKind {
     /// A float literal
     FloatLiteral(f64, usize, bool),
 
+    PointerLiteral(i128),
+
     /// A string literal
     StringLiteral(String),
 

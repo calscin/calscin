@@ -205,7 +205,11 @@ pub fn weakly_transmute(curr_node: ArenaHandle, ty: &TypeKind, ctx: &mut HIRCont
         HIRNodeKind::IntLiteral(_, _, _) => {
             let base = ty.as_primitive();
 
+<<<<<<< HEAD
             if !base.0.is_int() {
+=======
+            if !base.ty.kind.is_int() && !base.ty.kind.is_size() {
+>>>>>>> master
                 panic!()
             }
 

@@ -7,6 +7,7 @@ use calsc_typing::{
 };
 use remir::values::ValueType;
 
+<<<<<<< HEAD
 #[allow(unsafe_code)]
 pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType> {
     match ty.0 {
@@ -15,6 +16,17 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
         PrimitiveType::Float => Ok(ValueType::Float(ty.1.0)),
         PrimitiveType::Str => Ok(ValueType::new_any_pointer()),
         PrimitiveType::Struct(container) => {
+=======
+pub fn lower_type_base(ty: BaseTypeInstance) -> DiagResult<ValueType> {
+    match ty.ty.kind {
+        BaseTypeKind::Boolean => Ok(ValueType::Int(false, 1)),
+        BaseTypeKind::Char => Ok(ValueType::Int(false, 8)),
+        BaseTypeKind::Integer { signed } => Ok(ValueType::Int(signed, ty.size_specifiers[0])),
+        BaseTypeKind::Floating { signed: _ } => Ok(ValueType::Float(ty.size_specifiers[0])),
+        BaseTypeKind::String => Ok(ValueType::new_any_pointer()),
+        BaseTypeKind::Size => Ok(ValueType::Int(false, usize::BITS as usize)), // TODO: change this with target instead of current machine
+        BaseTypeKind::Struct(_) => {
+>>>>>>> master
             let mut type_fields = vec![];
             let container = ctx.struct_container_arena.get(&container);
 
@@ -38,8 +50,16 @@ pub fn lower_type(ty: TypeKind, ctx: &TypeCtx) -> DiagResult<ValueType> {
             lower_type_base(HeldPrimitive(primitive, size), ctx)
         }
 
+<<<<<<< HEAD
         TypeKind::Reference(_, inner) => {
             let inner = ctx.type_kind_arena.get(&inner).clone();
+=======
+        Type::Pointer { mutable: _, inner } => {
+            Ok(ValueType::Pointer(Box::new(lower_type(*inner)?)))
+        }
+
+        Type::Array { size, inner } => Ok(ValueType::Array(Box::new(lower_type(*inner)?), size)),
+>>>>>>> master
 
             return Ok(ValueType::Pointer(Box::new(lower_type(inner, ctx)?)));
         }
