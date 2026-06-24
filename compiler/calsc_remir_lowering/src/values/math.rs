@@ -29,9 +29,9 @@ pub fn lower_hir_math_operation(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::MathExpression {
         left_expr,
@@ -39,18 +39,16 @@ pub fn lower_hir_math_operation(
         operator,
     } = node_ref.kind.clone()
     {
-        let ty =
-            hirctx
-                .nodes
-                .get(&left_expr)
-                .get_type(Some(ctx.local_key.clone()), hirctx, None)?;
+        let left_expr_ref = hirctx.nodes.get(&left_expr).clone();
+
+        let ty = left_expr_ref.get_type(Some(ctx.local_key.clone()), hirctx, None)?;
 
         let left_expr_val = lower_hir_value(left_expr.clone(), ctx, module, hirctx)?;
         let right_expr_val = lower_hir_value(right_expr, ctx, module, hirctx)?;
 
         let res: BaseSSAValue;
 
-        if ty.is_base() && ty.as_base().ty.kind.is_int() {
+        if ty.is_directly_primitive() && ty.as_primitive().0.is_int() {
             let left_expr = SSAIntValue::try_from(left_expr_val)
                 .convert(node_ref.start.clone(), node_ref.end.clone())?;
             let right_expr = SSAIntValue::try_from(right_expr_val)
@@ -61,7 +59,7 @@ pub fn lower_hir_math_operation(
                 left_expr,
                 right_expr,
                 convert_math_operator(operator.operation.clone())?,
-                ty.as_base().ty.kind.get_signed_state(),
+                ty.as_primitive().0.get_signed_state(),
                 !operator.fast,
                 !operator.fast,
                 operator.fast,
@@ -94,6 +92,6 @@ pub fn lower_hir_math_operation(
 
         Ok(res)
     } else {
-        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

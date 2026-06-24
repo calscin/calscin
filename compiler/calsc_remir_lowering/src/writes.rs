@@ -3,7 +3,7 @@ use calsc_diagnostics::{
     diags::errors::{build_expected_mutable_reference, build_internal_hir_node_leaked},
 };
 use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 use remir::{
     builders::{build_array_gep, build_insert_value, build_store, build_struct_gep},
     module::Module,
@@ -22,7 +22,7 @@ pub fn lower_hir_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     val: BaseSSAValue,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
     let node_ref = ctx.nodes.get(&node);
 
@@ -56,7 +56,7 @@ pub fn lower_hir_writable_value(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     let node_ref = ctx.nodes.get(&node);
 
@@ -76,9 +76,9 @@ pub fn lower_hir_field_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::FieldReference {
         val,
@@ -107,7 +107,7 @@ pub fn lower_hir_field_writable(
                 .convert(node_ref.start.clone(), node_ref.end.clone())
         }
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
 
@@ -116,25 +116,20 @@ pub fn lower_hir_pointer_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::PointerDereference(inner) = node_ref.kind.clone() {
-        //if !node_ref.represents_mutable_variable(
-        // ctx,
-        // Some(local_ctx.local_key.clone()),
-        //node_ref,
-        //)? {
-        //return Err(build_expected_mutable(node_ref).into());
-        //}
-        //
-
-        let inner_ref = ctx.nodes.get(&inner);
+        let inner_ref = ctx.nodes.get(&inner).clone();
         let ty = inner_ref.get_type(Some(local_ctx.local_key.clone()), ctx, None)?;
 
-        if !ty.is_type_mutable_compatible() {
-            return Err(build_expected_mutable_reference(&ty, node_ref).into());
+        if !ty.is_mutation_compatible() {
+            return Err(build_expected_mutable_reference(
+                &display_with_to_string(&ty, &ctx.type_ctx),
+                &node_ref,
+            )
+            .into());
         }
 
         let inner = SSAPointerValue::try_from(lower_hir_value(inner, local_ctx, module, ctx)?)
@@ -142,7 +137,7 @@ pub fn lower_hir_pointer_writable(
 
         build_store(module, inner, write_into).convert(node_ref.start.clone(), node_ref.end.clone())
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
 
@@ -151,9 +146,9 @@ pub fn lower_hir_index_writable(
     local_ctx: &LocalContext,
     module: &mut Module,
     write_into: BaseSSAValue,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::IndexUsage {
         val,
@@ -173,6 +168,6 @@ pub fn lower_hir_index_writable(
 
         build_store(module, ptr, write_into).convert(node_ref.start.clone(), node_ref.end.clone())
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

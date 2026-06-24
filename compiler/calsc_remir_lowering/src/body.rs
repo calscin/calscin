@@ -14,7 +14,7 @@ pub fn lower_hir_body_node(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagPossible {
     let node_ref = hirctx.nodes.get(&node);
 
@@ -48,7 +48,7 @@ pub fn lower_hir_body(
     nodes: Vec<ArenaHandle>,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagPossible {
     for node in nodes {
         lower_hir_body_node(node, ctx, module, hirctx)?;

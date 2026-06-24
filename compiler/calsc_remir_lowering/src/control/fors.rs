@@ -22,9 +22,9 @@ pub fn lower_hir_for_loop(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::ForLoop {
         iterator_type,
@@ -35,7 +35,7 @@ pub fn lower_hir_for_loop(
     } = node_ref.kind.clone()
     {
         let iterated = lower_hir_range(iterated, local_ctx, module, ctx)?;
-        let iterator_type = lower_type(iterator_type)?;
+        let iterator_type = lower_type(iterator_type, &ctx.type_ctx)?;
 
         // We use the following technique to lower a for loop:
         // - A loop header block that contains the Phi code for the iterator index and condition
@@ -95,7 +95,7 @@ pub fn lower_hir_for_loop(
 
         // Increment the iterator
         {
-            let variable = module.blocks[body_block.id].variables[&*iterator_name].clone(); // Clones the variable. 
+            let variable = module.blocks[body_block.id].variables[&*iterator_name].clone(); // Clones the variable.
             //This is fine since the BlockVariable instance that is cloned will be discarded at the end of the block and doesn't escape
 
             let iterator_value = variable
@@ -176,6 +176,6 @@ pub fn lower_hir_for_loop(
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

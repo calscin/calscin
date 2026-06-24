@@ -165,6 +165,14 @@ impl TypeKind {
     pub fn is_safe_for_struct_storage(&self, ctx: &TypeCtx) -> bool {
         self.is_static(ctx)
     }
+
+    pub fn is_directly_array(&self) -> bool {
+        matches!(self, Self::Array(_, _))
+    }
+
+    pub fn is_directly_primitive(&self) -> bool {
+        matches!(self, Self::Primitive(_, _))
+    }
 }
 
 impl FieldedType for TypeKind {

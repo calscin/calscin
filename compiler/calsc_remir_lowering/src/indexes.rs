@@ -15,9 +15,9 @@ pub fn lower_hir_index_usage(
     node: ArenaHandle,
     local_context: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::IndexUsage {
         val,
@@ -39,6 +39,6 @@ pub fn lower_hir_index_usage(
 
         Ok(val)
     } else {
-        return Err(build_internal_hir_node_leaked(&node_ref, node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

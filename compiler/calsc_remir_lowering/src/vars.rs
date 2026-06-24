@@ -60,16 +60,16 @@ pub fn lower_hir_variable_assign(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::Assignment { variable, value } = node_ref.kind.clone() {
         let value = lower_hir_value(value, ctx, module, hirctx)?;
 
         lower_hir_writable(variable, ctx, module, value, hirctx)
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
 
@@ -77,9 +77,9 @@ pub fn lower_hir_variable_declaration(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::VariableDeclaration {
         mutable,
@@ -90,9 +90,9 @@ pub fn lower_hir_variable_declaration(
     } = node_ref.kind.clone()
     {
         let mut variable: BlockVariable;
-        let is_array = var_type.is_array();
+        let is_array = var_type.is_directly_array();
 
-        let var_type = lower_type(var_type).unwrap();
+        let var_type = lower_type(var_type, &hirctx.type_ctx).unwrap();
 
         if mutable || ctx.variables[variable_index].reference_count > 0 || is_array {
             // Uses a stack variable for mutable variables.
@@ -125,6 +125,6 @@ pub fn lower_hir_variable_declaration(
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
