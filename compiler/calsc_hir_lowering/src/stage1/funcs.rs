@@ -12,7 +12,7 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
     localctx::LocalContext,
 };
-use calsc_typing_v2::types::TypeKind;
+use calsc_typing::types::TypeKind;
 
 use crate::{convert_visibility, stage1::types::lower_ast_type};
 

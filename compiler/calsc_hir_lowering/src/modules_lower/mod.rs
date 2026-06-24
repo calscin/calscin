@@ -4,7 +4,7 @@ use calsc_modules::{
     path::ModulePath,
     tree::{ModuleTree, collect::ModuleTreeCollector},
 };
-use calsc_typing_v2::{ctx::TypeCtx, prelude::apply_prelude};
+use calsc_typing::{ctx::TypeCtx, prelude::apply_prelude};
 
 use crate::modules_lower::types::lower_type_from_tree;
 

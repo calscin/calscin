@@ -7,7 +7,7 @@ use calsc_diagnostics::{
     span::{Span, SpanKind},
 };
 
-use calsc_typing_v2::{
+use calsc_typing::{
     traits::FieldedType,
     types::{MutationState, TypeKind},
 };

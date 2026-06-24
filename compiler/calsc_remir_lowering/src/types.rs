@@ -1,6 +1,6 @@
 use calsc_diagnostics::DiagResult;
 
-use calsc_typing_v2::{
+use calsc_typing::{
     ctx::TypeCtx,
     traits::FieldedType,
     types::{HeldPrimitive, TypeKind, primitive::PrimitiveType},

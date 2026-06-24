@@ -16,7 +16,7 @@ use calsc_diagnostics::{
     },
 };
 
-use calsc_typing_v2::types::TypeKind;
+use calsc_typing::types::TypeKind;
 use calsc_utils::{hash::HashedString, pos::FilePosition};
 
 use crate::{globalctx::key::GlobalContextKey, localctx::vars::LocalContextVariable};

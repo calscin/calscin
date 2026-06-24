@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use calsc_typing_v2::types::TypeKind;
+use calsc_typing::types::TypeKind;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)] // For MIR

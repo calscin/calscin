@@ -10,7 +10,7 @@ use calsc_diagnostics::{
     },
 };
 
-use calsc_typing_v2::{
+use calsc_typing::{
     ctx::TypeCtx,
     into::TypeTransmutation,
     traits::FieldedType,

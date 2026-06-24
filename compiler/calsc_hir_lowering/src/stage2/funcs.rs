@@ -15,7 +15,7 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_typing_v2::types::TypeKind;
+use calsc_typing::types::TypeKind;
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::{

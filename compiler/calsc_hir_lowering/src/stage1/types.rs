@@ -16,7 +16,7 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 
-use calsc_typing_v2::types::{
+use calsc_typing::types::{
     MutationState, SizeParameter, TypeKind,
     primitive::PrimitiveType,
     structs::{NamedField, StructContainer},

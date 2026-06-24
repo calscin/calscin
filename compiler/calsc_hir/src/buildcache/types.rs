@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_modules::path::ModulePath;
-use calsc_typing_v2::{traits::PreludeApplier, types::primitive::PrimitiveType};
+use calsc_typing::{traits::PreludeApplier, types::primitive::PrimitiveType};
 use calsc_utils::hash::HashedString;
 
 pub struct ResolvedTypeCache {

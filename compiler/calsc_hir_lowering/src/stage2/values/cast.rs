@@ -16,7 +16,7 @@ use calsc_hir::{
     nodes::{HIRNode, HIRNodeKind},
 };
 
-use calsc_typing_v2::into::{TypeCasting, TypeTransmutation};
+use calsc_typing::into::{TypeCasting, TypeTransmutation};
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};

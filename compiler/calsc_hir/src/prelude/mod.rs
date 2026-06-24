@@ -2,7 +2,7 @@
 
 use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_modules::{path::ModulePath, visibility::Visibility};
-use calsc_typing_v2::{traits::PreludeApplier, types::primitive::PrimitiveType};
+use calsc_typing::{traits::PreludeApplier, types::primitive::PrimitiveType};
 use calsc_utils::hash::HashedString;
 
 use crate::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalContextValue};

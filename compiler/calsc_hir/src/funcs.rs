@@ -1,6 +1,6 @@
 //! Declarations for HIR functions
 
-use calsc_typing_v2::types::TypeKind;
+use calsc_typing::types::TypeKind;
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext};

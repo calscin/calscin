@@ -15,7 +15,7 @@ use calsc_modules::{
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
-use calsc_typing_v2::{
+use calsc_typing::{
     ctx::TypeCtx,
     types::{
         MutationState, SizeParameter, TypeKind,

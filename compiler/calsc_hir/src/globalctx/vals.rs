@@ -8,7 +8,7 @@ use calsc_diagnostics::{
 };
 
 use calsc_modules::path::ModulePath;
-use calsc_typing_v2::{
+use calsc_typing::{
     ctx::TypeCtx,
     types::{SizeParameter, TypeKind, primitive::PrimitiveType},
 };

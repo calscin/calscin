@@ -8,7 +8,7 @@ calsc_ast = { path = "../calsc_ast", features = ["debug"] }
 calsc_hir = { path = "../calsc_hir", features = ["debug"] }
 calsc_diagnostics = { path = "../calsc_diagnostics" }
 calsc_utils = { path = "../calsc_utils" }
-calsc_typing_v2 = { path = "../calsc_typing_v2" }
+calsc_typing = { path = "../calsc_typing" }
 calsc_modules = { path = "../calsc_modules" }
 calsc_lexer = { path = "../calsc_lexer" }
 calsc_state = { path = "../calsc_state" }

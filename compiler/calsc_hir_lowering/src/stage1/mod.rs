@@ -16,7 +16,7 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 use calsc_modules::visibility::Visibility;
-use calsc_typing_v2::prelude::apply_prelude;
+use calsc_typing::prelude::apply_prelude;
 
 use crate::stage1::{
     funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},

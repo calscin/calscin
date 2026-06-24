@@ -5,7 +5,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
-use calsc_typing_v2::traits::FieldedType;
+use calsc_typing::traits::FieldedType;
 use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     builders::{

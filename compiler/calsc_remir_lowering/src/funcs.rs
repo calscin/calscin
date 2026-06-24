@@ -6,7 +6,7 @@ use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
 };
 
-use calsc_typing_v2::{ctx::TypeCtx, types::TypeKind};
+use calsc_typing::{ctx::TypeCtx, types::TypeKind};
 use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     block::vars::BlockVariable,

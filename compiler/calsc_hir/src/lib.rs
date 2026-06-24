@@ -4,7 +4,7 @@
 
 use std::cell::RefCell;
 
-use calsc_typing_v2::ctx::TypeCtx;
+use calsc_typing::ctx::TypeCtx;
 use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{buildcache::BuildCache, globalctx::GlobalContext, nodes::HIRNode};

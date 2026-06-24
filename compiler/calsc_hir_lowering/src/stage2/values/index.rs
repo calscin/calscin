@@ -13,7 +13,7 @@ use calsc_hir::{
     nodes::{HIRNode, HIRNodeKind},
 };
 
-use calsc_typing_v2::traits::IterableType;
+use calsc_typing::traits::IterableType;
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::stage2::values::lower_ast_value;
