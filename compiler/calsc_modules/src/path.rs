@@ -90,7 +90,7 @@ impl ModulePath {
         } else {
             ModulePath::new(
                 self.package.clone(),
-                self.path[0..self.path.len() - 2].to_vec(),
+                self.path[0..self.path.len() - 1].to_vec(),
             )
         }
     }

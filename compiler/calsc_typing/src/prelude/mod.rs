@@ -12,5 +12,6 @@ pub fn apply_prelude<K: PreludeApplier, S: DiagnosticSource>(
     applier.register_type("u".into(), PrimitiveType::Int(false), source)?;
     applier.register_type("f".into(), PrimitiveType::Float, source)?;
     applier.register_type("size".into(), PrimitiveType::Size, source)?;
-    applier.register_type("str".into(), PrimitiveType::Str, source)
+    applier.register_type("str".into(), PrimitiveType::Str, source)?;
+    applier.register_type("bool".into(), PrimitiveType::Boolean, source)
 }

@@ -48,19 +48,7 @@ pub fn apply_stage0_prelude<S: DiagnosticSource>(
     )?;
 
     tree.traverse_to_append(
-        ModulePath::new_module_tree_prelude_path(vec!["uf".into()]),
-        ModuleTreeEntry::FilledType(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
-        source,
-    )?;
-
-    tree.traverse_to_append(
         ModulePath::new_module_tree_prelude_path(vec!["str".into()]),
-        ModuleTreeEntry::FilledType(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
-        source,
-    )?;
-
-    tree.traverse_to_append(
-        ModulePath::new_module_tree_prelude_path(vec!["char".into()]),
         ModuleTreeEntry::FilledType(LazyLoadedRawType::new(LazyLoadedRawTypeKind::Simple)),
         source,
     )?;

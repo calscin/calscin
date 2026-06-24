@@ -65,14 +65,6 @@ pub fn build() {
 
         module_tree.clean();
 
-        let mut entries = vec![];
-
-        module_tree.collect_entries(
-            &|entry| entry.is_type(),
-            ModulePath::new("".into(), vec![]),
-            &mut entries,
-        );
-
         lower_types_from_stage_0(&module_tree).unwrap_cleanly();
 
         GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
@@ -128,6 +120,8 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let target = get_target_type(); // Avoid borrows
     let out_destination = get_file_output(); // Avoid borrows
 
+    println!("Building {:#?}", file);
+
     let contents = match fs::read_to_string(file.clone()) {
         Ok(v) => v,
         Err(e) => panic!("IO error: {e}"),
@@ -142,7 +136,7 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let ast_ctx = ast_ctx.unwrap();
 
     let mut hir_ctx = HIRContext::new();
-    let mut file_ctx = HIRFileContext::new();
+    let mut file_ctx = HIRFileContext::new(file.clone());
 
     let _ = lower_hir_stage_1(ast_ctx.clone(), &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();

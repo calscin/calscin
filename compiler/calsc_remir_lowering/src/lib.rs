@@ -30,7 +30,9 @@ pub fn lower_hir_context(mut ctx: HIRContext, module: &mut Module) -> DiagPossib
     let dummy_pos = PosDiagnosticSource::new(FilePosition::default(), FilePosition::default()); // This is okay since we are sure that as_function won't fail
 
     // First round: registering functions
-    for key in ctx.scope.key_to_ind.keys() {
+    let keys: Vec<_> = ctx.scope.key_to_ind.keys().map(|f| f.clone()).collect();
+
+    for key in keys {
         let entry = ctx.scope.get_entry_no_visibility(key.clone(), &dummy_pos)?;
 
         if entry.is_function() {
@@ -42,7 +44,7 @@ pub fn lower_hir_context(mut ctx: HIRContext, module: &mut Module) -> DiagPossib
                 func.return_type.clone(),
                 func.is_main_function,
                 module,
-                &ctx.type_ctx,
+                &mut ctx,
             )?;
         }
     }
