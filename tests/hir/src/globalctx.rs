@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 #[cfg(test)]
 use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 
@@ -70,7 +72,11 @@ fn globalctx_type_mutation_test() {
 
     assert_eq!(
         globalctx
-            .get_entry(key.clone(), &HIRFileContext::new().current_module, &origin)
+            .get_entry(
+                key.clone(),
+                &HIRFileContext::new(PathBuf::from("")).current_module,
+                &origin
+            )
             .unwrap_cleanly()
             .as_type(&origin)
             .unwrap_cleanly(),
