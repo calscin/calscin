@@ -4,10 +4,7 @@ use calsc_ast::{
 };
 use calsc_diagnostics::{
     DiagResult,
-    diags::errors::{
-        build_cannot_find_element_no_closest, build_cannot_parse_error,
-        build_internal_hir_node_leaked,
-    },
+    diags::errors::{build_cannot_find_element_no_closest, build_internal_hir_node_leaked},
 };
 use calsc_hir::{
     HIRContext,
@@ -19,7 +16,7 @@ use calsc_hir::{
 use calsc_typing_v2::traits::FieldedType;
 use calsc_utils::alloc::arena::ArenaHandle;
 
-use crate::stage2::{funcs::lower_ast_function_call, values::lower_ast_value};
+use crate::stage2::values::lower_ast_value;
 
 pub fn lower_ast_lru(
     node: ASTNode,
@@ -41,10 +38,9 @@ pub fn lower_ast_lru(
             ast_ctx,
         )?;
 
-        let left_ty = ctx
-            .nodes
-            .get(&left_expr)
-            .get_type(curr_ctx.clone(), ctx, Some(file_ctx))?;
+        let left_expr_ref = ctx.nodes.get(&left_expr).clone();
+
+        let left_ty = left_expr_ref.get_type(curr_ctx.clone(), ctx, Some(file_ctx))?;
 
         let right_expr_ref = ast_ctx.nodes.get(&right_expr);
 
@@ -54,7 +50,7 @@ pub fn lower_ast_lru(
                     return Err(build_cannot_find_element_no_closest(&name, &node).into());
                 }
 
-                let field_ind = left_ty.get_field_index(name.clone(), &ctx.type_ctx);
+                let field_ind = left_ty.get_field_index(&name, &ctx.type_ctx);
 
                 let node = HIRNode::new(
                     HIRNodeKind::FieldReference {

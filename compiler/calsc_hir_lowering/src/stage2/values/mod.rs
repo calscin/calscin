@@ -16,8 +16,9 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_typing::tree::Type;
-use calsc_utils::alloc::arena::ArenaHandle;
+
+use calsc_typing_v2::types::TypeKind;
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::stage2::{
     funcs::lower_ast_function_call,
@@ -120,12 +121,15 @@ pub fn lower_ast_range(
             ast_ctx,
         )?;
 
-        let start_ref = ctx.nodes.get(&start);
-
+        let start_ref = ctx.nodes.get(&start).clone();
         let start_type = start_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
-        if start_type == Type::Void {
-            return Err(build_unexpected_type_error(&Type::Void, start_ref).into());
+        if start_type == TypeKind::Void {
+            return Err(build_unexpected_type_error(
+                &display_with_to_string(&TypeKind::Void, &ctx.type_ctx),
+                &start_ref,
+            )
+            .into());
         }
 
         let end = lower_ast_value(
@@ -140,7 +144,7 @@ pub fn lower_ast_range(
 
         let end = end_ref
             .use_as(
-                start_type.clone(),
+                &start_type,
                 end.clone(),
                 Some(start.clone()),
                 local_ctx.clone(),
@@ -230,10 +234,8 @@ pub fn lower_ast_array_init(
             ast_ctx,
         )?;
 
-        let first_val_type =
-            ctx.nodes
-                .get(&first_val)
-                .get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
+        let first_val_ref = ctx.nodes.get(&first_val).clone();
+        let first_val_type = first_val_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
         hir_vals.push(first_val.clone());
 
@@ -252,9 +254,9 @@ pub fn lower_ast_array_init(
 
             let val = val_ref
                 .use_as(
-                    first_val_type.clone(),
+                    &first_val_type,
                     val.clone(),
-                    Some(first_val.clone()),
+                    Some(first_val),
                     local_ctx.clone(),
                     ctx,
                     file_ctx,
