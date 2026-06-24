@@ -15,8 +15,9 @@ pub fn lower_types_from_stage_0(tree: &ModuleTree) -> DiagPossible {
 
     let mut type_ctx = TypeCtx::new();
 
-    BUILD_CACHE
-        .with_borrow_mut(|cache| apply_prelude(&mut cache.type_storage, &PanicDiagnosticSource()));
+    BUILD_CACHE.with_borrow_mut(|cache| {
+        apply_prelude(&mut cache.type_storage, &PanicDiagnosticSource())
+    })?;
 
     let mut types = vec![];
 

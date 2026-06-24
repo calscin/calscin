@@ -5,7 +5,7 @@ use std::fmt::{Debug, Display};
 use calsc_utils::pos::FilePosition;
 
 use crate::{
-    Diagnostic, DiagnosticCode, DiagnosticSource, Level, PosDiagnosticSource, diags,
+    Diagnostic, DiagnosticCode, DiagnosticSource, Level, PosDiagnosticSource,
     fmt::fmt_list,
     span::{Span, SpanKind},
 };

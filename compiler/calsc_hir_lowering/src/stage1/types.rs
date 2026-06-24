@@ -151,7 +151,7 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
             Ok(TypeKind::Reference(MutationState(mutable), inner))
         }
 
-        ASTType::Generic(a, b, c) => {
+        ASTType::Generic(a, b, _) => {
             let mut size_specifiers = 0;
 
             if b.is_some() {
