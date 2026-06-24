@@ -85,29 +85,10 @@ pub fn lower_type<S: DiagnosticSource>(
             let inner = lower_type(*inner, tree, hir_file_ctx, type_ctx, source)?;
             let inner = type_ctx.type_kind_arena.append(inner);
 
-<<<<<<< HEAD
             if size.is_some() {
                 Ok(TypeKind::Array(size.unwrap(), inner))
             } else {
                 Ok(TypeKind::Segment(inner))
-=======
-        ASTType::Reference(mutable, inner) => Ok(Type::Reference {
-            mutable,
-            inner: Box::new(lower_type(*inner, tree, hir_file_ctx, source)?),
-        }),
-
-        ASTType::Pointer(mutable, inner) => Ok(Type::Pointer {
-            mutable,
-            inner: Box::new(lower_type(*inner, tree, hir_file_ctx, source)?),
-        }),
-
-        ASTType::Generic(name, size_specs, type_parameters) => {
-            let mut lowered_type_params = vec![];
-            let mut size_specifiers = vec![];
-
-            for param in type_parameters {
-                lowered_type_params.push(lower_type(param, tree, hir_file_ctx, source)?);
->>>>>>> master
             }
         }
 
@@ -116,6 +97,13 @@ pub fn lower_type<S: DiagnosticSource>(
             let inner = type_ctx.type_kind_arena.append(inner);
 
             Ok(TypeKind::Reference(MutationState(mutable), inner))
+        }
+
+        ASTType::Pointer(mutable, inner) => {
+            let inner = lower_type(*inner, tree, hir_file_ctx, type_ctx, source)?;
+            let inner = type_ctx.type_kind_arena.append(inner);
+
+            Ok(TypeKind::Pointer(MutationState(mutable), inner))
         }
 
         ASTType::Generic(name, size_specs) => {

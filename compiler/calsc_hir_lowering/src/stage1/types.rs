@@ -145,22 +145,23 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
                 ctx,
             )?;
 
-<<<<<<< HEAD
             let inner = ctx.type_ctx.type_kind_arena.append(inner);
-=======
-        ASTType::Pointer(mutable, b) => Ok(Type::Pointer {
-            mutable,
-            inner: Box::new(lower_ast_type_complex(
-                *b, origin, inst, true, file_ctx, ctx,
-            )?),
-        }),
-
-        ASTType::Generic(a, b, c) => {
-            if inst.is_some() {
-                let inst = inst.clone().unwrap();
->>>>>>> master
 
             Ok(TypeKind::Reference(MutationState(mutable), inner))
+        }
+
+        ASTType::Pointer(mutable, inner) => {
+            let inner = lower_ast_type_complex(
+                *inner,
+                origin,
+                allow_compile_time_uncertain_types,
+                file_ctx,
+                ctx,
+            )?;
+
+            let inner = ctx.type_ctx.type_kind_arena.append(inner);
+
+            Ok(TypeKind::Pointer(MutationState(mutable), inner))
         }
 
         ASTType::Generic(generic, size_param) => {
