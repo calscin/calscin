@@ -15,8 +15,8 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_typing::{base::BaseType, tree::Type};
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_typing_v2::types::TypeKind;
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::{
     stage1::types::lower_ast_type,
@@ -39,7 +39,7 @@ pub fn lower_ast_body_node(
 ) -> DiagResult<ArenaHandle> {
     match &node.kind {
         ASTNodeKind::FunctionCall { .. } => {
-            lower_ast_function_call(node, None, local_ctx, file_ctx, ctx, ast_ctx)
+            lower_ast_function_call(node, local_ctx, file_ctx, ctx, ast_ctx)
         }
         ASTNodeKind::StructLRUsage { .. } => lower_ast_lru(node, local_ctx, file_ctx, ctx, ast_ctx),
 
@@ -137,7 +137,6 @@ pub fn lower_ast_body<K: DiagnosticSource>(
 
 pub fn lower_ast_function_call(
     node: ASTNode,
-    _ty: Option<BaseType>,
     local_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
@@ -202,7 +201,7 @@ pub fn lower_ast_return_statement(
             .return_type
             .clone();
 
-        if val.is_some() && expected_return_type == Type::Void {
+        if val.is_some() && expected_return_type == TypeKind::Void {
             return Err(build_restricted_return_type(&"void", &node).into());
         }
 
@@ -219,7 +218,7 @@ pub fn lower_ast_return_statement(
 
             let val = val_ref
                 .use_as(
-                    expected_return_type,
+                    &expected_return_type,
                     val.clone(),
                     None,
                     local_ctx.clone(),
@@ -258,7 +257,6 @@ pub fn lower_ast_return_statement(
 
 pub fn lower_ast_function_decl(
     node: ASTNode,
-    ty: Option<BaseType>,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
     ast_ctx: &ASTContext,
@@ -271,13 +269,8 @@ pub fn lower_ast_function_decl(
         visibility: _,
     } = node.kind.clone()
     {
-        let mut key = GlobalContextKey::new(name.clone());
-
-        if ty.is_some() {
-            key = key.associated_type(ty.clone().unwrap());
-        } else {
-            key = key.module_path(file_ctx.current_module.clone());
-        }
+        let mut key =
+            GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
         let is_main_function = key.name == "main".into() && key.module_path.path.len() == 0;
 
@@ -286,11 +279,11 @@ pub fn lower_ast_function_decl(
         }
 
         let mut hir_arguments = vec![];
-        let ret_type = lower_ast_type(return_type, &node, ty.clone(), file_ctx, ctx)?;
+        let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;
 
         for argument in arguments {
             hir_arguments.push((
-                lower_ast_type(argument.0.clone(), &node, ty.clone(), file_ctx, ctx)?,
+                lower_ast_type(argument.0.clone(), &node, file_ctx, ctx)?,
                 argument.1,
             ));
         }
@@ -317,10 +310,15 @@ pub fn lower_ast_function_decl(
             .meets_ending_point_requirement();
 
         if !meets_ending_point {
-            return Err(build_expected_return_error(&ret_type, &"void".to_string(), &node).into());
+            return Err(build_expected_return_error(
+                &display_with_to_string(&ret_type, &ctx.type_ctx),
+                &"void".to_string(),
+                &node,
+            )
+            .into());
         }
 
-        let is_void = ret_type == Type::Void;
+        let is_void = ret_type == TypeKind::Void;
 
         let n = HIRNode::new(
             HIRNodeKind::FunctionDeclaration {

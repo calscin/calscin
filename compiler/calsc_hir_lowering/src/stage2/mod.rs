@@ -10,12 +10,11 @@ use calsc_ast::{
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 
-use crate::stage2::{funcs::lower_ast_function_decl, structs::lower_ast_struct_decl};
+use crate::stage2::funcs::lower_ast_function_decl;
 
 pub mod control;
 pub mod funcs;
 pub mod key;
-pub mod structs;
 pub mod values;
 pub mod vars;
 
@@ -44,16 +43,11 @@ pub fn lower_hir_stage_2_node(
 ) -> DiagPossible {
     match &node.kind {
         ASTNodeKind::FunctionDeclaration { .. } => {
-            let _ =
-                lower_ast_function_decl(ASTNode::clone(&node), None, file_ctx, ctx, ast_context)?;
+            let _ = lower_ast_function_decl(ASTNode::clone(&node), file_ctx, ctx, ast_context)?;
         }
 
         ASTNodeKind::ExternFunctionDeclaration { .. } => return Ok(()),
         ASTNodeKind::StructDeclaration { .. } => return Ok(()),
-
-        ASTNodeKind::StructDeclBlock { .. } => {
-            lower_ast_struct_decl(ASTNode::clone(&node), file_ctx, ctx, ast_context)?
-        }
 
         ASTNodeKind::Module { .. } => lower_hir_stage_2_module(node, file_ctx, ctx, ast_context)?,
 

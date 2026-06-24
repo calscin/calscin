@@ -75,7 +75,7 @@ pub fn lower_ast_value(
         }
 
         ASTNodeKind::FunctionCall { .. } => {
-            lower_ast_function_call(node, None, local_ctx, file_ctx, ctx, ast_ctx)
+            lower_ast_function_call(node, local_ctx, file_ctx, ctx, ast_ctx)
         }
 
         ASTNodeKind::ElementReference(_) => {
