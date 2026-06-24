@@ -26,7 +26,7 @@ pub fn build_module_tree(file_path: PathBuf) -> DiagResult<ModuleTree> {
 
     let folder = file_path.parent().unwrap().to_path_buf();
 
-    let module_path = HIRFileContext::new().current_module; // Gets the current_package::empty path.
+    let module_path = HIRFileContext::new(file_path).current_module; // Gets the current_package::empty path.
 
     // Make sure that the package path is imported and also load the tree prelude
     {
@@ -62,7 +62,7 @@ pub fn module_tree_append_file(
         cache.append_entry(path.clone(), BuildCacheEntry::new(ast.clone()))
     });
 
-    let mut hir_file_ctx = HIRFileContext::new();
+    let mut hir_file_ctx = HIRFileContext::new(path.clone());
     hir_file_ctx.current_module = module_path;
 
     lower_stage_0(&ast, &mut hir_file_ctx, tree, path)?;

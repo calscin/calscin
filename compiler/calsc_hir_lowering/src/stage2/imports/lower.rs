@@ -7,8 +7,11 @@ use calsc_diagnostics::{
     DiagPossible,
     diags::errors::{build_expected_entry_type, build_internal_hir_node_leaked},
 };
-use calsc_hir::{HIRContext, file::HIRFileContext};
-use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
+use calsc_hir::{BUILD_CACHE, HIRContext, file::HIRFileContext};
+use calsc_modules::{
+    path::ModulePath,
+    tree::{ModuleTree, entry::ModuleTreeEntry},
+};
 use calsc_state::GLOBAL_STATE;
 
 use crate::stage2::imports::{import_module, lower_hir_key};
@@ -21,8 +24,6 @@ pub fn lower_import_statement(
 ) -> DiagPossible {
     if let ASTNodeKind::ImportStatement { path, kind } = node.kind.clone() {
         let path = lower_hir_key(path, file_ctx);
-
-        println!("Lowered {}", path);
 
         let module = GLOBAL_STATE
             .with_borrow(|state| Ok(state.module_tree.traverse_to(path.clone(), &node)?.clone()))?;
@@ -48,7 +49,17 @@ pub fn lower_import_statement(
                 let mut new_path = file_ctx.current_module.clone();
                 new_path.append_single_bit(path.last());
 
-                println!("Appending to {}", new_path);
+                let module_path = GLOBAL_STATE
+                    .with_borrow(|state| {
+                        state
+                            .module_tree
+                            .closest_module_to_path(new_path.clone(), &node)
+                    })?
+                    .path
+                    .clone()
+                    .unwrap();
+
+                GLOBAL_STATE.with_borrow_mut(|state| state.build.append_to_build(module_path));
 
                 import_module(module_inner, new_path, ctx, &node)?
             }

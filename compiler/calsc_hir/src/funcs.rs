@@ -24,6 +24,9 @@ pub struct HIRFunction {
     /// Represents the key related to the function
     pub name: GlobalContextKey,
 
+    /// The function name used during the Remir lowering
+    pub actual_function_name: HashedString,
+
     /// The local context
     /// Is present in stage 1 and stage 2 functions
     pub local_context: Option<LocalContext>,
@@ -53,12 +56,31 @@ impl HIRFunction {
         is_main_function: bool,
     ) -> Self {
         Self {
-            name,
+            name: name.clone(),
             local_context: None,
             return_type,
             arguments,
             impl_node: None,
+            actual_function_name: name.name.clone(),
             triple_dot_position,
+            is_main_function,
+        }
+    }
+
+    pub fn new_imported(
+        name: GlobalContextKey,
+        return_type: TypeKind,
+        arguments: Vec<(HashedString, TypeKind)>,
+        is_main_function: bool,
+    ) -> Self {
+        Self {
+            name: name.clone(),
+            local_context: None,
+            return_type,
+            arguments,
+            impl_node: None,
+            actual_function_name: format!("{}", name).into(),
+            triple_dot_position: None,
             is_main_function,
         }
     }
@@ -71,13 +93,14 @@ impl HIRFunction {
         is_main_function: bool,
     ) -> Self {
         Self {
-            name,
+            name: name.clone(),
             local_context: Some(local_ctx),
             return_type,
             arguments,
             impl_node: None,
             triple_dot_position: None,
             is_main_function,
+            actual_function_name: format!("{}", name).into(),
         }
     }
 

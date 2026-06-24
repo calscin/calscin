@@ -98,6 +98,16 @@ impl ModuleTreeTraversal for TreeModule {
         source: &S,
         module: TreeModule,
     ) -> DiagResult<TreeModule> {
+        if ind >= path.get_size() {
+            let module = if self.path.is_some() {
+                self.clone()
+            } else {
+                module
+            };
+
+            return Ok(module); // Add this so it doesn't go out of bounds incase the target entry is a module
+        }
+
         let val = path.get(ind);
 
         let module = if self.path.is_some() {

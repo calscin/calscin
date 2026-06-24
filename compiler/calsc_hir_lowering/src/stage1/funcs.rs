@@ -95,7 +95,7 @@ pub fn lower_ast_extern_function(
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
 
-        let key = GlobalContextKey::new(name.clone());
+        let key = GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
         let mut args = vec![];
         let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;

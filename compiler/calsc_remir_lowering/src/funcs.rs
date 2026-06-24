@@ -1,12 +1,13 @@
 use calsc_diagnostics::{
     DiagPossible, DiagResult,
     diags::errors::{build_cannot_find_element_no_closest, build_internal_hir_node_leaked},
+    panics::PanicDiagnosticSource,
 };
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
 };
 
-use calsc_typing::{ctx::TypeCtx, types::TypeKind};
+use calsc_typing::types::TypeKind;
 use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     block::vars::BlockVariable,
@@ -29,11 +30,14 @@ pub fn lower_hir_function_call(
     let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::FunctionCall { func, arguments } = node_ref.kind.clone() {
-        let name = format!("{}", func);
+        let name = hirctx
+            .scope
+            .get_entry_no_visibility(func, &node_ref)?
+            .as_function(&node_ref)?
+            .actual_function_name
+            .clone();
 
-        println!("Callee {}", name);
-
-        let reference_label = match module.get_function_by_name(name.clone()) {
+        let reference_label = match module.get_function_by_name(name.to_string()) {
             Some(v) => v,
             None => return Err(build_cannot_find_element_no_closest(&name, &node_ref).into()),
         };
@@ -42,8 +46,6 @@ pub fn lower_hir_function_call(
 
         for argument in arguments {
             let v = lower_hir_value(argument, local_ctx, module, hirctx)?;
-
-            println!("- {}", v);
 
             lowered_arguments.push(v);
         }
@@ -70,13 +72,22 @@ pub fn lower_hir_function_decl_none(
     return_type: TypeKind,
     is_main_function: bool,
     module: &mut Module,
-    ctx: &TypeCtx,
+    context: &mut HIRContext,
 ) -> DiagPossible {
+    let panic_source = PanicDiagnosticSource();
+
     let mut mir_arguments = vec![];
-    let mut mir_return_type = lower_type(return_type, ctx)?;
+    let mut mir_return_type = lower_type(return_type, &context.type_ctx)?;
+
+    let name = context
+        .scope
+        .get_entry_no_visibility(key, &panic_source)?
+        .as_function(&panic_source)?
+        .actual_function_name
+        .clone();
 
     for argument in arguments {
-        mir_arguments.push(lower_type(argument, ctx)?);
+        mir_arguments.push(lower_type(argument, &context.type_ctx)?);
     }
 
     if is_main_function {
@@ -88,7 +99,7 @@ pub fn lower_hir_function_decl_none(
         mir_return_type = ValueType::Int(true, 32);
     }
 
-    let _ = module.create_function(format!("{}", key), mir_arguments, mir_return_type);
+    let _ = module.create_function(name.to_string(), mir_arguments, mir_return_type);
 
     Ok(())
 }
@@ -108,6 +119,13 @@ pub fn lower_hir_function_decl(
         append_terminator,
     } = node_ref.kind.clone()
     {
+        let name = context
+            .scope
+            .get_entry_no_visibility(key.clone(), node_ref)?
+            .as_function(node_ref)?
+            .actual_function_name
+            .clone();
+
         let local_context = context
             .scope
             .get_entry_no_visibility(key.clone(), node_ref)?
@@ -116,11 +134,11 @@ pub fn lower_hir_function_decl(
             .clone()
             .unwrap();
 
-        let function = module.get_function_by_name(format!("{}", key)).unwrap();
+        let function = module.get_function_by_name(name.to_string()).unwrap();
         module.move_function(function.clone());
 
         let entry_block = module
-            .create_block(format!("{}::entry", key))
+            .create_block(format!("{}::entry", name.to_string()))
             .convert(node_ref.start.clone(), node_ref.end.clone())?;
 
         module.move_end(entry_block.clone(), function);
