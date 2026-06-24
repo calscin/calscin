@@ -20,7 +20,7 @@ pub fn lower_hir_cast_node(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<BaseSSAValue> {
     let node = hirctx.nodes.get(&node).clone();
 
@@ -31,7 +31,7 @@ pub fn lower_hir_cast_node(
     } = node.kind.clone()
     {
         let val = lower_hir_value(original, ctx, module, hirctx)?;
-        let into = lower_type(into)?;
+        let into = lower_type(into, &hirctx.type_ctx)?;
 
         lower_hir_cast(val, into, module, &node)
     } else {

@@ -14,7 +14,8 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_typing::tree::Type;
+
+use calsc_typing::types::TypeKind;
 use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::stage2::values::lower_ast_value;
@@ -44,7 +45,7 @@ pub fn lower_ast_binary_expression(
 
         let left_expr_type = left_expr_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
-        if left_expr_type == Type::Void || !left_expr_type.is_direct_numeric_generic() {
+        if left_expr_type == TypeKind::Void || !left_expr_type.is_directly_numeric() {
             return Err(build_expected_type_error(
                 &"numeric".to_string(),
                 &"".to_string(),
@@ -65,7 +66,7 @@ pub fn lower_ast_binary_expression(
 
         let right_expr = right_expr_ref
             .use_as(
-                left_expr_type.clone(),
+                &left_expr_type,
                 right_expr.clone(),
                 Some(left_expr.clone()),
                 local_ctx.clone(),

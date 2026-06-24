@@ -1,72 +1,11 @@
-use calsc_diagnostics::{DiagPossible, DiagnosticSource};
-use calsc_utils::hash::HashedString;
+//! The renovated typing system of Calscin. Allows the handling of type parameters and more.
+//! This version will properly use diagnostics and arena allocation
 
-use crate::tree::Type;
-
-pub mod base;
-pub mod fmt;
-pub mod func;
-pub mod iter;
-pub mod params;
-pub mod tree;
-
-/// Represents a type that has fields.
-/// It is recommended to use this trait directly on a [`BaseTypeInstance`][`crate::base::instance::BaseTypeInstance`] to allow for type parameter lowering
-pub trait FieldHavingType {
-    /// Checks if the type has a field with the given name
-    fn has_field(&self, name: HashedString) -> bool;
-
-    /// Gets the list of fields inside of the type
-    fn get_fields(&self) -> Vec<HashedString>;
-
-    /// Gets the index of the field.
-    ///
-    /// # Panic
-    /// This function will panic if the field doesn't exist.
-    /// Make sure to use [`has_field`][`FieldHavingType::has_field`] before using this function
-    ///
-    fn get_field_index(&self, name: HashedString) -> usize;
-
-    /// Gets the field with the given name's type.
-    ///
-    /// # Panic
-    /// This function will panic if the field doesn't exist.
-    /// Make sure to use [`has_field`][`FieldHavingType::has_field`] before using this function
-    ///
-    fn get_field_type(&self, name: HashedString) -> Type;
-}
-
-/// Same as [`FieldHavingType`] but contains mutable functions
-pub trait MutableFieldHavingType {
-    /// Adds a field to the type with the given name and type
-    ///
-    /// # Panics
-    ///	This function will panic if the operation is not supported on the type
-    ///
-    /// # Errors
-    /// This function will return an error if the fiels is already present in the time
-    fn add_field<K: DiagnosticSource>(
-        &mut self,
-        name: HashedString,
-        ty: Type,
-        source: &K,
-    ) -> DiagPossible;
-}
-
-/// Represents a type that can potentially transmute into another type or cast.
-///
-/// There are two different type of type convertions:
-/// - **Transmutations**: Transmutations are conversions that are very cheap and cannot fail (eg: s.32 -> s.64).
-/// - **Casts**: Casts are conversions that are either unsafe or have a slight/significant runtime impact. Most casts are unsafe.
-///
-pub trait TransmutableType {
-    /// Determines if the current type can be transmuted into the given type.
-    fn can_transmute(&self, into: Self) -> bool;
-
-    /// Determines if the current type can be transmuted into the given type.
-    /// Determines that the self instance of type is weakly typed (infered) and can be further overriden.
-    fn can_transmute_weakly(&self, into: Self) -> bool;
-
-    /// Determines if the current type can be cast into the given type.
-    fn can_cast(&self, into: Self) -> bool;
-}
+pub mod allocs;
+pub mod builders;
+pub mod ctx;
+pub mod funcs;
+pub mod into;
+pub mod prelude;
+pub mod traits;
+pub mod types;

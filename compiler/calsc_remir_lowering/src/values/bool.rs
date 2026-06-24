@@ -39,9 +39,9 @@ pub fn lower_hir_compare(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<SSAIntValue> {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::CompareExpression {
         left_expr,
@@ -85,7 +85,7 @@ pub fn lower_hir_compare(
 
         Ok(res)
     } else {
-        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
 
@@ -93,9 +93,9 @@ pub fn lower_hir_inverse_condition(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<SSAIntValue> {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::InverseCondition(inner) = node_ref.kind.clone() {
         let inner = lower_hir_value(inner, ctx, module, hirctx)?;
@@ -107,6 +107,6 @@ pub fn lower_hir_inverse_condition(
 
         Ok(val.into())
     } else {
-        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

@@ -21,34 +21,8 @@ pub fn test_simple_type_parsing() {
 
     assert_eq!(
         ty,
-        ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None, vec![])
+        ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None)
     );
-}
-
-#[test]
-pub fn test_simple_type_parsing_generic_type_specs() {
-    let tokens = lexer_tokenize("s32<test, abcdef>", "test.cal".to_string()).unwrap_cleanly();
-    let mut ind = 0;
-
-    let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
-
-    let type1 = lexer_tokenize("test", "test.cal".to_string()).unwrap_cleanly();
-    let type2 = lexer_tokenize("abcdef", "test.cal".to_string()).unwrap_cleanly();
-
-    let mut ind1 = 0;
-    let mut ind2 = 0;
-
-    assert_eq!(
-        ty,
-        ASTType::Generic(
-            ElementPath::new_relative(vec!["s32".into()]),
-            None,
-            vec![
-                parse_ast_type(&type1, &mut ind1, true).unwrap_cleanly(),
-                parse_ast_type(&type2, &mut ind2, true).unwrap_cleanly()
-            ]
-        )
-    )
 }
 
 #[test]
@@ -60,40 +34,26 @@ pub fn test_simple_type_parsing_size_spec() {
 
     assert_eq!(
         ty,
-        ASTType::Generic(
-            ElementPath::new_relative(vec!["s".into()]),
-            Some(32),
-            vec![]
-        )
+        ASTType::Generic(ElementPath::new_relative(vec!["s".into()]), Some(32),)
     )
 }
 
 #[test]
 pub fn test_complex_type_parsing() {
-    let tokens = lexer_tokenize("s.32<test, abcdef>[32]&", "test.col".to_string()).unwrap_cleanly();
+    let tokens = lexer_tokenize("s.32[32]&", "test.col".to_string()).unwrap_cleanly();
     let mut ind = 0;
 
     let ty = parse_ast_type(&tokens, &mut ind, true).unwrap_cleanly();
 
-    let type1 = lexer_tokenize("test", "test.cal".to_string()).unwrap_cleanly();
-    let type2 = lexer_tokenize("abcdef", "test.cal".to_string()).unwrap_cleanly();
-
-    let mut ind1 = 0;
-    let mut ind2 = 0;
-
     assert_eq!(
         ty,
         ASTType::Reference(
-            true,
+            false,
             Box::new(ASTType::Array(
                 Some(32),
                 Box::new(ASTType::Generic(
                     ElementPath::new_relative(vec!["s".into()]),
-                    Some(32),
-                    vec![
-                        parse_ast_type(&type1, &mut ind1, true).unwrap_cleanly(),
-                        parse_ast_type(&type2, &mut ind2, true).unwrap_cleanly()
-                    ]
+                    Some(32)
                 ))
             ))
         )

@@ -6,18 +6,18 @@ use calsc_diagnostics::{
     DiagResult, Diagnostic, DiagnosticCode, DiagnosticSource,
     span::{Span, SpanKind},
 };
-use calsc_typing::{FieldHavingType, tree::Type};
+
+use calsc_typing::{
+    traits::FieldedType,
+    types::{MutationState, TypeKind},
+};
 use calsc_utils::{
     alloc::arena::ArenaHandle, cmp::CompareOperator, hash::HashedString, math::MathOperator,
     pos::FilePosition,
 };
 
 use crate::{
-    HIRContext,
-    file::HIRFileContext,
-    globalctx::key::GlobalContextKey,
-    ifs::IfStatementBranch,
-    types::{make_bool_type, make_char_type, make_float_type, make_int_type, make_string_type},
+    HIRContext, file::HIRFileContext, globalctx::key::GlobalContextKey, ifs::IfStatementBranch,
 };
 
 /// Represents the kind of the HIR node. Holds information related to the HIR node directly
@@ -43,7 +43,7 @@ pub enum HIRNodeKind {
 
     InverseCondition(ArenaHandle),
 
-    PointerReference(ArenaHandle, bool),
+    PointerReference(ArenaHandle, MutationState),
     PointerDereference(ArenaHandle),
 
     Range {
@@ -66,7 +66,7 @@ pub enum HIRNodeKind {
 
     VariableDeclaration {
         mutable: bool,
-        var_type: Type,
+        var_type: TypeKind,
 
         value: Option<ArenaHandle>,
 
@@ -93,7 +93,7 @@ pub enum HIRNodeKind {
     IndexUsage {
         val: ArenaHandle,
         index: ArenaHandle,
-        output_type: Type,
+        output_type: TypeKind,
     },
 
     FunctionReference {
@@ -105,7 +105,7 @@ pub enum HIRNodeKind {
     },
 
     TypedStructuredInit {
-        ty: Type,
+        ty: TypeKind,
         values: HashMap<HashedString, ArenaHandle>,
     },
 
@@ -119,7 +119,7 @@ pub enum HIRNodeKind {
     },
 
     ForLoop {
-        iterator_type: Type,
+        iterator_type: TypeKind,
         iterator_name: HashedString,
 
         /// The actual index representing the index inside of the local context
@@ -136,9 +136,9 @@ pub enum HIRNodeKind {
 
     FunctionDeclaration {
         key: GlobalContextKey,
-        arguments: Vec<(Type, HashedString)>,
+        arguments: Vec<(TypeKind, HashedString)>,
         body: Vec<ArenaHandle>,
-        return_type: Type,
+        return_type: TypeKind,
         append_terminator: bool,
     },
 
@@ -161,7 +161,7 @@ pub enum HIRNodeKind {
 
     CastNode {
         original: ArenaHandle,
-        into: Type,
+        into: TypeKind,
 
         /// Represents whenever the cast was done explicitly by the user (using into)
         explicit_cast: bool,
@@ -175,7 +175,7 @@ pub struct HIRNode {
     pub kind: HIRNodeKind,
     pub start: FilePosition,
     pub end: FilePosition,
-    pub stronger_type: Option<Type>,
+    pub stronger_type: Option<TypeKind>,
 }
 
 impl HIRNode {
@@ -203,44 +203,46 @@ impl HIRNode {
     pub fn get_type(
         &self,
         local_func_key: Option<GlobalContextKey>,
-        ctx: &HIRContext,
+        ctx: &mut HIRContext,
         file_ctx: Option<&HIRFileContext>,
-    ) -> DiagResult<Type> {
+    ) -> DiagResult<TypeKind> {
         if self.stronger_type.is_some() {
             return Ok(self.stronger_type.clone().unwrap());
         }
 
         let ty = match self.kind.clone() {
-            HIRNodeKind::IntLiteral(_, size, signed) => make_int_type(signed, size, self, ctx),
-            HIRNodeKind::FloatLiteral(_, size, signed) => make_float_type(signed, size, self, ctx),
-            HIRNodeKind::StringLiteral(_) => make_string_type(self, ctx),
-            HIRNodeKind::CharLiteral(_) => make_char_type(self, ctx),
-            HIRNodeKind::BooleanLiteral(_) => make_bool_type(self, ctx),
-            HIRNodeKind::InverseCondition(_) => make_bool_type(self, ctx),
+            HIRNodeKind::IntLiteral(_, size, signed) => TypeKind::make_int_type(signed, size),
+            HIRNodeKind::FloatLiteral(_, size, _) => TypeKind::make_float_type(size),
+            HIRNodeKind::StringLiteral(_) => TypeKind::make_str_type(),
+            HIRNodeKind::CharLiteral(_) => TypeKind::make_int_type(false, 8),
+            HIRNodeKind::BooleanLiteral(_) => TypeKind::make_bool_type(),
+            HIRNodeKind::InverseCondition(_) => TypeKind::make_bool_type(),
 
             HIRNodeKind::Range {
                 start,
                 end: _,
                 increment: _,
-            } => ctx
-                .nodes
-                .get(&start)
-                .get_type(local_func_key, ctx, file_ctx)?,
+            } => {
+                let node = ctx.nodes.get(&start).clone();
 
-            HIRNodeKind::PointerReference(val, mutable) => Type::Reference {
-                mutable,
-                inner: Box::new(
-                    ctx.nodes
-                        .get(&val)
-                        .get_type(local_func_key, ctx, file_ctx)?,
-                ),
-            },
+                node.get_type(local_func_key, ctx, file_ctx)?
+            }
+
+            HIRNodeKind::PointerReference(val, mutable) => {
+                let val = ctx.nodes.get(&val).clone();
+
+                let ty = val.get_type(local_func_key, ctx, file_ctx)?;
+                let ty = ctx.type_ctx.type_kind_arena.append(ty);
+
+                TypeKind::Reference(mutable, ty)
+            }
 
             HIRNodeKind::PointerDereference(val) => {
-                ctx.nodes
-                    .get(&val)
-                    .get_type(local_func_key, ctx, file_ctx)?
-                    .get_inner() // Assumes the container of a pointer reference is a pointer.
+                let val = ctx.nodes.get(&val).clone();
+
+                val.get_type(local_func_key, ctx, file_ctx)?
+                    .get_inner(&ctx.type_ctx)
+                    .clone()
             }
 
             HIRNodeKind::MathExpression {
@@ -249,11 +251,11 @@ impl HIRNode {
                 operator,
             } => {
                 if operator.assigns {
-                    Type::Void
+                    TypeKind::Void
                 } else {
-                    ctx.nodes
-                        .get(&left_expr)
-                        .get_type(local_func_key, ctx, file_ctx)?
+                    let node = ctx.nodes.get(&left_expr).clone();
+
+                    node.get_type(local_func_key, ctx, file_ctx)?
                 }
             }
 
@@ -262,26 +264,24 @@ impl HIRNode {
                 field_ind: _,
                 name,
             } => {
-                let ty = ctx
-                    .nodes
-                    .get(&val)
-                    .get_type(local_func_key, ctx, file_ctx)?;
+                let val = ctx.nodes.get(&val).clone();
+                let ty = val.get_type(local_func_key, ctx, file_ctx)?;
 
-                if ty.has_field(name.clone()) {
-                    ty.get_field_type(name)
+                if ty.has_field(&name, &ctx.type_ctx) {
+                    ty.get_field_safe(&name, &ctx.type_ctx, self)?
                 } else {
-                    Type::Void
+                    TypeKind::Void
                 }
             }
 
-            HIRNodeKind::CompareExpression { .. } => make_bool_type(self, ctx),
+            HIRNodeKind::CompareExpression { .. } => TypeKind::make_bool_type(),
 
             HIRNodeKind::VariableReference {
                 name: _,
                 variable_index,
             } => {
                 if local_func_key.is_none() {
-                    Type::Void
+                    TypeKind::Void
                 } else {
                     let entry;
 
@@ -328,14 +328,14 @@ impl HIRNode {
                 output_type,
             } => output_type,
 
-            HIRNodeKind::ArrayInit { vals } => Type::Array {
-                size: Some(vals.len()),
-                inner: Box::new(
-                    ctx.nodes
-                        .get(&vals[0])
-                        .get_type(local_func_key, ctx, file_ctx)?,
-                ),
-            },
+            HIRNodeKind::ArrayInit { vals } => {
+                let val = ctx.nodes.get(&vals[0]).clone();
+
+                let ty = val.get_type(local_func_key, ctx, file_ctx)?;
+                let ty = ctx.type_ctx.type_kind_arena.append(ty);
+
+                TypeKind::Array(vals.len(), ty)
+            }
 
             HIRNodeKind::CastNode {
                 original: _,
@@ -343,7 +343,7 @@ impl HIRNode {
                 explicit_cast: _,
             } => into.clone(),
 
-            _ => Type::Void,
+            _ => TypeKind::Void,
         };
 
         Ok(ty)
@@ -380,7 +380,7 @@ impl HIRNode {
     /// Does the node represent a mutable variable-like
     pub fn represents_mutable_variable<S: DiagnosticSource>(
         &self,
-        ctx: &HIRContext,
+        ctx: &mut HIRContext,
         local_func_key: Option<GlobalContextKey>,
         source: &S,
     ) -> DiagResult<bool> {
@@ -408,32 +408,34 @@ impl HIRNode {
                 val,
                 field_ind: _,
                 name: _,
-            } => ctx
-                .nodes
-                .get(val)
-                .represents_mutable_variable(ctx, local_func_key, source),
+            } => {
+                let node = ctx.nodes.get(val).clone();
 
-            HIRNodeKind::PointerDereference(inner) => {
-                let ty = ctx.nodes.get(inner).get_type(local_func_key, ctx, None)?;
-
-                Ok(ty.is_type_mutable_compatible())
+                node.represents_mutable_variable(ctx, local_func_key, source)
             }
 
-            HIRNodeKind::PointerReference(inner, mutable) => Ok(*mutable
-                && ctx.nodes.get(inner).represents_mutable_variable(
-                    ctx,
-                    local_func_key,
-                    source,
-                )?),
+            HIRNodeKind::PointerDereference(inner) => {
+                let node = ctx.nodes.get(inner).clone();
+                let ty = node.get_type(local_func_key, ctx, None)?;
+
+                Ok(ty.is_mutation_compatible())
+            }
+
+            HIRNodeKind::PointerReference(inner, mutable) => {
+                let node = ctx.nodes.get(inner).clone();
+
+                Ok(mutable.0 && node.represents_mutable_variable(ctx, local_func_key, source)?)
+            }
 
             HIRNodeKind::IndexUsage {
                 val,
                 index: _,
                 output_type: _,
-            } => ctx
-                .nodes
-                .get(val)
-                .represents_mutable_variable(ctx, local_func_key, source),
+            } => {
+                let node = ctx.nodes.get(val).clone();
+
+                node.represents_mutable_variable(ctx, local_func_key, source)
+            }
 
             _ => Ok(false),
         }

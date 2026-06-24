@@ -1,11 +1,12 @@
 [package]
 name = "calsc_typing"
-version = "0.0.0"
+version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-calsc_diagnostics = { path = "../calsc_diagnostics" }
 calsc_utils = { path = "../calsc_utils" }
+calsc_diagnostics = { path = "../calsc_diagnostics" }
+calsc_modules = { path = "../calsc_modules"}
 
 [features]
-debug = ["calsc_utils/debug"]
+debug = []

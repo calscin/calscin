@@ -40,7 +40,7 @@ fn parse_for_loop_test() {
 
         assert_eq!(
             iterator_type,
-            ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None, vec![])
+            ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None)
         );
         assert_eq!(iterator_name, "test".into());
         assert_eq!(body, vec![]);
@@ -87,11 +87,7 @@ fn parse_loop_test() {
             body_0.kind.clone(),
             ASTNodeKind::VariableDeclaration {
                 mutable: false,
-                var_type: ASTType::Generic(
-                    ElementPath::new_relative(vec!["s32".into()]),
-                    None,
-                    vec![]
-                ),
+                var_type: ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None),
                 name: "test".into(),
                 value: None
             }
@@ -124,11 +120,7 @@ fn parse_while_loop_test() {
             body_0.kind.clone(),
             ASTNodeKind::VariableDeclaration {
                 mutable: false,
-                var_type: ASTType::Generic(
-                    ElementPath::new_relative(vec!["s32".into()]),
-                    None,
-                    vec![]
-                ),
+                var_type: ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None,),
                 name: "test".into(),
                 value: None
             }
@@ -160,11 +152,7 @@ fn parse_if_statement_simple_test() {
                 body_0.kind.clone(),
                 ASTNodeKind::VariableDeclaration {
                     mutable: false,
-                    var_type: ASTType::Generic(
-                        ElementPath::new_relative(vec!["s32".into()]),
-                        None,
-                        vec![]
-                    ),
+                    var_type: ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None,),
                     name: "test".into(),
                     value: None
                 }

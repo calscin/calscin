@@ -14,13 +14,13 @@ use calsc_hir::{
     HIRContext,
     file::HIRFileContext,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
-    prelude::apply_prelude,
 };
 use calsc_modules::visibility::Visibility;
+use calsc_typing::prelude::apply_prelude;
 
 use crate::stage1::{
     funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
-    types::{lower_ast_decl_block, lower_ast_struct_declaration},
+    types::lower_ast_struct_declaration,
 };
 
 pub mod funcs;
@@ -34,7 +34,7 @@ pub fn lower_hir_stage_1_node(
 ) -> DiagPossible {
     match node.kind {
         ASTNodeKind::FunctionDeclaration { .. } => {
-            lower_ast_function_decl_first_stage(ASTNode::clone(&node), None, file_ctx, ctx)?;
+            lower_ast_function_decl_first_stage(ASTNode::clone(&node), file_ctx, ctx)?;
         }
 
         ASTNodeKind::ExternFunctionDeclaration { .. } => {
@@ -42,10 +42,6 @@ pub fn lower_hir_stage_1_node(
         }
         ASTNodeKind::StructDeclaration { .. } => {
             lower_ast_struct_declaration(ASTNode::clone(&node), file_ctx, ctx)?
-        }
-
-        ASTNodeKind::StructDeclBlock { .. } => {
-            lower_ast_decl_block(ASTNode::clone(&node), file_ctx, ctx, ast_ctx)?
         }
 
         ASTNodeKind::Module { .. } => lower_hir_stage_1_module(node, file_ctx, ctx, ast_ctx)?,

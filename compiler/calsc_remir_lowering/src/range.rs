@@ -15,9 +15,9 @@ pub fn lower_hir_range(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<MIRRange> {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::Range {
         start,
@@ -50,6 +50,6 @@ pub fn lower_hir_range(
             increment: incr,
         })
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

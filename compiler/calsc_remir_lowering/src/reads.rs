@@ -18,9 +18,9 @@ pub fn lower_hir_readable_pointer(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<SSAPointerValue> {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     match node_ref.kind {
         HIRNodeKind::VariableReference { .. } => {
@@ -61,9 +61,9 @@ pub fn lower_hir_readable_field(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<SSAPointerValue> {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::FieldReference {
         val,
@@ -91,7 +91,7 @@ pub fn lower_hir_readable_field(
 
         Ok(ptr)
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
 
@@ -99,9 +99,9 @@ pub fn lower_hir_readable_pointer_deref(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<SSAPointerValue> {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::PointerDereference(inner) = node_ref.kind.clone() {
         let inner = lower_hir_value(inner, local_ctx, module, ctx)?;
@@ -112,7 +112,7 @@ pub fn lower_hir_readable_pointer_deref(
 
         Ok(inner)
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
 
@@ -120,9 +120,9 @@ pub fn lower_hir_readable_index_usage(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagResult<SSAPointerValue> {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::IndexUsage {
         val,
@@ -145,6 +145,6 @@ pub fn lower_hir_readable_index_usage(
 
         Ok(ptr)
     } else {
-        return Err(build_internal_hir_node_leaked(&*node_ref, &*node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

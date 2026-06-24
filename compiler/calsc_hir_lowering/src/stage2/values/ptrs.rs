@@ -12,6 +12,7 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
+use calsc_typing::types::MutationState;
 use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::stage2::values::lower_ast_value;
@@ -60,7 +61,7 @@ pub fn lower_ast_pointer_reference(
         introduce_reference_ast(val.clone(), local_ctx.clone(), ctx)?;
 
         let node = HIRNode::new(
-            HIRNodeKind::PointerReference(val, mutable),
+            HIRNodeKind::PointerReference(val, MutationState(mutable)),
             node.start.clone(),
             node.end.clone(),
         );

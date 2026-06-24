@@ -67,9 +67,9 @@ pub fn lower_hir_if_statement_branch(
     node: &ArenaHandle,
     merge_ref: &BlockReference,
     branch_blocks: &Vec<BlockReference>,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = ctx.nodes.get(node);
+    let node_ref = ctx.nodes.get(node).clone();
 
     match branch {
         IfStatementBranch::If { condition, body } => {
@@ -150,9 +150,9 @@ pub fn lower_hir_if_statement(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    ctx: &HIRContext,
+    ctx: &mut HIRContext,
 ) -> DiagPossible {
-    let node_ref = ctx.nodes.get(&node);
+    let node_ref = ctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::IfStatement { branches } = node_ref.kind.clone() {
         module.set_sync_point(module.pos_block.clone().unwrap());
@@ -189,6 +189,6 @@ pub fn lower_hir_if_statement(
 
         Ok(())
     } else {
-        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

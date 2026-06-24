@@ -5,7 +5,8 @@ use calsc_diagnostics::{
 use calsc_hir::{
     HIRContext, globalctx::key::GlobalContextKey, localctx::LocalContext, nodes::HIRNodeKind,
 };
-use calsc_typing::tree::Type;
+
+use calsc_typing::{ctx::TypeCtx, types::TypeKind};
 use calsc_utils::alloc::arena::ArenaHandle;
 use remir::{
     block::vars::BlockVariable,
@@ -23,15 +24,15 @@ pub fn lower_hir_function_call(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<Option<BaseSSAValue>> {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::FunctionCall { func, arguments } = node_ref.kind.clone() {
         let name = format!("{}", func);
         let reference_label = match module.get_function_by_name(name.clone()) {
             Some(v) => v,
-            None => return Err(build_cannot_find_element_no_closest(&name, node_ref).into()),
+            None => return Err(build_cannot_find_element_no_closest(&name, &node_ref).into()),
         };
 
         let mut lowered_arguments = vec![];
@@ -54,22 +55,23 @@ pub fn lower_hir_function_call(
 
         Ok(val)
     } else {
-        panic!()
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }
 
 pub fn lower_hir_function_decl_none(
     key: GlobalContextKey,
-    arguments: Vec<Type>,
-    return_type: Type,
+    arguments: Vec<TypeKind>,
+    return_type: TypeKind,
     is_main_function: bool,
     module: &mut Module,
+    ctx: &TypeCtx,
 ) -> DiagPossible {
     let mut mir_arguments = vec![];
-    let mut mir_return_type = lower_type(return_type)?;
+    let mut mir_return_type = lower_type(return_type, ctx)?;
 
     for argument in arguments {
-        mir_arguments.push(lower_type(argument)?);
+        mir_arguments.push(lower_type(argument, ctx)?);
     }
 
     if is_main_function {
@@ -88,7 +90,7 @@ pub fn lower_hir_function_decl_none(
 
 pub fn lower_hir_function_decl(
     node: ArenaHandle,
-    context: &HIRContext,
+    context: &mut HIRContext,
     module: &mut Module,
 ) -> DiagPossible {
     let node_ref = context.nodes.get(&node);
@@ -134,7 +136,7 @@ pub fn lower_hir_function_decl(
             }
         }
 
-        lower_hir_body(body, &local_context, module, &context)?;
+        lower_hir_body(body, &local_context, module, context)?;
 
         if append_terminator {
             let return_type = build_const_int(module, 0, 32, true).unwrap();
@@ -152,7 +154,7 @@ pub fn lower_hir_function_return(
     node: ArenaHandle,
     local_ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagPossible {
     let node_ref = hirctx.nodes.get(&node);
 

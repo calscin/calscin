@@ -4,7 +4,7 @@ use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error}
 use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
-    parser::{forms::parse_element_path_form, utils::parse_ast_list},
+    parser::forms::parse_element_path_form,
     types::{ASTType, SimpleASTType},
 };
 
@@ -67,8 +67,8 @@ pub fn parse_ast_type(
 pub(crate) fn lower_simple_type(simples: Vec<SimpleASTType>, ind: usize) -> ASTType {
     // We do not need to check the index since it cannot go deper than 0. Furthermore, it is guaranteed that a generic will be at the first
     let res = match &simples[ind] {
-        SimpleASTType::Generic(name, size_specifier, type_params) => {
-            ASTType::Generic(name.clone(), size_specifier.clone(), type_params.clone())
+        SimpleASTType::Generic(name, size_specifier) => {
+            ASTType::Generic(name.clone(), size_specifier.clone())
         }
 
         SimpleASTType::Array(size) => {
@@ -195,7 +195,6 @@ pub fn parse_type_generic(
         let name = parse_element_path_form(tokens, ind)?;
 
         let size_spec;
-        let mut type_parameters: Vec<ASTType> = vec![];
 
         // Parsing of the size specifier
         if tokens[*ind].kind == TokenKind::Dot {
@@ -211,24 +210,7 @@ pub fn parse_type_generic(
             size_spec = None;
         }
 
-        if tokens[*ind].kind == TokenKind::AngelBracketOpen {
-            if !allow_generic_parameters {
-                return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into());
-            }
-
-            *ind += 1; // <
-
-            type_parameters = parse_ast_list(
-                tokens,
-                ind,
-                &mut |toks, i| parse_ast_type(toks, i, true),
-                TokenKind::AngelBracketClose,
-                true,
-                false,
-            )?; // Auto increments
-        }
-
-        return Ok(SimpleASTType::Generic(name, size_spec, type_parameters));
+        return Ok(SimpleASTType::Generic(name, size_spec));
     }
 
     panic!("Invalid node")

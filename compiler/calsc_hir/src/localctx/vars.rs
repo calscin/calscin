@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use calsc_typing::tree::Type;
+use calsc_typing::types::TypeKind;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)] // For MIR
@@ -8,7 +8,7 @@ pub struct LocalContextVariable {
     pub introduced: usize,
     pub mutable: bool,
 
-    pub ty: Type,
+    pub ty: TypeKind,
 
     pub usage_count: usize,
     pub mutation_count: usize,
@@ -20,7 +20,7 @@ pub struct LocalContextVariable {
 }
 
 impl LocalContextVariable {
-    pub fn new(ty: Type, introduced: usize, mutable: bool, has_default: bool) -> Self {
+    pub fn new(ty: TypeKind, introduced: usize, mutable: bool, has_default: bool) -> Self {
         Self {
             mutable,
             introduced,

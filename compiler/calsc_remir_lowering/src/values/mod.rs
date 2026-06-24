@@ -34,9 +34,9 @@ pub fn lower_hir_value(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     match &node_ref.kind {
         HIRNodeKind::IntLiteral(_, _, _)
@@ -70,7 +70,7 @@ pub fn lower_hir_value(
                 Err(build_expected_type_error(
                     &"void".to_string(),
                     &"non-void".to_string(),
-                    node_ref,
+                    &node_ref,
                 )
                 .into())
             }
@@ -88,7 +88,7 @@ pub fn lower_hir_value(
 
         HIRNodeKind::CastNode { .. } => lower_hir_cast_node(node, ctx, module, hirctx),
 
-        _ => return Err(build_internal_hir_node_leaked(&node, node_ref).into()),
+        _ => return Err(build_internal_hir_node_leaked(&node, &node_ref).into()),
     }
 }
 
@@ -96,9 +96,9 @@ pub fn lower_hir_field_reference(
     node: ArenaHandle,
     ctx: &LocalContext,
     module: &mut Module,
-    hirctx: &HIRContext,
+    hirctx: &mut HIRContext,
 ) -> DiagResult<BaseSSAValue> {
-    let node_ref = hirctx.nodes.get(&node);
+    let node_ref = hirctx.nodes.get(&node).clone();
 
     if let HIRNodeKind::FieldReference {
         val,
@@ -130,6 +130,6 @@ pub fn lower_hir_field_reference(
 
         Ok(field_val)
     } else {
-        return Err(build_internal_hir_node_leaked(node_ref, node_ref).into());
+        return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into());
     }
 }

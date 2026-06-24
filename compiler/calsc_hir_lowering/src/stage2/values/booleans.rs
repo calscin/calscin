@@ -10,8 +10,8 @@ use calsc_hir::{
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
-    types::make_bool_type,
 };
+use calsc_typing::types::TypeKind;
 use calsc_utils::alloc::arena::ArenaHandle;
 
 use crate::stage2::values::lower_ast_value;
@@ -35,7 +35,7 @@ pub fn lower_hir_inverse_condition(
         let val_ref = ctx.nodes.get(&val).clone();
 
         let val = val_ref.use_as(
-            make_bool_type(&node, ctx),
+            &TypeKind::make_bool_type(),
             val.clone(),
             None,
             local_ctx.clone(),

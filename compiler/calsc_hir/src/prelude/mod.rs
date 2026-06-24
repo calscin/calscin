@@ -2,16 +2,31 @@
 
 use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_modules::{path::ModulePath, visibility::Visibility};
-use calsc_typing::base::{BaseType, kind::BaseTypeKind};
+use calsc_typing::{traits::PreludeApplier, types::primitive::PrimitiveType};
+use calsc_utils::hash::HashedString;
 
 use crate::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalContextValue};
 
-/// Applies the HIR prelude to the given scope
-pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K) -> DiagPossible {
-    let module_path = ModulePath::new_prelude_path(vec!["types".into()]);
+impl PreludeApplier for GlobalContext {
+    fn register_type<K: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        ty: PrimitiveType,
+        source: &K,
+    ) -> DiagPossible {
+        let module_path = ModulePath::new_prelude_path(vec!["types".into()]);
 
-    let bool_type = GlobalContextValue::new_type(BaseType::new(BaseTypeKind::Boolean));
+        self.append(
+            GlobalContextKey::new(name).module_path(module_path),
+            GlobalContextValue::Type(ty),
+            Visibility::Uncopiable,
+            source,
+        )?;
 
+<<<<<<< HEAD
+        Ok(())
+    }
+=======
     let signed_integer_type =
         GlobalContextValue::new_type(BaseType::new(BaseTypeKind::Integer { signed: true }));
     let unsigned_integer_type =
@@ -84,4 +99,5 @@ pub fn apply_prelude<K: DiagnosticSource>(scope: &mut GlobalContext, origin: &K)
     )?;
 
     Ok(())
+>>>>>>> master
 }

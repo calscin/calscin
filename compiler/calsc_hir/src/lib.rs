@@ -4,6 +4,7 @@
 
 use std::cell::RefCell;
 
+use calsc_typing::ctx::TypeCtx;
 use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{buildcache::BuildCache, globalctx::GlobalContext, nodes::HIRNode};
@@ -18,7 +19,6 @@ pub mod imports;
 pub mod localctx;
 pub mod nodes;
 pub mod prelude;
-pub mod types;
 
 thread_local! {
     pub static BUILD_CACHE: RefCell<BuildCache> = RefCell::new(BuildCache::new());
@@ -28,6 +28,7 @@ thread_local! {
 #[derive(Clone)] // For MIR
 pub struct HIRContext {
     pub nodes: ArenaAllocator<HIRNode>,
+    pub type_ctx: TypeCtx,
     pub scope: GlobalContext,
 }
 
@@ -35,6 +36,7 @@ impl HIRContext {
     pub fn new() -> Self {
         Self {
             nodes: ArenaAllocator::new(),
+            type_ctx: TypeCtx::new(),
             scope: GlobalContext::new(),
         }
     }

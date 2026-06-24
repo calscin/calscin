@@ -15,7 +15,8 @@ use calsc_diagnostics::{
         build_variable_unalive,
     },
 };
-use calsc_typing::tree::Type;
+
+use calsc_typing::types::TypeKind;
 use calsc_utils::{hash::HashedString, pos::FilePosition};
 
 use crate::{globalctx::key::GlobalContextKey, localctx::vars::LocalContextVariable};
@@ -43,7 +44,7 @@ pub struct LocalContext {
     pub branch_ends: HashMap<usize, usize>,
     pub branch_ends_positions: HashMap<usize, (FilePosition, FilePosition)>,
 
-    pub return_type: Type,
+    pub return_type: TypeKind,
 
     pub is_main_function: bool,
 
@@ -55,7 +56,7 @@ impl LocalContext {
     pub fn new(
         name: HashedString,
         key: GlobalContextKey,
-        return_type: Type,
+        return_type: TypeKind,
         is_main_function: bool,
     ) -> Self {
         Self {
@@ -113,7 +114,7 @@ impl LocalContext {
     fn introduce_variable_in_branch<K: DiagnosticSource>(
         &mut self,
         key: HashedString,
-        t: Type,
+        t: TypeKind,
         mutable: bool,
         has_default: bool,
         branch: usize,
@@ -139,7 +140,7 @@ impl LocalContext {
     pub fn introduce_variable<K: DiagnosticSource>(
         &mut self,
         key: HashedString,
-        t: Type,
+        t: TypeKind,
         mutable: bool,
         has_default: bool,
         origin: &K,
@@ -155,7 +156,7 @@ impl LocalContext {
     pub fn introduce_variable_next_branch<K: DiagnosticSource>(
         &mut self,
         key: HashedString,
-        t: Type,
+        t: TypeKind,
         mutable: bool,
         has_default: bool,
         origin: &K,
@@ -282,7 +283,7 @@ impl LocalContext {
     ///
     ///
     pub fn meets_ending_point_requirement(&self) -> bool {
-        if self.return_type == Type::Void {
+        if self.return_type == TypeKind::Void {
             return true;
         }
 

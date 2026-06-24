@@ -143,7 +143,7 @@ pub fn lower_ast_for_loop(
         body,
     } = node.kind.clone()
     {
-        let iterator_type = lower_ast_type(iterator_type, &node, None, file_ctx, ctx)?;
+        let iterator_type = lower_ast_type(iterator_type, &node, file_ctx, ctx)?;
         let iterated = lower_ast_value(
             ASTNode::clone(&ast_ctx.nodes.get(&iterated)),
             local_ctx.clone(),
@@ -156,7 +156,7 @@ pub fn lower_ast_for_loop(
 
         let iterated = iterated_ref
             .use_as(
-                iterator_type.clone(),
+                &iterator_type,
                 iterated.clone(),
                 None,
                 local_ctx.clone(),

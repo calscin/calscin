@@ -8,17 +8,20 @@ use calsc_hir::globalctx::key::GlobalContextKey;
 use calsc_hir::localctx::LocalContext;
 
 #[cfg(test)]
-use calsc_typing::{
-    base::{BaseType, instance::BaseTypeInstance, kind::BaseTypeKind},
-    tree::Type,
-};
+use calsc_typing::ctx::TypeCtx;
+
+#[cfg(test)]
+use calsc_typing::types::primitive::PrimitiveType;
+
+#[cfg(test)]
+use calsc_typing::types::{SizeParameter, TypeKind};
 
 #[test]
 fn test_alive_branch_simple() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, Type::Void, false);
+    let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
     let branch = ctx.start_branch();
 
@@ -33,13 +36,16 @@ fn test_alive_variable() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, Type::Void, false);
+    let mut type_ctx = TypeCtx::new();
+    let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
-    let sample_type = Type::Base(BaseTypeInstance::new(
-        BaseType::new(BaseTypeKind::Boolean),
-        vec![],
-        vec![],
-    ));
+    let sample_type = TypeKind::new_primitive(
+        PrimitiveType::Boolean,
+        SizeParameter(0),
+        &mut type_ctx,
+        &origin,
+    )
+    .unwrap_cleanly();
 
     let branch = ctx.start_branch();
 
@@ -59,13 +65,16 @@ fn test_alive_variable_next_branch() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, Type::Void, false);
+    let mut type_ctx = TypeCtx::new();
+    let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
-    let sample_type = Type::Base(BaseTypeInstance::new(
-        BaseType::new(BaseTypeKind::Boolean),
-        vec![],
-        vec![],
-    ));
+    let sample_type = TypeKind::new_primitive(
+        PrimitiveType::Boolean,
+        SizeParameter(0),
+        &mut type_ctx,
+        &origin,
+    )
+    .unwrap_cleanly();
 
     let branch = ctx.start_branch();
 
@@ -90,13 +99,16 @@ fn test_variable_gather() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, Type::Void, false);
+    let mut type_ctx = TypeCtx::new();
+    let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
-    let sample_type = Type::Base(BaseTypeInstance::new(
-        BaseType::new(BaseTypeKind::Boolean),
-        vec![],
-        vec![],
-    ));
+    let sample_type = TypeKind::new_primitive(
+        PrimitiveType::Boolean,
+        SizeParameter(0),
+        &mut type_ctx,
+        &origin,
+    )
+    .unwrap_cleanly();
 
     let _ = ctx.start_branch();
 
@@ -116,7 +128,7 @@ pub fn test_ending_point() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new("test".into(), key, Type::Void, false);
+    let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
     let branch = ctx.start_branch();
 
@@ -137,15 +149,7 @@ fn test_ending_point_unreal_branches() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new(
-        "test".into(),
-        key,
-        Type::TypeParameter {
-            name: "T".into(),
-            param_ind: 0,
-        },
-        false,
-    );
+    let mut ctx = LocalContext::new("test".into(), key, TypeKind::make_bool_type(), false);
 
     ctx.contain_unreal_branches = true;
 
@@ -173,15 +177,7 @@ fn test_ending_point_real_branches() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut ctx = LocalContext::new(
-        "test".into(),
-        key,
-        Type::TypeParameter {
-            name: "T".into(),
-            param_ind: 0,
-        },
-        false,
-    );
+    let mut ctx = LocalContext::new("test".into(), key, TypeKind::make_bool_type(), false);
 
     let branch1 = ctx.start_branch();
 

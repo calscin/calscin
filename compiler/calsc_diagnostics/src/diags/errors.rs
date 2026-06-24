@@ -34,6 +34,9 @@ pub enum ErrorCode {
     TypeCastFailed,
     ExpectedMutableReference,
 
+    NewWrongSizeSpecifier,
+    NewTypeAlreadyHasField,
+
     // HIR local context
     AlreadyInScope,
     ElementNotAlive,
@@ -546,5 +549,69 @@ pub fn build_expected_mutable_reference<S: DiagnosticSource, T: Display>(
         vec![],
         vec!["make sure this reference is mutable".into()],
         vec!["this errors means that the type you used cannot be used to perform mutable operations (eg: immutable reference)".to_string()],
+    )
+}
+
+pub fn build_requires_type_parameter<S: DiagnosticSource, T: Display>(
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::NewWrongSizeSpecifier as usize),
+        format!("type {} requires a size specifier", ty),
+        None,
+        vec![],
+        vec![
+            "this type requires a size specifier in order to specify the size of said type"
+                .to_string(),
+        ],
+        vec![format!("replace {} with {}.size", ty, ty)],
+    )
+}
+
+pub fn build_no_require_type_parameter<S: DiagnosticSource, T: Display>(
+    ty: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::NewWrongSizeSpecifier as usize),
+        format!("type {} does not require a size specifier!", ty),
+        Some("size specifier introduced here".to_string()),
+        vec![],
+        vec!["this type does not need a size specifier, it should then be removed".to_string()],
+        vec![format!("remove .size from {}.size", ty)],
+    )
+}
+
+pub fn build_type_already_has_field<S: DiagnosticSource, F: Display>(
+    field: &F,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::NewTypeAlreadyHasField as usize),
+        format!("type already has field {} in it's declaration", field),
+        None,
+        vec![],
+        vec!["the field {} is declared twice with the same name!".into()],
+        vec![format!("remove the second declaration for field {}", field)],
+    )
+}
+
+pub fn build_expected_field_type<S: DiagnosticSource, F: Display, T: Display>(
+    field: &F,
+    expected: &T,
+    got: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedType as usize),
+        format!(
+            "expected {} field to be {} but field is {}",
+            field, expected, got
+        ),
+        Some(format!("expectation for field {} made here", field)),
+        vec![],
+        vec![],
+        vec![],
     )
 }

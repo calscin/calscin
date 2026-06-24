@@ -16,7 +16,7 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
 
@@ -67,7 +67,7 @@ pub fn lower_ast_variable_declaration(
         value,
     } = node.kind.clone()
     {
-        let var_type = lower_ast_type(var_type, &node, None, file_ctx, ctx)?;
+        let var_type = lower_ast_type(var_type, &node, file_ctx, ctx)?;
 
         let id = ctx.scope.mutate_entry(
             curr_ctx.clone().unwrap(),
@@ -105,7 +105,7 @@ pub fn lower_ast_variable_declaration(
             v = Some(
                 value_ref
                     .use_as(
-                        var_type.clone(),
+                        &var_type,
                         value.clone(),
                         None,
                         curr_ctx.clone(),
@@ -195,7 +195,7 @@ pub fn lower_ast_variable_assign(
 
         let value = value_ref
             .use_as(
-                variable_type,
+                &variable_type,
                 value.clone(),
                 None,
                 curr_ctx.clone(),
@@ -206,10 +206,11 @@ pub fn lower_ast_variable_assign(
 
         if !variable_ref.represents_mutable_variable(ctx, curr_ctx.clone(), &node)? {
             if let HIRNodeKind::PointerDereference(inner) = variable_ref.kind.clone() {
+                let node = ctx.nodes.get(&inner).clone();
+                let node_type = node.get_type(curr_ctx, ctx, Some(file_ctx))?;
+
                 return Err(build_expected_mutable_reference(
-                    &ctx.nodes
-                        .get(&inner)
-                        .get_type(curr_ctx, ctx, Some(file_ctx))?,
+                    &display_with_to_string(&node_type, &ctx.type_ctx),
                     &node,
                 )
                 .into());

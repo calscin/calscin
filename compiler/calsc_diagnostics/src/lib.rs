@@ -18,6 +18,7 @@ pub mod container;
 pub mod diags;
 pub mod file;
 pub mod fmt;
+pub mod panics;
 pub mod result;
 pub mod span;
 
