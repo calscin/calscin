@@ -10,7 +10,9 @@ use calsc_hir::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalCon
 #[cfg(test)]
 use calsc_modules::visibility::Visibility;
 
+#[cfg(test)]
 use calsc_typing::types::primitive::PrimitiveType;
+
 #[cfg(test)]
 use calsc_utils::pos::FilePosition;
 
