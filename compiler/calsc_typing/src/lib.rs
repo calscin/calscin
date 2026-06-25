@@ -3,6 +3,7 @@
 
 pub mod allocs;
 pub mod builders;
+pub mod cell;
 pub mod ctx;
 pub mod funcs;
 pub mod hints;
