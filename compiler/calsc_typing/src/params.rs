@@ -13,17 +13,39 @@ pub struct TypeParameterId(usize);
 
 pub struct TypeParamCtx {
     params: HashMap<HashedString, HeldTypeParam>,
+    param_group: usize,
 }
 
 struct HeldTypeParam {
     name: HashedString,
     id: usize,
+    group: usize,
 }
 
 impl TypeParamCtx {
     pub fn new() -> Self {
         Self {
             params: HashMap::new(),
+            param_group: 0,
+        }
+    }
+
+    pub fn start_param_group(&mut self) -> usize {
+        self.param_group += 1;
+        self.param_group
+    }
+
+    pub fn end_group(&mut self, group: usize) {
+        let mut to_remove = vec![];
+
+        for entry in &self.params {
+            if entry.1.group == group {
+                to_remove.push(entry.0.clone())
+            }
+        }
+
+        for remove in to_remove {
+            self.params.remove(&remove);
         }
     }
 
@@ -60,7 +82,14 @@ impl TypeParamCtx {
 
         let id = self.params.len();
 
-        self.params.insert(name.clone(), HeldTypeParam { name, id });
+        self.params.insert(
+            name.clone(),
+            HeldTypeParam {
+                name,
+                id,
+                group: self.param_group,
+            },
+        );
 
         Ok(TypeParameterId(id))
     }
