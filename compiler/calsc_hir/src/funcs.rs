@@ -1,6 +1,6 @@
 //! Declarations for HIR functions
 
-use calsc_typing::types::TypeKind;
+use calsc_typing::{params::TypeParameterId, types::TypeKind};
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{globalctx::key::GlobalContextKey, localctx::LocalContext};
@@ -34,6 +34,9 @@ pub struct HIRFunction {
     /// The return type of the function
     pub return_type: TypeKind,
 
+    /// The type parameters owned by the function (aka the type parameters of the function).
+    pub type_parameters: Vec<TypeParameterId>,
+
     /// The arguments of the function
     pub arguments: Vec<(HashedString, TypeKind)>,
 
@@ -64,6 +67,7 @@ impl HIRFunction {
             actual_function_name: name.name.clone(),
             triple_dot_position,
             is_main_function,
+            type_parameters: vec![],
         }
     }
 
@@ -82,6 +86,7 @@ impl HIRFunction {
             actual_function_name: format!("{}", name).into(),
             triple_dot_position: None,
             is_main_function,
+            type_parameters: vec![],
         }
     }
 
@@ -101,6 +106,7 @@ impl HIRFunction {
             triple_dot_position: None,
             is_main_function,
             actual_function_name: format!("{}", name).into(),
+            type_parameters: vec![],
         }
     }
 
