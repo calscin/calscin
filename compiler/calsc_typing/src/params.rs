@@ -9,7 +9,7 @@ use calsc_diagnostics::{
 use calsc_utils::hash::HashedString;
 
 /// This is a safe handle from a type parameter stored inside of a [`TypeParamCtx`] this enforces that type parameters go trough the expected path.
-pub struct TypeParameterId(usize);
+pub struct TypeParameterId(usize, HashedString);
 
 pub struct TypeParamCtx {
     params: HashMap<HashedString, HeldTypeParam>,
@@ -63,7 +63,7 @@ impl TypeParamCtx {
             return Err(build_cannot_find_element_no_closest(&name, source).into());
         }
 
-        Ok(TypeParameterId(self.params[name].id))
+        Ok(TypeParameterId(self.params[name].id, name.clone()))
     }
 
     /// Appends a type parameter inside of the context
@@ -85,13 +85,13 @@ impl TypeParamCtx {
         self.params.insert(
             name.clone(),
             HeldTypeParam {
-                name,
+                name: name.clone(),
                 id,
                 group: self.param_group,
             },
         );
 
-        Ok(TypeParameterId(id))
+        Ok(TypeParameterId(id, name))
     }
 
     pub fn has_type_parameter(&self, name: &HashedString) -> bool {
