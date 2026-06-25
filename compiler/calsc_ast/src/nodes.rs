@@ -84,6 +84,7 @@ pub enum ASTNodeKind {
         return_type: ASTType,
         body: Vec<ArenaHandle>,
         visibility: Option<Visibility>,
+        type_parameters: Vec<HashedString>,
     },
 
     ExternFunctionDeclaration {
@@ -195,6 +196,7 @@ impl ASTNode {
                 return_type: _,
                 body: _,
                 visibility: _,
+                type_parameters: _,
             } => name.clone(),
 
             ASTNodeKind::ExternFunctionDeclaration {

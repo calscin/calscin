@@ -10,7 +10,7 @@ use crate::{
     parser::{
         forms::{
             parse_ast_body_form, parse_ast_return_type_form, parse_element_path_form,
-            parse_visibility_form,
+            parse_type_parameters_declaration_form, parse_visibility_form,
         },
         types::parse_ast_type,
         utils::parse_ast_list,
@@ -50,6 +50,8 @@ pub fn parse_function_declaration(
     let func_name = tokens[*ind].expects_keyword()?;
     *ind += 1; // keyword
 
+    let type_parameters = parse_type_parameters_declaration_form(tokens, ind)?;
+
     tokens[*ind].expects(TokenKind::ParenOpen)?;
     *ind += 1; // (
 
@@ -75,6 +77,7 @@ pub fn parse_function_declaration(
             arguments,
             body,
             visibility,
+            type_parameters,
         },
         start,
         end,
