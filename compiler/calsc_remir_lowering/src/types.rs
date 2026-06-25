@@ -29,6 +29,7 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
 
         PrimitiveType::Size => Ok(ValueType::new_int(false, usize::BITS as usize)),
         PrimitiveType::Function(_) => Ok(ValueType::new_any_pointer()),
+        PrimitiveType::TypeParameter(_) => panic!("Type parameters are not convertible into MIR types")
     }
 }
 
