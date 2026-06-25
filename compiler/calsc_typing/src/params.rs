@@ -13,12 +13,16 @@ use calsc_utils::hash::HashedString;
 #[derive(PartialEq, Clone)]
 pub struct TypeParameterId(usize, pub HashedString);
 
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub struct TypeParamCtx {
     params: Vec<HeldTypeParam>,
     current_params: HashMap<HashedString, usize>,
     param_group: usize,
 }
 
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 struct HeldTypeParam {
     name: HashedString,
     id: usize,
