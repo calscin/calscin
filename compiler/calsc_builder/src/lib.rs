@@ -10,10 +10,7 @@ use calsc_hir_lowering::{
     stage2::lower_hir_stage_2,
 };
 use calsc_lexer::lexer_tokenize;
-use calsc_modules::{
-    path::ModulePath,
-    tree::{clean::TreeCleanable, collect::ModuleTreeCollector},
-};
+use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 

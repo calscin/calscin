@@ -7,11 +7,8 @@ use calsc_diagnostics::{
     DiagPossible,
     diags::errors::{build_expected_entry_type, build_internal_hir_node_leaked},
 };
-use calsc_hir::{BUILD_CACHE, HIRContext, file::HIRFileContext};
-use calsc_modules::{
-    path::ModulePath,
-    tree::{ModuleTree, entry::ModuleTreeEntry},
-};
+use calsc_hir::{HIRContext, file::HIRFileContext};
+use calsc_modules::tree::entry::ModuleTreeEntry;
 use calsc_state::GLOBAL_STATE;
 
 use crate::stage2::imports::{import_module, lower_hir_key};
@@ -20,7 +17,7 @@ pub fn lower_import_statement(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
-    ast_ctx: &ASTContext,
+    _ast_ctx: &ASTContext,
 ) -> DiagPossible {
     if let ASTNodeKind::ImportStatement { path, kind } = node.kind.clone() {
         let path = lower_hir_key(path, file_ctx);

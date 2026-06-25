@@ -54,6 +54,7 @@ pub enum ErrorCode {
     _UnexpectedReturn,
     ExpectedReturn,
     ExpectedMutableLike,
+    ExpectedNumberArguments,
 
     // MIR
     RemirError,
@@ -610,6 +611,21 @@ pub fn build_expected_field_type<S: DiagnosticSource, F: Display, T: Display>(
             field, expected, got
         ),
         Some(format!("expectation for field {} made here", field)),
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_expected_number_arguments<S: DiagnosticSource>(
+    expected: usize,
+    got: usize,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ExpectedNumberArguments as usize),
+        format!("expected {} arguments but got {} arguments", expected, got),
+        None,
         vec![],
         vec![],
         vec![],

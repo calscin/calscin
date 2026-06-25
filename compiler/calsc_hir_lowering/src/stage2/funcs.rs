@@ -5,15 +5,14 @@ use calsc_ast::{
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{
-        build_expected_entry_type, build_expected_return_error, build_internal_hir_node_leaked,
-        build_restricted_return_type,
+        build_expected_entry_type, build_expected_number_arguments, build_expected_return_error,
+        build_internal_hir_node_leaked, build_restricted_return_type,
     },
 };
 use calsc_hir::{
     HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
-    localctx,
     nodes::{HIRNode, HIRNodeKind},
 };
 use calsc_typing::types::TypeKind;
@@ -146,10 +145,12 @@ pub fn lower_ast_function_call(
     if let ASTNodeKind::FunctionCall { name, arguments } = node.kind.clone() {
         let key = lower_ast_key(name, &node, true, file_ctx, ctx)?;
 
-        let argument_types: Vec<_> = ctx
+        let func_entry = ctx
             .scope
             .get_entry_no_visibility(key.clone(), &node)?
-            .as_function(&node)?
+            .as_function(&node)?;
+
+        let argument_types: Vec<_> = func_entry
             .arguments
             .iter()
             .map(|entry| entry.1.clone())
@@ -157,10 +158,24 @@ pub fn lower_ast_function_call(
 
         let mut hir_arguments = vec![];
 
-        let mut argument_ind = 0;
-        for argument in arguments {
+        if arguments.len() != argument_types.len() && func_entry.triple_dot_position.is_none() {
+            return Err(build_expected_number_arguments(
+                argument_types.len(),
+                arguments.len(),
+                &node,
+            )
+            .into());
+        }
+
+        let stop_ind = if func_entry.triple_dot_position.is_some() {
+            func_entry.triple_dot_position.clone().unwrap()
+        } else {
+            argument_types.len()
+        };
+
+        for ind in 0..stop_ind {
             let val = lower_ast_value(
-                ASTNode::clone(ast_ctx.nodes.get(&argument)),
+                ASTNode::clone(ast_ctx.nodes.get(&arguments[ind])),
                 local_ctx.clone(),
                 file_ctx,
                 ctx,
@@ -170,7 +185,7 @@ pub fn lower_ast_function_call(
             let val_ref = ctx.nodes.get(&val).clone();
 
             let new_val = val_ref.use_as(
-                &argument_types[argument_ind],
+                &argument_types[ind],
                 val,
                 None,
                 local_ctx.clone(),
@@ -179,8 +194,19 @@ pub fn lower_ast_function_call(
             )?;
 
             hir_arguments.push(ctx.nodes.append(new_val));
+        }
 
-            argument_ind += 1;
+        // For the rest of the values we don't change the type since theres nothing to change it to
+        for ind in stop_ind..arguments.len() {
+            let val = lower_ast_value(
+                ASTNode::clone(ast_ctx.nodes.get(&arguments[ind])),
+                local_ctx.clone(),
+                file_ctx,
+                ctx,
+                ast_ctx,
+            )?;
+
+            hir_arguments.push(val);
         }
 
         let is_function = ctx
