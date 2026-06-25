@@ -33,6 +33,7 @@ pub enum ErrorCode {
     TypeNotStatic,
     TypeCastFailed,
     ExpectedMutableReference,
+    TypeHintCoherceFail,
 
     NewWrongSizeSpecifier,
     NewTypeAlreadyHasField,
@@ -629,5 +630,29 @@ pub fn build_expected_number_arguments<S: DiagnosticSource>(
         vec![],
         vec![],
         vec![],
+    )
+}
+
+pub fn build_type_hint_coherce_not_transmutable<S: DiagnosticSource, T: Display>(
+    ty: &T,
+    target: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::TypeHintCoherceFail as usize),
+        format!(
+            "type cohersion failed! {} is incompatible with {}",
+            target, ty
+        ),
+        None,
+        vec![],
+        vec![format!(
+            "type cohercition failed because {} cannot be transmutated into {}",
+            target, ty
+        )],
+        vec![format!(
+            "replace {} with a type that is transmutable into {}",
+            target, ty
+        )],
     )
 }

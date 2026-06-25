@@ -2,7 +2,12 @@
 //!
 //! This system is experimental and may be used for later purposes
 
-use crate::types::TypeKind;
+use calsc_diagnostics::{
+    DiagResult, DiagnosticSource, diags::errors::build_type_hint_coherce_not_transmutable,
+};
+use calsc_utils::display_with_to_string;
+
+use crate::{ctx::TypeCtx, into::TypeTransmutation, types::TypeKind};
 
 pub enum TypeHint {
     /// A strong type hint. Represents a type hint that cannot be overriden.
@@ -36,6 +41,52 @@ impl TypeHintContainer {
             self.weak_hints.push(hint);
         }
     }
+
+    /// Determines the type held by the hints by applying the type hint coercition rules.
+    /// These rules are:
+    /// - There is one "master" type, selected by being either the first strong hint or the first weak hint.
+    /// - Every other strong hint must be directly transmutable into the "master" type
+    /// - Every other weak hint must be directly weakly transmutable into the "master" type.
+    pub fn determine_type<S: DiagnosticSource>(
+        &self,
+        ctx: &TypeCtx,
+        source: &S,
+    ) -> DiagResult<TypeKind> {
+        let master = if !self.strong_hints.is_empty() {
+            &self.strong_hints[0]
+        } else {
+            &self.weak_hints[0]
+        };
+
+        for ind in 1..self.strong_hints.len() {
+            let entry = &self.strong_hints[ind];
+
+            if !entry.get_type().can_transmute(master.get_type(), ctx) {
+                return Err(build_type_hint_coherce_not_transmutable(
+                    &display_with_to_string(master.get_type(), ctx),
+                    &display_with_to_string(entry.get_type(), ctx),
+                    source,
+                )
+                .into());
+            }
+        }
+
+        for entry in &self.weak_hints {
+            if !entry
+                .get_type()
+                .can_transmute_weakly(master.get_type(), ctx)
+            {
+                return Err(build_type_hint_coherce_not_transmutable(
+                    &display_with_to_string(master.get_type(), ctx),
+                    &display_with_to_string(entry.get_type(), ctx),
+                    source,
+                )
+                .into());
+            }
+        }
+
+        Ok(master.get_type().clone())
+    }
 }
 
 impl TypeHint {
@@ -47,8 +98,8 @@ impl TypeHint {
     /// Gets the type hint's type.
     pub fn get_type(&self) -> &TypeKind {
         match self {
-            Self::Strong(ty) => ty,
-            Self::Weak(ty) => ty,
+            Self::Strong(ty, _) => ty,
+            Self::Weak(ty, _) => ty,
         }
     }
 }
