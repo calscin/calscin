@@ -14,7 +14,8 @@ use calsc_utils::hash::HashedString;
 pub struct TypeParameterId(usize, pub HashedString);
 
 pub struct TypeParamCtx {
-    params: HashMap<HashedString, HeldTypeParam>,
+    params: Vec<HeldTypeParam>,
+    current_params: HashMap<HashedString, usize>,
     param_group: usize,
 }
 
@@ -27,7 +28,8 @@ struct HeldTypeParam {
 impl TypeParamCtx {
     pub fn new() -> Self {
         Self {
-            params: HashMap::new(),
+            params: vec![],
+            current_params: HashMap::new(),
             param_group: 0,
         }
     }
@@ -37,18 +39,8 @@ impl TypeParamCtx {
         self.param_group
     }
 
-    pub fn end_group(&mut self, group: usize) {
-        let mut to_remove = vec![];
-
-        for entry in &self.params {
-            if entry.1.group == group {
-                to_remove.push(entry.0.clone())
-            }
-        }
-
-        for remove in to_remove {
-            self.params.remove(&remove);
-        }
+    pub fn end_group(&mut self) {
+        self.current_params.clear();
     }
 
     /// Gets the type parameter from the name
@@ -61,11 +53,11 @@ impl TypeParamCtx {
         name: &HashedString,
         source: &S,
     ) -> DiagResult<TypeParameterId> {
-        if !self.params.contains_key(name) {
+        if !self.current_params.contains_key(name) {
             return Err(build_cannot_find_element_no_closest(&name, source).into());
         }
 
-        Ok(TypeParameterId(self.params[name].id, name.clone()))
+        Ok(TypeParameterId(self.current_params[name], name.clone()))
     }
 
     /// Appends a type parameter inside of the context
@@ -78,25 +70,26 @@ impl TypeParamCtx {
         name: HashedString,
         source: &S,
     ) -> DiagResult<TypeParameterId> {
-        if self.params.contains_key(&name) {
+        if self.current_params.contains_key(&name) {
             return Err(build_already_in_scope(&name, source).into());
         }
 
         let id = self.params.len();
 
-        self.params.insert(
-            name.clone(),
-            HeldTypeParam {
-                name: name.clone(),
-                id,
-                group: self.param_group,
-            },
-        );
+        let held_param = HeldTypeParam {
+            name: name.clone(),
+            id,
+            group: self.param_group,
+        };
+
+        self.current_params.insert(name.clone(), id);
+
+        self.params.push(held_param);
 
         Ok(TypeParameterId(id, name))
     }
 
     pub fn has_type_parameter(&self, name: &HashedString) -> bool {
-        self.params.contains_key(name)
+        self.current_params.contains_key(name)
     }
 }
