@@ -98,8 +98,8 @@ impl TypeHint {
     /// Gets the type hint's type.
     pub fn get_type(&self) -> &TypeKind {
         match self {
-            Self::Strong(ty, _) => ty,
-            Self::Weak(ty, _) => ty,
+            Self::Strong(ty) => ty,
+            Self::Weak(ty) => ty,
         }
     }
 }
