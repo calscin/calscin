@@ -44,6 +44,7 @@ pub fn lower_hir_context(mut ctx: HIRContext, module: &mut Module) -> DiagPossib
                 func.return_type.clone(),
                 func.is_main_function,
                 module,
+                func.triple_dot_position,
                 &mut ctx,
             )?;
         }

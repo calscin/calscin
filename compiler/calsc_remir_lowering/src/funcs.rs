@@ -72,6 +72,7 @@ pub fn lower_hir_function_decl_none(
     return_type: TypeKind,
     is_main_function: bool,
     module: &mut Module,
+    triple_dot: Option<usize>,
     context: &mut HIRContext,
 ) -> DiagPossible {
     let panic_source = PanicDiagnosticSource();
@@ -99,7 +100,8 @@ pub fn lower_hir_function_decl_none(
         mir_return_type = ValueType::Int(true, 32);
     }
 
-    let _ = module.create_function(name.to_string(), mir_arguments, mir_return_type);
+    let r = module.create_function(name.to_string(), mir_arguments, mir_return_type);
+    module.functions[r.id].triple_dot_position = triple_dot;
 
     Ok(())
 }
