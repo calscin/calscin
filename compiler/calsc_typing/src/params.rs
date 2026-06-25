@@ -9,7 +9,9 @@ use calsc_diagnostics::{
 use calsc_utils::hash::HashedString;
 
 /// This is a safe handle from a type parameter stored inside of a [`TypeParamCtx`] this enforces that type parameters go trough the expected path.
-pub struct TypeParameterId(usize, HashedString);
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(PartialEq, Clone)]
+pub struct TypeParameterId(usize, pub HashedString);
 
 pub struct TypeParamCtx {
     params: HashMap<HashedString, HeldTypeParam>,

@@ -31,6 +31,8 @@ impl DisplayWith<&TypeCtx> for PrimitiveType {
                     display_with_to_string(&arena_ref.return_type, k)
                 )
             }
+
+            Self::TypeParameter(param) => write!(f, "{}", param.1),
         }
     }
 }

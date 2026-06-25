@@ -2,7 +2,7 @@
 
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
+use crate::{ctx::TypeCtx, params::TypeParameterId, traits::FieldedType, types::TypeKind};
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(PartialEq, Clone)]
@@ -30,6 +30,8 @@ pub enum PrimitiveType {
     /// The handle represents a [`TypedFunction`][`crate::funcs::TypedFunction`]
     ///
     Function(ArenaHandle),
+
+    TypeParameter(TypeParameterId),
 
     /// Represents a size type
     Size,
