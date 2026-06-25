@@ -16,6 +16,7 @@ pub fn lower_ast_function_decl_stage_zero(
         return_type,
         body: _,
         visibility,
+        type_parameters: _,
     } = node.kind.clone()
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());

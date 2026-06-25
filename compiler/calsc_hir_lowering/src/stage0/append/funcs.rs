@@ -16,6 +16,7 @@ pub fn lower_stage_0_append_pass_function_declaration(
         return_type: _,
         body: _,
         visibility,
+        type_parameters: _,
     } = node.kind.clone()
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());

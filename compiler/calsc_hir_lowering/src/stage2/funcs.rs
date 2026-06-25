@@ -319,6 +319,7 @@ pub fn lower_ast_function_decl(
         return_type,
         body,
         visibility: _,
+        type_parameters: _,
     } = node.kind.clone()
     {
         let mut key =
