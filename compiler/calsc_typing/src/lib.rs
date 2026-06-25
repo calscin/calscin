@@ -7,6 +7,7 @@ pub mod ctx;
 pub mod funcs;
 pub mod hints;
 pub mod into;
+pub mod params;
 pub mod prelude;
 pub mod traits;
 pub mod types;
