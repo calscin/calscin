@@ -5,6 +5,7 @@ pub mod allocs;
 pub mod builders;
 pub mod ctx;
 pub mod funcs;
+pub mod hints;
 pub mod into;
 pub mod prelude;
 pub mod traits;
