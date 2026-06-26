@@ -9,6 +9,7 @@ use calsc_utils::display_with_to_string;
 
 use crate::{ctx::TypeCtx, into::TypeTransmutation, types::TypeKind};
 
+#[derive(Clone)]
 pub enum TypeHint {
     /// A strong type hint. Represents a type hint that cannot be overriden.
     /// There can only be a single type hint per query.
@@ -19,6 +20,7 @@ pub enum TypeHint {
     Weak(TypeKind),
 }
 
+#[derive(Clone)]
 pub struct TypeHintContainer {
     pub strong_hints: Vec<TypeHint>,
     pub weak_hints: Vec<TypeHint>,
