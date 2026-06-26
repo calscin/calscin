@@ -218,7 +218,7 @@ pub fn lower_ast_function_call(
 
         // We then coherce them (get the determined type)
 
-        for type_param in type_params {
+        for type_param in &type_params {
             let coherced = type_param.1.determine_type(&ctx.type_ctx, &node)?;
 
             coherced_type_params.insert(type_param.0.clone(), coherced.clone());
@@ -292,14 +292,20 @@ pub fn lower_ast_function_call(
             return Err(build_expected_entry_type(&"function", &"?? TODO", &node).into());
         }
 
-        let node = HIRNode::new(
+        let kind = if !type_params.is_empty() {
+            HIRNodeKind::TypedParamFunctionCall {
+                func: key,
+                arguments: hir_arguments,
+                type_parameters: coherced_type_params,
+            }
+        } else {
             HIRNodeKind::FunctionCall {
                 func: key,
                 arguments: hir_arguments,
-            },
-            node.start.clone(),
-            node.end.clone(),
-        );
+            }
+        };
+
+        let node = HIRNode::new(kind, node.start.clone(), node.end.clone());
 
         Ok(node.push(ctx))
     } else {

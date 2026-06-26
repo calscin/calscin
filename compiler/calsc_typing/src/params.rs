@@ -10,7 +10,7 @@ use calsc_utils::hash::HashedString;
 
 /// This is a safe handle from a type parameter stored inside of a [`TypeParamCtx`] this enforces that type parameters go trough the expected path.
 #[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(PartialEq, Clone)]
+#[derive(PartialEq, Clone, Hash)]
 pub struct TypeParameterId(usize, pub HashedString);
 
 #[cfg_attr(feature = "debug", derive(Debug))]

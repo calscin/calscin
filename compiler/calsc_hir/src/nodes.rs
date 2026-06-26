@@ -8,6 +8,7 @@ use calsc_diagnostics::{
 };
 
 use calsc_typing::{
+    params::TypeParameterId,
     traits::FieldedType,
     types::{MutationState, TypeKind},
 };
@@ -132,6 +133,12 @@ pub enum HIRNodeKind {
     FunctionCall {
         func: GlobalContextKey,
         arguments: Vec<ArenaHandle>,
+    },
+
+    TypedParamFunctionCall {
+        func: GlobalContextKey,
+        arguments: Vec<ArenaHandle>,
+        type_parameters: HashMap<HashedString, TypeKind>,
     },
 
     FunctionDeclaration {
