@@ -14,7 +14,6 @@ impl TypeTransmutation for PrimitiveType {
 
         match (self, into) {
             (PrimitiveType::Int(signed), PrimitiveType::Int(_)) => !signed, // Allow unsigned -> signed convertion
-            (_, PrimitiveType::TypeParameter(_)) => true,
 
             _ => false,
         }
