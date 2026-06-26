@@ -12,12 +12,14 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
-    HIRContext,
+    BUILD_CACHE, HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
+use calsc_modules::path::ModulePath;
 use calsc_typing::{
+    hash::HashedTypeKind,
     hints::{TypeHint, TypeHintContainer},
     types::{TypeKind, primitive::PrimitiveType},
 };
@@ -154,6 +156,8 @@ pub fn lower_ast_function_call(
             .scope
             .get_entry_no_visibility(key.clone(), &node)?
             .as_function(&node)?;
+
+        let func_type_parameters = func_entry.type_parameters.clone();
 
         let mut argument_types: Vec<_> = func_entry
             .arguments
@@ -296,6 +300,24 @@ pub fn lower_ast_function_call(
         }
 
         let kind = if !type_params.is_empty() {
+            // Append the type parameter combination to the build cache for later monophormization
+            {
+                let mut combinations: Vec<HashedTypeKind> = vec![];
+
+                for param_name in func_type_parameters {
+                    let coherced = coherced_type_params[&param_name.1].clone();
+
+                    combinations.push(HashedTypeKind::new(coherced, &ctx.type_ctx));
+                }
+
+                let mut module_path = key.module_path.clone();
+                module_path.append_single_bit(key.name.clone());
+
+                BUILD_CACHE.with_borrow_mut(|cache| {
+                    cache.append_used_type_param_combination(module_path, combinations)
+                })
+            }
+
             HIRNodeKind::TypedParamFunctionCall {
                 func: key,
                 arguments: hir_arguments,
