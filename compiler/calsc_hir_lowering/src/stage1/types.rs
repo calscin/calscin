@@ -187,6 +187,25 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
 ) -> DiagResult<TypeKind> {
+    // If the name is relative and of a length of one, we check first if it's a type parameter
+    if name.relative && name.members.len() == 1 {
+        if ctx
+            .type_ctx
+            .type_params
+            .has_type_parameter(&name.members[0])
+        {
+            let param = ctx
+                .type_ctx
+                .type_params
+                .get_type_param(&name.members[0], origin)?;
+
+            return Ok(TypeKind::Primitive(
+                PrimitiveType::TypeParameter(param),
+                SizeParameter(0),
+            ));
+        }
+    }
+
     let key = lower_ast_key(name, origin, true, file_ctx, ctx)?;
 
     let ty = ctx
