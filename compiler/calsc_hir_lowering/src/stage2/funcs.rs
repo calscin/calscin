@@ -325,6 +325,12 @@ pub fn lower_ast_function_decl(
         let mut key =
             GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
+        let is_main_function = key.name == "main".into() && key.module_path.path.len() == 0;
+
+        if is_main_function {
+            key = GlobalContextKey::new("main".into());
+        }
+
         // Append type parameters inside of the type parameter ctx
         ctx.scope.mutate_entry(
             key.clone(),
@@ -347,12 +353,6 @@ pub fn lower_ast_function_decl(
             },
             &node,
         )???;
-
-        let is_main_function = key.name == "main".into() && key.module_path.path.len() == 0;
-
-        if is_main_function {
-            key = GlobalContextKey::new("main".into());
-        }
 
         let mut hir_arguments = vec![];
         let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;

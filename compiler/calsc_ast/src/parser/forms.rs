@@ -146,11 +146,13 @@ pub fn parse_type_parameters_declaration_form(
         return Ok(list);
     }
 
+    *ind += 1; // <
+
     list = parse_ast_list(
         tokens,
         ind,
         &mut |tokens, ind| parse_type_parameter_declaration(tokens, ind),
-        TokenKind::AngelBracketOpen,
+        TokenKind::AngelBracketClose,
         true,
         true,
     )?;
