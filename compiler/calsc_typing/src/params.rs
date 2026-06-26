@@ -43,8 +43,18 @@ impl TypeParamCtx {
         self.param_group
     }
 
-    pub fn end_group(&mut self) {
-        self.current_params.clear();
+    pub fn end_group(&mut self, group: usize) {
+        let mut to_delete = vec![];
+
+        for curr in &self.current_params {
+            if self.params[*curr.1].group == group {
+                to_delete.push(curr.0.clone());
+            }
+        }
+
+        for del in to_delete {
+            self.current_params.remove(&del);
+        }
     }
 
     /// Gets the type parameter from the name
