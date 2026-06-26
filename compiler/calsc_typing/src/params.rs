@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use calsc_diagnostics::{
-    DiagResult, DiagnosticSource,
+    DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{build_already_in_scope, build_cannot_find_element_no_closest},
 };
 use calsc_utils::hash::HashedString;
@@ -55,6 +55,23 @@ impl TypeParamCtx {
         for del in to_delete {
             self.current_params.remove(&del);
         }
+    }
+
+    /// Appends the related type parameter to the active type parameter scope and change the type parameter's group into the current group
+    pub fn append_to_active<S: DiagnosticSource>(
+        &mut self,
+        id: &TypeParameterId,
+        source: &S,
+    ) -> DiagPossible {
+        self.params[id.0].group = self.param_group;
+
+        if self.current_params.contains_key(&id.1) {
+            return Err(build_already_in_scope(&id.1, source).into());
+        }
+
+        self.current_params.insert(id.1.clone(), id.0);
+
+        Ok(())
     }
 
     /// Gets the type parameter from the name
