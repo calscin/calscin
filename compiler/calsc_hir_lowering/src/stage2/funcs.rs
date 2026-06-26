@@ -319,11 +319,34 @@ pub fn lower_ast_function_decl(
         return_type,
         body,
         visibility: _,
-        type_parameters: _,
+        type_parameters,
     } = node.kind.clone()
     {
         let mut key =
             GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
+
+        // Append type parameters inside of the type parameter ctx
+        ctx.scope.mutate_entry(
+            key.clone(),
+            |entry| {
+                entry.mutate_function(
+                    |ff| {
+                        for type_parameter in type_parameters {
+                            let id = ctx
+                                .type_ctx
+                                .type_params
+                                .append_type_param(type_parameter, &node)?;
+
+                            ff.type_parameters.push(id);
+                        }
+
+                        Ok(())
+                    },
+                    &node,
+                )
+            },
+            &node,
+        )???;
 
         let is_main_function = key.name == "main".into() && key.module_path.path.len() == 0;
 
