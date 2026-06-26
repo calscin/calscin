@@ -30,6 +30,8 @@ pub fn lower_ast_function_decl_first_stage(
         type_parameters,
     } = node.kind.clone()
     {
+        let group = ctx.type_ctx.type_params.start_param_group();
+
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
         let mut owned_type_params = vec![];
 
@@ -86,6 +88,8 @@ pub fn lower_ast_function_decl_first_stage(
         let _ = ctx
             .scope
             .append(key, GlobalContextValue::Function(func), visibility, &node)?;
+
+        ctx.type_ctx.type_params.end_group(group);
 
         Ok(())
     } else {
