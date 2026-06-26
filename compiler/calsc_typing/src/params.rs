@@ -8,6 +8,8 @@ use calsc_diagnostics::{
 };
 use calsc_utils::hash::HashedString;
 
+use crate::types::TypeKind;
+
 /// This is a safe handle from a type parameter stored inside of a [`TypeParamCtx`] this enforces that type parameters go trough the expected path.
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(PartialEq, Clone, Hash)]
@@ -17,6 +19,7 @@ pub struct TypeParameterId(usize, pub HashedString);
 #[derive(Clone)]
 pub struct TypeParamCtx {
     params: Vec<HeldTypeParam>,
+    resolved_params: HashMap<HashedString, HeldResolvedTypeParam>,
     current_params: HashMap<HashedString, usize>,
     param_group: usize,
 }
@@ -29,11 +32,19 @@ struct HeldTypeParam {
     group: usize,
 }
 
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
+struct HeldResolvedTypeParam {
+    resolved: TypeKind,
+    group: usize,
+}
+
 impl TypeParamCtx {
     pub fn new() -> Self {
         Self {
             params: vec![],
             current_params: HashMap::new(),
+            resolved_params: HashMap::new(),
             param_group: 0,
         }
     }
@@ -45,6 +56,7 @@ impl TypeParamCtx {
 
     pub fn end_group(&mut self, group: usize) {
         let mut to_delete = vec![];
+        let mut to_delete_resolved = vec![];
 
         for curr in &self.current_params {
             if self.params[*curr.1].group == group {
@@ -52,8 +64,18 @@ impl TypeParamCtx {
             }
         }
 
+        for (name, curr) in &self.resolved_params {
+            if curr.group == group {
+                to_delete_resolved.push(name.clone());
+            }
+        }
+
         for del in to_delete {
             self.current_params.remove(&del);
+        }
+
+        for del in to_delete_resolved {
+            self.resolved_params.remove(&del);
         }
     }
 
@@ -72,6 +94,20 @@ impl TypeParamCtx {
         self.current_params.insert(id.1.clone(), id.0);
 
         Ok(())
+    }
+
+    pub fn append_resolved(&mut self, id: HashedString, kind: TypeKind) {
+        self.resolved_params.insert(
+            id,
+            HeldResolvedTypeParam {
+                resolved: kind,
+                group: self.param_group,
+            },
+        );
+    }
+
+    pub fn get_resolved(&self, id: &HashedString) -> TypeKind {
+        self.resolved_params[id].clone().resolved
     }
 
     /// Gets the type parameter from the name

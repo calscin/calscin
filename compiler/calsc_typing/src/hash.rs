@@ -4,6 +4,7 @@ use calsc_utils::display_with_to_string;
 
 use crate::{ctx::TypeCtx, types::TypeKind};
 
+#[derive(Clone)]
 pub struct HashedTypeKind {
     pub kind: TypeKind,
     hash: u64,

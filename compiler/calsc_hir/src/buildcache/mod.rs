@@ -8,8 +8,7 @@ use std::{
 
 use calsc_ast::nodes::ASTNode;
 use calsc_modules::path::ModulePath;
-use calsc_typing::{hash::HashedTypeKind, types::TypeKind};
-use calsc_utils::hash::HashedString;
+use calsc_typing::hash::HashedTypeKind;
 
 use crate::buildcache::{entry::BuildCacheEntry, types::ResolvedTypeCache};
 

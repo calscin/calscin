@@ -117,8 +117,6 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let target = get_target_type(); // Avoid borrows
     let out_destination = get_file_output(); // Avoid borrows
 
-    println!("Building {:#?}", file);
-
     let contents = match fs::read_to_string(file.clone()) {
         Ok(v) => v,
         Err(e) => panic!("IO error: {e}"),

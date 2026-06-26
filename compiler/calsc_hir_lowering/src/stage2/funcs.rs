@@ -17,7 +17,7 @@ use calsc_hir::{
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_modules::path::ModulePath;
+
 use calsc_typing::{
     hash::HashedTypeKind,
     hints::{TypeHint, TypeHintContainer},
@@ -229,15 +229,6 @@ pub fn lower_ast_function_call(
             let coherced = type_param.1.determine_type(&ctx.type_ctx, &node)?;
 
             coherced_type_params.insert(type_param.0.clone(), coherced.clone());
-
-            println!(
-                "Coherced for {} -> {}",
-                type_param.0,
-                &display_with_to_string(
-                    &type_param.1.determine_type(&ctx.type_ctx, &node)?,
-                    &ctx.type_ctx
-                )
-            )
         }
 
         // We then replace every mention of the old parameter type with the cohereced type

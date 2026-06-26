@@ -1,7 +1,5 @@
 //! Declarations for HIR functions
 
-use std::collections::HashSet;
-
 use calsc_typing::{params::TypeParameterId, types::TypeKind};
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 

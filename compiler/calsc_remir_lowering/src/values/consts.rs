@@ -96,6 +96,13 @@ pub fn lower_hir_literal(
             Ok(val.into())
         }
 
+        HIRNodeKind::CharLiteral(val) => {
+            let val = build_const_int(module, val as i128, 8, false)
+                .convert(node_ref.start.clone(), node_ref.end.clone())?;
+
+            Ok(val.into())
+        }
+
         HIRNodeKind::TypedStructuredInit { ty, values } => {
             let mut vals = vec![];
             let mir_ty = lower_type(ty.clone(), &hirctx.type_ctx)?;
