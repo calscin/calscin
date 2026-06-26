@@ -10,7 +10,7 @@ use calsc_diagnostics::{
 use calsc_typing::{
     params::TypeParameterId,
     traits::FieldedType,
-    types::{MutationState, TypeKind},
+    types::{MutationState, TypeKind, primitive::PrimitiveType},
 };
 use calsc_utils::{
     alloc::arena::ArenaHandle, cmp::CompareOperator, hash::HashedString, math::MathOperator,
@@ -327,6 +327,29 @@ impl HIRNode {
                 }
 
                 entry.as_function(self)?.return_type.clone()
+            }
+
+            HIRNodeKind::TypedParamFunctionCall {
+                func,
+                arguments: _,
+                type_parameters,
+            } => {
+                let entry = if file_ctx.is_some() {
+                    ctx.scope
+                        .get_entry(func, &file_ctx.unwrap().current_module, self)?
+                } else {
+                    ctx.scope.get_entry_no_visibility(func, self)?
+                };
+
+                let ret_type = entry.as_function(self)?.return_type.clone();
+
+                if ret_type.is_directly_primitive() {
+                    if let PrimitiveType::TypeParameter(param) = ret_type.as_primitive().0 {
+                        return Ok(type_parameters[&param.1].clone());
+                    }
+                }
+
+                ret_type
             }
 
             HIRNodeKind::IndexUsage {
