@@ -8,7 +8,7 @@ use std::{
 
 use calsc_ast::nodes::ASTNode;
 use calsc_modules::path::ModulePath;
-use calsc_typing::types::TypeKind;
+use calsc_typing::{hash::HashedTypeKind, types::TypeKind};
 use calsc_utils::hash::HashedString;
 
 use crate::buildcache::{entry::BuildCacheEntry, types::ResolvedTypeCache};
@@ -29,7 +29,7 @@ pub struct BuildCache {
     pub type_storage: ResolvedTypeCache,
 
     /// The used type parameter combinations for
-    pub used_type_params: HashMap<ModulePath, HashSet<Vec<TypeKind>>>,
+    pub used_type_params: HashMap<ModulePath, HashSet<Vec<HashedTypeKind>>>,
 }
 
 impl BuildCache {
@@ -49,7 +49,7 @@ impl BuildCache {
     pub fn append_used_type_param_combination(
         &mut self,
         path: ModulePath,
-        combinations: Vec<TypeKind>,
+        combinations: Vec<HashedTypeKind>,
     ) {
         if !self.used_type_params.contains_key(&path) {
             self.used_type_params.insert(path.clone(), HashSet::new());
@@ -57,7 +57,7 @@ impl BuildCache {
 
         let set_mut = self.used_type_params.get_mut(&path).unwrap();
 
-        set_mut.
+        set_mut.insert(combinations);
     }
 
     pub fn append_related_node(&mut self, path: ModulePath, node: ASTNode) {

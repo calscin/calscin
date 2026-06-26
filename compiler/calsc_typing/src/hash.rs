@@ -27,3 +27,11 @@ impl Hash for HashedTypeKind {
         state.write_u64(self.hash);
     }
 }
+
+impl PartialEq for HashedTypeKind {
+    fn eq(&self, other: &Self) -> bool {
+        self.hash == other.hash // TODO: check for collisions
+    }
+}
+
+impl Eq for HashedTypeKind {}
