@@ -206,10 +206,13 @@ pub fn lower_ast_function_call(
                 let ty = ty.as_primitive();
 
                 if let PrimitiveType::TypeParameter(param) = ty.0 {
-                    type_params
-                        .get_mut(&param.1)
-                        .unwrap()
-                        .append(TypeHint::Strong(val_ty));
+                    type_params.get_mut(&param.1).unwrap().append(
+                        if val_ref.is_weakly_typed(ctx) {
+                            TypeHint::Weak(val_ty)
+                        } else {
+                            TypeHint::Strong(val_ty)
+                        },
+                    );
                 }
             } else {
                 continue;
