@@ -332,27 +332,27 @@ pub fn lower_ast_function_decl(
         }
 
         // Append type parameters inside of the type parameter ctx
-        ctx.scope.mutate_entry(
-            key.clone(),
-            |entry| {
-                entry.mutate_function(
-                    |ff| {
-                        for type_parameter in type_parameters {
-                            let id = ctx
-                                .type_ctx
-                                .type_params
-                                .append_type_param(type_parameter, &node)?;
+        //ctx.scope.mutate_entry(
+        //key.clone(),
+        //|entry| {
+        //entry.mutate_function(
+        //|ff| {
+        //for type_parameter in type_parameters {
+        //let id = ctx
+        //  .type_ctx
+        //  .type_params
+        //  .append_type_param(type_parameter, &node)?;
 
-                            ff.type_parameters.push(id);
-                        }
+        //ff.type_parameters.push(id);
+        //}
 
-                        Ok(())
-                    },
-                    &node,
-                )
-            },
-            &node,
-        )???;
+        //Ok(())
+        //},
+        //&node,
+        //)
+        //},
+        //&node,
+        // )???;
 
         let mut hir_arguments = vec![];
         let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;

@@ -27,10 +27,20 @@ pub fn lower_ast_function_decl_first_stage(
         return_type,
         body: _,
         visibility,
-        type_parameters: _,
+        type_parameters,
     } = node.kind.clone()
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+        let mut owned_type_params = vec![];
+
+        for type_parameter in type_parameters {
+            let id = ctx
+                .type_ctx
+                .type_params
+                .append_type_param(type_parameter, &node)?;
+
+            owned_type_params.push(id);
+        }
 
         let mut key =
             GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
@@ -68,8 +78,10 @@ pub fn lower_ast_function_decl_first_stage(
             }
         }
 
-        let func =
+        let mut func =
             HIRFunction::new_stage_1(key.clone(), local_ctx, ret_type, args, is_main_function);
+
+        func.type_parameters = owned_type_params;
 
         let _ = ctx
             .scope
