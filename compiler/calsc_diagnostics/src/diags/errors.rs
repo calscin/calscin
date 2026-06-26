@@ -52,6 +52,7 @@ pub enum ErrorCode {
     // HIR misc
     RestrictedArgumentTypes,
     RestrictedReturnType,
+    RestrictedTypeParameters,
     _UnexpectedReturn,
     ExpectedReturn,
     ExpectedMutableLike,
@@ -284,6 +285,26 @@ pub fn build_restricted_return_type<R: Display, S: DiagnosticSource>(
         vec![],
         vec!["invalid return type".to_string()],
         vec![format!("change return type to {}", restricted)],
+    )
+}
+
+pub fn build_restricted_type_parameters<R: Display, S: DiagnosticSource>(
+    restricted: &Vec<&R>,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::RestrictedReturnType as usize),
+        format!(
+            "type parameters are restricted to <{}> on this function",
+            fmt_list(restricted)
+        ),
+        None,
+        vec![],
+        vec!["invalid type parameters".to_string()],
+        vec![format!(
+            "change type parameters to <{}>",
+            fmt_list(restricted)
+        )],
     )
 }
 

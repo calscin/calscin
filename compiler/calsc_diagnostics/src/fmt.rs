@@ -121,6 +121,10 @@ impl Display for Diagnostic {
 
 #[inline]
 pub fn fmt_list<K: Display>(list: &[K]) -> String {
+    if list.is_empty() {
+        return "".to_string();
+    }
+
     let mut str = format!("{}", list[0]);
 
     for i in 1..list.len() {

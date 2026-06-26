@@ -2,7 +2,8 @@ use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagPossible,
     diags::errors::{
-        build_internal_hir_node_leaked, build_restricted_arument_type, build_restricted_return_type,
+        build_internal_hir_node_leaked, build_restricted_arument_type,
+        build_restricted_return_type, build_restricted_type_parameters,
     },
 };
 use calsc_hir::{
@@ -77,6 +78,12 @@ pub fn lower_ast_function_decl_first_stage(
 
             if ret_type != TypeKind::Void {
                 return Err(build_restricted_return_type(&"void".to_string(), &node).into());
+            }
+
+            if !owned_type_params.is_empty() {
+                return Err(
+                    build_restricted_type_parameters::<String, ASTNode>(&vec![], &node).into(),
+                );
             }
         }
 
