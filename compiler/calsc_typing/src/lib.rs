@@ -6,6 +6,7 @@ pub mod builders;
 pub mod cell;
 pub mod ctx;
 pub mod funcs;
+pub mod hash;
 pub mod hints;
 pub mod into;
 pub mod params;
