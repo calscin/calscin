@@ -155,7 +155,7 @@ pub fn lower_ast_function_call(
             .get_entry_no_visibility(key.clone(), &node)?
             .as_function(&node)?;
 
-        let argument_types: Vec<_> = func_entry
+        let mut argument_types: Vec<_> = func_entry
             .arguments
             .iter()
             .map(|entry| entry.1.clone())
@@ -177,6 +177,7 @@ pub fn lower_ast_function_call(
         };
 
         let mut type_params: HashMap<HashedString, TypeHintContainer> = HashMap::new();
+        let mut coherced_type_params: HashMap<HashedString, TypeKind> = HashMap::new();
 
         for type_param in &func_entry.type_parameters {
             type_params.insert(type_param.1.clone(), TypeHintContainer::new());
@@ -215,7 +216,13 @@ pub fn lower_ast_function_call(
             }
         }
 
+        // We then coherce them (get the determined type)
+
         for type_param in type_params {
+            let coherced = type_param.1.determine_type(&ctx.type_ctx, &node)?;
+
+            coherced_type_params.insert(type_param.0.clone(), coherced.clone());
+
             println!(
                 "Coherced for {} -> {}",
                 type_param.0,
@@ -225,6 +232,18 @@ pub fn lower_ast_function_call(
                 )
             )
         }
+
+        // We then replace every mention of the old parameter type with the cohereced type
+
+        for (ind, argument_type) in argument_types.clone().iter().enumerate() {
+            if argument_type.is_directly_primitive() {
+                if let PrimitiveType::TypeParameter(param) = argument_type.as_primitive().0 {
+                    argument_types[ind] = coherced_type_params[&param.1].clone();
+                }
+            }
+        }
+
+        // We then handle arguments as normal
 
         let mut hir_arguments = vec![];
 
