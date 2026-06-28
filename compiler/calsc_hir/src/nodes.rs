@@ -343,7 +343,7 @@ impl HIRNode {
                 let ret_type = entry.as_function(self)?.return_type.clone();
 
                 if ret_type.is_directly_primitive() {
-                    if let PrimitiveType::TypeParameter(param) = ret_type.as_primitive().0 {
+                    if let PrimitiveType::TypeParameter(param) = ret_type.as_primitive().ty {
                         return Ok(type_parameters[&param.1].clone());
                     }
                 }
