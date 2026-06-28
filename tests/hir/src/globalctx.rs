@@ -13,6 +13,7 @@ use calsc_hir::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalCon
 #[cfg(test)]
 use calsc_modules::visibility::Visibility;
 
+use calsc_state::GLOBAL_STATE;
 #[cfg(test)]
 use calsc_typing::types::primitive::PrimitiveType;
 
@@ -55,6 +56,10 @@ fn globalctx_entry_retrival_none_test() {
 
 #[test]
 fn globalctx_type_mutation_test() {
+    GLOBAL_STATE.with_borrow_mut(|state| {
+        state.build.origin_file_to_build = Some(PathBuf::from("./test.cal"))
+    });
+
     let origin = PosDiagnosticSource::new(FilePosition::default(), FilePosition::default());
 
     let mut globalctx = GlobalContext::new();
