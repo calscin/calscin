@@ -3,6 +3,7 @@ use std::fmt::Display;
 use calsc_utils::{DisplayWith, display_with_list, display_with_to_string};
 
 use crate::{
+    allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
     types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
@@ -15,11 +16,11 @@ impl DisplayWith<&TypeCtx> for PrimitiveType {
             Self::Boolean => write!(f, "bool"),
             Self::Str => write!(f, "str"),
             Self::Size => write!(f, "size"),
-            Self::Struct(container) => {
-                let arena_ref = k.struct_container_arena.get(container);
+            Self::Struct(container) => STRUCT_CONTAINER_ALLOC.with(|ff| {
+                let arena_ref = ff.borrow().get(container);
 
                 write!(f, "{}::{}", arena_ref.module, arena_ref.name)
-            }
+            }),
 
             Self::Function(func) => {
                 let arena_ref = k.typed_function_arena.get(func);

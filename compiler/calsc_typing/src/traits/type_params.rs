@@ -1,6 +1,7 @@
 use calsc_utils::hash::HashedString;
 
 use crate::{
+    allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
     types::{TypeKind, primitive::PrimitiveType, structs::StructContainer},
 };
@@ -23,10 +24,9 @@ impl TypeParameteredType for StructContainer {
 impl TypeParameteredType for PrimitiveType {
     fn get_type_params(&self, ctx: &TypeCtx) -> Vec<HashedString> {
         match self {
-            PrimitiveType::Struct(container) => ctx
-                .struct_container_arena
-                .get(&container)
-                .get_type_params(ctx),
+            PrimitiveType::Struct(container) => {
+                STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).get_type_params(ctx))
+            }
 
             _ => vec![],
         }
@@ -34,10 +34,8 @@ impl TypeParameteredType for PrimitiveType {
 
     fn has_type_param(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
         match self {
-            Self::Struct(container) => ctx
-                .struct_container_arena
-                .get(&container)
-                .has_type_param(name, ctx),
+            Self::Struct(container) => STRUCT_CONTAINER_ALLOC
+                .with(|f| f.borrow().get(&container).has_type_param(name, ctx)),
 
             _ => false,
         }

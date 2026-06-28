@@ -4,6 +4,7 @@ use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 #[cfg(test)]
 use calsc_modules::path::ModulePath;
 
+use calsc_typing::allocs::STRUCT_CONTAINER_ALLOC;
 #[cfg(test)]
 use calsc_typing::{
     ctx::TypeCtx,
@@ -27,7 +28,7 @@ fn test_field_retrival_no_struct() {
 #[test]
 fn test_field_retrival_struct() {
     let source = PosDiagnosticSource::new(Default::default(), Default::default());
-    let mut type_ctx = TypeCtx::new();
+    let type_ctx = TypeCtx::new();
 
     let field_ty = TypeKind::make_int_type(true, 12);
 
@@ -38,7 +39,7 @@ fn test_field_retrival_struct() {
         .append_named(NamedField("test_field".into(), field_ty.clone()), &source)
         .unwrap_cleanly();
 
-    let container = type_ctx.struct_container_arena.append(container);
+    let container = STRUCT_CONTAINER_ALLOC.with(|f| f.borrow_mut().append(container));
 
     let ty = PrimitiveType::Struct(container);
 

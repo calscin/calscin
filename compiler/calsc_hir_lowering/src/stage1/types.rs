@@ -18,10 +18,13 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 
-use calsc_typing::types::{
-    HeldPrimitive, MutationState, SizeParameter, TypeKind,
-    primitive::PrimitiveType,
-    structs::{NamedField, StructContainer},
+use calsc_typing::{
+    allocs::STRUCT_CONTAINER_ALLOC,
+    types::{
+        HeldPrimitive, MutationState, SizeParameter, TypeKind,
+        primitive::PrimitiveType,
+        structs::{NamedField, StructContainer},
+    },
 };
 use calsc_utils::display_with_to_string;
 
@@ -72,7 +75,8 @@ pub fn lower_ast_struct_declaration(
                 .append_named(NamedField(field.1, ty), &node)?;
         }
 
-        let struct_container = ctx.type_ctx.struct_container_arena.append(struct_container);
+        let struct_container =
+            STRUCT_CONTAINER_ALLOC.with(|f| f.borrow_mut().append(struct_container));
 
         ctx.scope.append(
             key,

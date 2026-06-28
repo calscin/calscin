@@ -19,6 +19,7 @@ use calsc_modules::{
 };
 
 use calsc_typing::{
+    allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
     traits::TypeParameteredType,
     types::{
@@ -224,7 +225,7 @@ pub fn lower_type_struct_decl(
                 .append_named(NamedField(field.1, ty), &node)?;
         }
 
-        let container = type_ctx.struct_container_arena.append(container);
+        let container = STRUCT_CONTAINER_ALLOC.with(|f| f.borrow_mut().append(container));
 
         BUILD_CACHE.with_borrow_mut(|cache| {
             cache
