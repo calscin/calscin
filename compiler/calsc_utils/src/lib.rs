@@ -14,6 +14,7 @@ pub mod path;
 pub mod pos;
 pub mod refcell;
 pub mod str;
+pub mod unsafes;
 
 /// Stores either a value of type [`A`] or a value of type [`B`]
 pub enum Either<A, B> {
