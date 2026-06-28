@@ -4,7 +4,10 @@ use std::collections::HashMap;
 
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_no_require_type_parameter, build_requires_type_parameter},
+    diags::errors::{
+        build_expected_type_parameters_error, build_no_require_type_parameter,
+        build_requires_type_parameter,
+    },
 };
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string, hash::HashedString};
 
@@ -117,8 +120,18 @@ impl TypeKind {
             .into());
         }
 
-        let mut type_params = HashMap::new();
         let ty_params = primitive.get_type_params(ctx);
+
+        if type_parameters.len() != ty_params.len() {
+            return Err(build_expected_type_parameters_error(
+                &ty_params.len(),
+                &type_parameters.len(),
+                source,
+            )
+            .into());
+        }
+
+        let mut type_params = HashMap::new();
 
         for (ind, param) in type_parameters.iter().enumerate() {
             type_params.insert(

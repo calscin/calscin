@@ -36,15 +36,25 @@ pub fn lower_ast_struct_declaration(
         name,
         fields,
         visibility,
-        type_parameters: _,
+        type_parameters,
     } = node.kind.clone()
     {
-        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
-
-        let key = GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
+        let group = ctx.type_ctx.type_params.start_param_group();
 
         let mut struct_container =
             StructContainer::new(name.clone(), file_ctx.current_module.clone());
+
+        for type_parameter in type_parameters {
+            ctx.type_ctx
+                .type_params
+                .append_type_param(type_parameter.clone(), &node)?;
+
+            struct_container.type_parameters.push(type_parameter);
+        }
+
+        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+
+        let key = GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
         for field in fields {
             let ty = lower_ast_type(field.0, &node, file_ctx, ctx)?; // We can clone base_type to pass it to lower_ast_type since the base_type here wont be modified by lower_ast_type
@@ -70,6 +80,8 @@ pub fn lower_ast_struct_declaration(
             visibility,
             &node,
         )?;
+
+        ctx.type_ctx.type_params.end_group(group);
 
         Ok(())
     } else {

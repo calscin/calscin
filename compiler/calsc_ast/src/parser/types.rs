@@ -227,7 +227,7 @@ pub fn parse_type_generic(
                 tokens,
                 ind,
                 &mut |tokens, ind| parse_ast_type(tokens, ind, true),
-                TokenKind::ParenClose,
+                TokenKind::AngelBracketClose,
                 true,
                 false,
             )?;

@@ -176,10 +176,14 @@ pub fn lower_type_struct_decl(
         name,
         fields,
         visibility: _,
-        type_parameters: _,
+        type_parameters,
     } = node.kind.clone()
     {
         let mut container = StructContainer::new(name, hir_file_ctx.current_module.clone());
+
+        for type_parameter in type_parameters {
+            container.type_parameters.push(type_parameter);
+        }
 
         for field in fields {
             let ty = lower_type(field.0, tree, hir_file_ctx, type_ctx, &node)?;
