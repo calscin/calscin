@@ -7,6 +7,7 @@ use calsc_modules::{
     lazy::raw::{LazyLoadedRawType, LazyLoadedRawTypeKind},
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
+use calsc_typing::ctx::TypeCtx;
 
 use crate::{convert_visibility, stage0::fill::types::lower_ast_type};
 
@@ -14,6 +15,7 @@ pub fn lower_ast_type_struct_declaration(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
+    type_ctx: &mut TypeCtx,
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
@@ -34,7 +36,7 @@ pub fn lower_ast_type_struct_declaration(
         for field in fields {
             lowered_fields.insert(
                 field.1.clone(),
-                (lower_ast_type(field.0, tree, file_ctx), ind),
+                (lower_ast_type(field.0, tree, file_ctx, type_ctx), ind),
             );
             field_order.push(field.1);
 

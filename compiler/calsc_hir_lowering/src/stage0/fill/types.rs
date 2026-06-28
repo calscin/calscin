@@ -2,8 +2,10 @@
 
 use calsc_ast::{path::ElementPath, types::ASTType};
 
+use calsc_diagnostics::panics::PanicDiagnosticSource;
 use calsc_hir::file::HIRFileContext;
 use calsc_modules::{lazy::LazyLoadedType, path::ModulePath, tree::ModuleTree};
+use calsc_typing::ctx::TypeCtx;
 use calsc_utils::hash::HashedString;
 
 pub type LazyLoadedTypeId = (ModulePath, HashedString);
@@ -43,10 +45,23 @@ pub fn lower_ast_type_base(
     size_specifiers: usize,
     tree: &ModuleTree,
     hir_file_ctx: &HIRFileContext,
+    type_ctx: &TypeCtx,
 ) -> LazyLoadedType {
     assert!(!name.members.is_empty());
 
     let (key, element_name) = lower_stage0_key(name, hir_file_ctx, tree);
+
+    if type_ctx.type_params.has_type_parameter(&element_name) {
+        let param = type_ctx
+            .type_params
+            .get_type_param(&element_name, &PanicDiagnosticSource())
+            .unwrap(); // Panic diag source is safe here since we check if it exists first
+
+        return LazyLoadedType::TypeParameter {
+            id: param.0,
+            name: element_name,
+        };
+    }
 
     LazyLoadedType::Base {
         module_path: key,
@@ -59,21 +74,22 @@ pub fn lower_ast_type(
     typ: ASTType,
     tree: &ModuleTree,
     hir_file_ctx: &HIRFileContext,
+    type_ctx: &TypeCtx,
 ) -> LazyLoadedType {
     match typ {
         ASTType::Array(size, inner) => LazyLoadedType::Array {
             size,
-            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
+            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx, type_ctx)),
         },
 
         ASTType::Reference(mutable, inner) => LazyLoadedType::Reference {
             mutable,
-            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
+            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx, type_ctx)),
         },
 
         ASTType::Pointer(mutable, inner) => LazyLoadedType::Pointer {
             mutable,
-            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx)),
+            inner: Box::new(lower_ast_type(*inner, tree, hir_file_ctx, type_ctx)),
         },
 
         ASTType::Generic(path, size_specifier) => {
@@ -83,7 +99,7 @@ pub fn lower_ast_type(
                 size_specifiers = size_specifier.unwrap();
             }
 
-            lower_ast_type_base(path, size_specifiers, tree, hir_file_ctx)
+            lower_ast_type_base(path, size_specifiers, tree, hir_file_ctx, type_ctx)
         }
 
         ASTType::Void => LazyLoadedType::Void,
