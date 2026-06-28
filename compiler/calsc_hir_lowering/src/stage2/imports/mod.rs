@@ -7,12 +7,11 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 use calsc_modules::{
-    lazy::{LazyLoadedType, func::LazyLoadedFunction},
+    lazy::func::LazyLoadedFunction,
     path::ModulePath,
     tree::entry::{ModuleTreeEntry, TreeModule},
     visibility::Visibility,
 };
-use calsc_utils::hash::HashedString;
 
 use crate::stage2::types::lower_module_path_type;
 
