@@ -16,7 +16,7 @@ use calsc_hir::{
 };
 
 use calsc_typing::types::TypeKind;
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
 use crate::stage2::values::lower_ast_value;
 
@@ -48,7 +48,7 @@ pub fn lower_ast_binary_expression(
         if left_expr_type == TypeKind::Void || !left_expr_type.is_directly_numeric() {
             return Err(build_expected_type_error(
                 &"numeric".to_string(),
-                &"".to_string(),
+                &display_with_to_string(&left_expr_type, &ctx.type_ctx),
                 &left_expr_ref,
             )
             .into());

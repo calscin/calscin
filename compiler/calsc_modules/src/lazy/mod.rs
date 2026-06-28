@@ -9,6 +9,7 @@ use crate::{
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
+pub mod func;
 pub mod raw;
 
 /// Represents a lazy loaded type. This should normally live before HIR lowering stage 2 as types will be obtained back there.
@@ -19,6 +20,12 @@ pub enum LazyLoadedType {
         element_name: HashedString,
 
         size_specifiers: usize,
+        type_parameters: Vec<LazyLoadedType>,
+    },
+
+    TypeParameter {
+        id: usize,
+        name: HashedString,
     },
 
     Reference {
@@ -60,10 +67,13 @@ impl LazyLoadedTypeLike for LazyLoadedType {
         match self {
             Self::Array { size: _, inner } => inner.get_dependencies(tree, counter, source),
             Self::Reference { mutable: _, inner } => inner.get_dependencies(tree, counter, source),
+            Self::Pointer { mutable: _, inner } => inner.get_dependencies(tree, counter, source),
+
             Self::Base {
                 module_path,
                 element_name,
                 size_specifiers: _,
+                type_parameters: _, // TODO: check if type parameters must be dependencies
             } => {
                 let mut path_to_check = module_path.clone();
                 path_to_check.path.push(element_name.clone());

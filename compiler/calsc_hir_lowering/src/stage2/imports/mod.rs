@@ -7,47 +7,59 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 use calsc_modules::{
-    lazy::LazyLoadedType,
+    lazy::func::LazyLoadedFunction,
     path::ModulePath,
     tree::entry::{ModuleTreeEntry, TreeModule},
     visibility::Visibility,
 };
-use calsc_utils::hash::HashedString;
 
 use crate::stage2::types::lower_module_path_type;
 
 pub mod lower;
 
 pub fn import_function<S: DiagnosticSource>(
-    return_type: LazyLoadedType,
-    arguments: Vec<(HashedString, LazyLoadedType)>,
+    func: LazyLoadedFunction,
     path_to_append: ModulePath,
     ctx: &mut HIRContext,
     origin: &S,
 ) -> DiagPossible {
+    let group = ctx.type_ctx.type_params.start_param_group();
+
     let name = path_to_append.last();
+
+    let mut owned_type_params = vec![];
+
+    for type_parameter in func.type_paramers {
+        let id = ctx
+            .type_ctx
+            .type_params
+            .append_type_param(type_parameter, origin)?;
+
+        owned_type_params.push(id);
+    }
 
     let key = GlobalContextKey::new(name.clone()).module_path(path_to_append.everything_but_last());
 
-    let return_type = lower_module_path_type(return_type, origin, ctx)?;
-    let arguments: Vec<_> = arguments
+    let return_type = lower_module_path_type(func.return_type, origin, ctx)?;
+    let arguments: Vec<_> = func
+        .arguments
         .iter()
         .map(|(name, ty)| {
             lower_module_path_type(ty.clone(), origin, ctx).map(|ty| (name.clone(), ty))
         })
         .collect::<Result<_, _>>()?;
 
+    let mut func = HIRFunction::new_imported(key.clone(), return_type, arguments, false);
+    func.type_parameters = owned_type_params;
+
     ctx.scope.append(
         key.clone(),
-        GlobalContextValue::Function(HIRFunction::new_imported(
-            key,
-            return_type,
-            arguments,
-            false,
-        )),
+        GlobalContextValue::Function(func),
         Visibility::Uncopiable,
         origin,
     )?;
+
+    ctx.type_ctx.type_params.end_group(group);
 
     Ok(())
 }
@@ -95,9 +107,7 @@ pub fn import_element<S: DiagnosticSource>(
     origin: &S,
 ) -> DiagPossible {
     match element {
-        ModuleTreeEntry::FilledFunction(return_type, arguments) => {
-            import_function(return_type, arguments, path_to_append, ctx, origin)
-        }
+        ModuleTreeEntry::FilledFunction(func) => import_function(func, path_to_append, ctx, origin),
 
         ModuleTreeEntry::FilledType(_) => import_type(path_to_append, ctx, origin),
 

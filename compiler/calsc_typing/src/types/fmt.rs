@@ -3,6 +3,7 @@ use std::fmt::Display;
 use calsc_utils::{DisplayWith, display_with_list, display_with_to_string};
 
 use crate::{
+    allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
     types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
@@ -15,11 +16,11 @@ impl DisplayWith<&TypeCtx> for PrimitiveType {
             Self::Boolean => write!(f, "bool"),
             Self::Str => write!(f, "str"),
             Self::Size => write!(f, "size"),
-            Self::Struct(container) => {
-                let arena_ref = k.struct_container_arena.get(container);
+            Self::Struct(container) => STRUCT_CONTAINER_ALLOC.with(|ff| {
+                let arena_ref = ff.borrow().get(container);
 
                 write!(f, "{}::{}", arena_ref.module, arena_ref.name)
-            }
+            }),
 
             Self::Function(func) => {
                 let arena_ref = k.typed_function_arena.get(func);
@@ -31,6 +32,8 @@ impl DisplayWith<&TypeCtx> for PrimitiveType {
                     display_with_to_string(&arena_ref.return_type, k)
                 )
             }
+
+            Self::TypeParameter(param) => write!(f, "{}", param.1),
         }
     }
 }
@@ -82,8 +85,13 @@ impl DisplayWith<&TypeCtx> for TypeKind {
                 write!(f, "[]")
             }
 
-            Self::Primitive(primitive, size_param) => {
-                write!(f, "{}{}", &display_with_to_string(primitive, k), size_param)
+            Self::Primitive(primitive) => {
+                write!(
+                    f,
+                    "{}{}",
+                    &display_with_to_string(&primitive.ty, k),
+                    primitive.size
+                )
             }
 
             Self::Void => write!(f, "void"),

@@ -11,6 +11,7 @@ use remir_llvm::{LLVMBridge, build_llvm, compile_llvm};
 
 use crate::{
     funcs::{lower_hir_function_decl, lower_hir_function_decl_none},
+    mono::Monomorphizer,
     result::CalscinRemirResult,
 };
 
@@ -18,6 +19,7 @@ pub mod body;
 pub mod control;
 pub mod funcs;
 pub mod indexes;
+pub mod mono;
 pub mod range;
 pub mod reads;
 pub mod result;
@@ -33,20 +35,27 @@ pub fn lower_hir_context(mut ctx: HIRContext, module: &mut Module) -> DiagPossib
     let keys: Vec<_> = ctx.scope.key_to_ind.keys().map(|f| f.clone()).collect();
 
     for key in keys {
-        let entry = ctx.scope.get_entry_no_visibility(key.clone(), &dummy_pos)?;
+        let entry = ctx
+            .scope
+            .get_entry_no_visibility(key.clone(), &dummy_pos)?
+            .clone();
 
         if entry.is_function() {
             let func = entry.as_function(&dummy_pos)?;
 
-            lower_hir_function_decl_none(
-                key.clone(),
-                func.arguments.iter().map(|f| f.1.clone()).collect(),
-                func.return_type.clone(),
-                func.is_main_function,
-                module,
-                func.triple_dot_position,
-                &mut ctx,
-            )?;
+            if !func.type_parameters.is_empty() {
+                Monomorphizer::monomorph_function_definitions(module, func, &mut ctx)?;
+            } else {
+                lower_hir_function_decl_none(
+                    key.clone(),
+                    func.arguments.iter().map(|f| f.1.clone()).collect(),
+                    func.return_type.clone(),
+                    func.is_main_function,
+                    module,
+                    func.triple_dot_position,
+                    &mut ctx,
+                )?;
+            }
         }
     }
 
@@ -63,7 +72,15 @@ pub fn lower_hir_context(mut ctx: HIRContext, module: &mut Module) -> DiagPossib
             let func = entry.as_function(&dummy_pos)?;
 
             if func.impl_node.is_some() {
-                lower_hir_function_decl(func.impl_node.clone().unwrap(), &mut ctx, module)?;
+                if !func.type_parameters.is_empty() {
+                    Monomorphizer::monomorph_function_declarations(
+                        func.impl_node.clone().unwrap(),
+                        &mut ctx,
+                        module,
+                    )?;
+                } else {
+                    lower_hir_function_decl(func.impl_node.clone().unwrap(), &mut ctx, module)?;
+                }
             }
         }
     }

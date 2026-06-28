@@ -16,6 +16,7 @@ pub enum ErrorCode {
     CannotParse,
     UnexpectedToken,
     ExpectedToken,
+    EmptyType,
 
     // Typing
     UnexpectedType,
@@ -33,6 +34,7 @@ pub enum ErrorCode {
     TypeNotStatic,
     TypeCastFailed,
     ExpectedMutableReference,
+    TypeHintCoherceFail,
 
     NewWrongSizeSpecifier,
     NewTypeAlreadyHasField,
@@ -51,6 +53,7 @@ pub enum ErrorCode {
     // HIR misc
     RestrictedArgumentTypes,
     RestrictedReturnType,
+    RestrictedTypeParameters,
     _UnexpectedReturn,
     ExpectedReturn,
     ExpectedMutableLike,
@@ -283,6 +286,26 @@ pub fn build_restricted_return_type<R: Display, S: DiagnosticSource>(
         vec![],
         vec!["invalid return type".to_string()],
         vec![format!("change return type to {}", restricted)],
+    )
+}
+
+pub fn build_restricted_type_parameters<R: Display, S: DiagnosticSource>(
+    restricted: &Vec<&R>,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::RestrictedReturnType as usize),
+        format!(
+            "type parameters are restricted to <{}> on this function",
+            fmt_list(restricted)
+        ),
+        None,
+        vec![],
+        vec!["invalid type parameters".to_string()],
+        vec![format!(
+            "change type parameters to <{}>",
+            fmt_list(restricted)
+        )],
     )
 }
 
@@ -629,5 +652,40 @@ pub fn build_expected_number_arguments<S: DiagnosticSource>(
         vec![],
         vec![],
         vec![],
+    )
+}
+
+pub fn build_type_hint_coherce_not_transmutable<S: DiagnosticSource, T: Display>(
+    ty: &T,
+    target: &T,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::TypeHintCoherceFail as usize),
+        format!(
+            "type cohersion failed! {} is incompatible with {}",
+            target, ty
+        ),
+        None,
+        vec![],
+        vec![format!(
+            "type cohercition failed because {} cannot be transmutated into {}",
+            target, ty
+        )],
+        vec![format!(
+            "replace {} with a type that is transmutable into {}",
+            target, ty
+        )],
+    )
+}
+
+pub fn build_empty_type<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::EmptyType as usize),
+        "the type parser detected an empty type".to_string(),
+        None,
+        vec![],
+        vec!["this can be related to the type not being written correctly".to_string()],
+        vec!["make sure the type is a valid written one".to_string()],
     )
 }

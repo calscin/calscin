@@ -16,6 +16,7 @@ use calsc_diagnostics::{
 };
 use calsc_hir::file::HIRFileContext;
 use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
+use calsc_typing::ctx::TypeCtx;
 
 use crate::stage0::fill::{
     func::{lower_ast_extern_func_decl_stage_zero, lower_ast_function_decl_stage_zero},
@@ -33,6 +34,7 @@ pub fn lower_stage_0_fill_pass(
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
     file_path: PathBuf,
+    type_ctx: &mut TypeCtx,
 ) -> DiagPossible {
     // Append file path to the module
     {
@@ -49,7 +51,7 @@ pub fn lower_stage_0_fill_pass(
     for node in &ast_ctx.tree {
         let node = ast_ctx.nodes.get(node).clone();
 
-        lower_stage_0_node(node, &ast_ctx, file_ctx, tree)?;
+        lower_stage_0_node(node, &ast_ctx, file_ctx, tree, type_ctx)?;
     }
 
     Ok(())
@@ -60,23 +62,26 @@ pub fn lower_stage_0_node(
     ast_ctx: &ASTContext,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
+    type_ctx: &mut TypeCtx,
 ) -> DiagPossible {
     match node.kind {
         ASTNodeKind::FunctionDeclaration { .. } => {
-            lower_ast_function_decl_stage_zero(node, file_ctx, tree)
+            lower_ast_function_decl_stage_zero(node, file_ctx, tree, type_ctx)
         }
 
         ASTNodeKind::ExternFunctionDeclaration { .. } => {
-            lower_ast_extern_func_decl_stage_zero(node, file_ctx, tree)
+            lower_ast_extern_func_decl_stage_zero(node, file_ctx, tree, type_ctx)
         }
 
         ASTNodeKind::StructDeclaration { .. } => {
-            lower_ast_type_struct_declaration(node, file_ctx, tree)
+            lower_ast_type_struct_declaration(node, file_ctx, tree, type_ctx)
         }
 
         ASTNodeKind::StructDeclBlock { .. } => Ok(()),
 
-        ASTNodeKind::Module { .. } => lower_ast_stage_0_module(node, ast_ctx, file_ctx, tree),
+        ASTNodeKind::Module { .. } => {
+            lower_ast_stage_0_module(node, ast_ctx, file_ctx, tree, type_ctx)
+        }
 
         ASTNodeKind::ImportStatement { .. } => Ok(()),
 
@@ -89,6 +94,7 @@ pub fn lower_ast_stage_0_module(
     ast_ctx: &ASTContext,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
+    type_ctx: &mut TypeCtx,
 ) -> DiagPossible {
     if let ASTNodeKind::Module {
         name,
@@ -113,7 +119,7 @@ pub fn lower_ast_stage_0_module(
         for body_node in body {
             let body_node = ast_ctx.nodes.get(&body_node).clone();
 
-            lower_stage_0_node(body_node, ast_ctx, file_ctx, tree)?;
+            lower_stage_0_node(body_node, ast_ctx, file_ctx, tree, type_ctx)?;
         }
 
         file_ctx.deadvance_module();

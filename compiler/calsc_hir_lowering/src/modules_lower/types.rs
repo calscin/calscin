@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     types::ASTType,
@@ -6,6 +8,7 @@ use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{
         build_expected_entry_type, build_internal_hir_node_leaked, build_type_not_static,
+        build_unexpected_type_alias_additional_parameters,
     },
 };
 use calsc_hir::{BUILD_CACHE, file::HIRFileContext};
@@ -16,9 +19,11 @@ use calsc_modules::{
 };
 
 use calsc_typing::{
+    allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
+    traits::TypeParameteredType,
     types::{
-        MutationState, SizeParameter, TypeKind,
+        HeldPrimitive, MutationState, SizeParameter, TypeKind,
         primitive::PrimitiveType,
         structs::{NamedField, StructContainer},
     },
@@ -43,6 +48,8 @@ pub fn lower_type_from_tree(
     let r = tree.traverse_to(path.clone(), &source)?;
 
     if let ModuleTreeEntry::FilledType(ty) = r {
+        println!("Type to lower: {:#?}", ty);
+
         let mut dependencies = HashedCounter::new();
 
         ty.get_dependencies(tree, &mut dependencies, &source)?;
@@ -106,7 +113,7 @@ pub fn lower_type<S: DiagnosticSource>(
             Ok(TypeKind::Pointer(MutationState(mutable), inner))
         }
 
-        ASTType::Generic(name, size_specs) => {
+        ASTType::Generic(name, size_specs, type_parameters) => {
             let mut size_specifier = 0;
 
             if size_specs.is_some() {
@@ -114,11 +121,48 @@ pub fn lower_type<S: DiagnosticSource>(
             }
 
             let (mut path, element_name) = lower_stage0_key(name, hir_file_ctx, tree);
-            path.append_single_bit(element_name);
+            path.append_single_bit(element_name.clone());
+
+            println!("Type name: {}", element_name);
+
+            if type_ctx.type_params.has_type_parameter(&element_name) {
+                if size_specs.is_some() || !type_parameters.is_empty() {
+                    return Err(build_unexpected_type_alias_additional_parameters(source).into());
+                }
+
+                let type_param = type_ctx.type_params.get_type_param(&element_name, source)?;
+
+                return Ok(TypeKind::Primitive(HeldPrimitive {
+                    ty: PrimitiveType::TypeParameter(type_param),
+                    size: SizeParameter(0),
+                    type_parameters: HashMap::new(),
+                }));
+            }
 
             let raw_type = BUILD_CACHE.with_borrow(|state| state.type_storage.map[&path].clone());
 
-            Ok(TypeKind::Primitive(raw_type, SizeParameter(size_specifier)))
+            let ty_type_parameters = raw_type.get_type_params(type_ctx);
+            let mut lowered_type_params = HashMap::new();
+
+            for (ind, type_parameter) in type_parameters.iter().enumerate() {
+                let ty = lower_type(
+                    *type_parameter.clone(),
+                    tree,
+                    hir_file_ctx,
+                    type_ctx,
+                    source,
+                )?;
+
+                let ty = type_ctx.type_kind_arena.append(ty);
+
+                lowered_type_params.insert(ty_type_parameters[ind].clone(), ty);
+            }
+
+            Ok(TypeKind::Primitive(HeldPrimitive {
+                ty: raw_type,
+                size: SizeParameter(size_specifier),
+                type_parameters: lowered_type_params,
+            }))
         }
 
         ASTType::Void => Ok(TypeKind::Void),
@@ -152,9 +196,20 @@ pub fn lower_type_struct_decl(
         name,
         fields,
         visibility: _,
+        type_parameters,
     } = node.kind.clone()
     {
+        let group = type_ctx.type_params.start_param_group();
+
         let mut container = StructContainer::new(name, hir_file_ctx.current_module.clone());
+
+        for type_parameter in type_parameters {
+            container.type_parameters.push(type_parameter.clone());
+
+            type_ctx
+                .type_params
+                .append_type_param(type_parameter, &node)?;
+        }
 
         for field in fields {
             let ty = lower_type(field.0, tree, hir_file_ctx, type_ctx, &node)?;
@@ -170,7 +225,7 @@ pub fn lower_type_struct_decl(
                 .append_named(NamedField(field.1, ty), &node)?;
         }
 
-        let container = type_ctx.struct_container_arena.append(container);
+        let container = STRUCT_CONTAINER_ALLOC.with(|f| f.borrow_mut().append(container));
 
         BUILD_CACHE.with_borrow_mut(|cache| {
             cache
@@ -178,6 +233,8 @@ pub fn lower_type_struct_decl(
                 .map
                 .insert(path, PrimitiveType::Struct(container))
         });
+
+        type_ctx.type_params.end_group(group);
 
         Ok(())
     } else {

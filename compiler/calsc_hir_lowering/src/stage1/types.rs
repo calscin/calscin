@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     path::ElementPath,
@@ -16,10 +18,13 @@ use calsc_hir::{
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
 };
 
-use calsc_typing::types::{
-    MutationState, SizeParameter, TypeKind,
-    primitive::PrimitiveType,
-    structs::{NamedField, StructContainer},
+use calsc_typing::{
+    allocs::STRUCT_CONTAINER_ALLOC,
+    types::{
+        HeldPrimitive, MutationState, SizeParameter, TypeKind,
+        primitive::PrimitiveType,
+        structs::{NamedField, StructContainer},
+    },
 };
 use calsc_utils::display_with_to_string;
 
@@ -34,14 +39,25 @@ pub fn lower_ast_struct_declaration(
         name,
         fields,
         visibility,
+        type_parameters,
     } = node.kind.clone()
     {
-        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
-
-        let key = GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
+        let group = ctx.type_ctx.type_params.start_param_group();
 
         let mut struct_container =
             StructContainer::new(name.clone(), file_ctx.current_module.clone());
+
+        for type_parameter in type_parameters {
+            ctx.type_ctx
+                .type_params
+                .append_type_param(type_parameter.clone(), &node)?;
+
+            struct_container.type_parameters.push(type_parameter);
+        }
+
+        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+
+        let key = GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
         for field in fields {
             let ty = lower_ast_type(field.0, &node, file_ctx, ctx)?; // We can clone base_type to pass it to lower_ast_type since the base_type here wont be modified by lower_ast_type
@@ -59,7 +75,8 @@ pub fn lower_ast_struct_declaration(
                 .append_named(NamedField(field.1, ty), &node)?;
         }
 
-        let struct_container = ctx.type_ctx.struct_container_arena.append(struct_container);
+        let struct_container =
+            STRUCT_CONTAINER_ALLOC.with(|f| f.borrow_mut().append(struct_container));
 
         ctx.scope.append(
             key,
@@ -67,6 +84,8 @@ pub fn lower_ast_struct_declaration(
             visibility,
             &node,
         )?;
+
+        ctx.type_ctx.type_params.end_group(group);
 
         Ok(())
     } else {
@@ -80,16 +99,16 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
 ) -> DiagResult<PrimitiveType> {
-    if let ASTType::Generic(generic, size_param) = ty.clone() {
-        if size_param.is_some() {
+    if let ASTType::Generic(generic, size_param, type_parameters) = ty.clone() {
+        if size_param.is_some() || !type_parameters.is_empty() {
             return Err(build_expected_simple_type(origin).into());
         }
 
-        let ty = lower_ast_generic_base(generic, 0, origin, file_ctx, ctx)?;
+        let ty = lower_ast_generic_base(generic, 0, type_parameters, origin, file_ctx, ctx)?;
 
-        if let TypeKind::Primitive(primitive, size) = ty {
-            if size.is_active() {
-                return Ok(primitive);
+        if let TypeKind::Primitive(primitive) = ty {
+            if primitive.size.is_active() {
+                return Ok(primitive.ty);
             }
         }
     }
@@ -164,14 +183,21 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
             Ok(TypeKind::Pointer(MutationState(mutable), inner))
         }
 
-        ASTType::Generic(generic, size_param) => {
+        ASTType::Generic(generic, size_param, type_parameters) => {
             let mut size_specifiers = 0;
 
             if size_param.is_some() {
                 size_specifiers = size_param.unwrap();
             }
 
-            let ty = lower_ast_generic_base(generic, size_specifiers, origin, file_ctx, ctx)?;
+            let ty = lower_ast_generic_base(
+                generic,
+                size_specifiers,
+                type_parameters,
+                origin,
+                file_ctx,
+                ctx,
+            )?;
 
             Ok(ty)
         }
@@ -183,16 +209,54 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
     name: ElementPath,
     size_specifier: usize,
+    type_parameters: Vec<Box<ASTType>>,
     origin: &K,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
 ) -> DiagResult<TypeKind> {
+    // If the name is relative and of a length of one, we check first if it's a type parameter
+    if name.relative && name.members.len() == 1 {
+        if ctx
+            .type_ctx
+            .type_params
+            .has_type_parameter(&name.members[0])
+        {
+            let param = ctx
+                .type_ctx
+                .type_params
+                .get_type_param(&name.members[0], origin)?;
+
+            return Ok(TypeKind::Primitive(HeldPrimitive {
+                ty: PrimitiveType::TypeParameter(param),
+                size: SizeParameter(0),
+                type_parameters: HashMap::new(),
+            }));
+        }
+    }
+
     let key = lower_ast_key(name, origin, true, file_ctx, ctx)?;
+
+    let mut lowered_type_parameters = vec![];
+
+    for type_parameter in type_parameters {
+        lowered_type_parameters.push(lower_ast_type_complex(
+            *type_parameter,
+            origin,
+            false,
+            file_ctx,
+            ctx,
+        )?)
+    }
 
     let ty = ctx
         .scope
         .get_entry(key, &file_ctx.current_module, origin)?
-        .craft_type(origin, &ctx.type_ctx, SizeParameter(size_specifier))?;
+        .craft_type(
+            origin,
+            &mut ctx.type_ctx,
+            SizeParameter(size_specifier),
+            lowered_type_parameters,
+        )?;
 
     Ok(ty)
 }

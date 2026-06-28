@@ -37,7 +37,8 @@ pub fn function_decl_parsing_base_test() {
             arguments: vec![],
             return_type: ASTType::Void,
             body: vec![],
-            visibility: None
+            visibility: None,
+            type_parameters: vec![]
         }
     )
 }

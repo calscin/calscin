@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
@@ -10,13 +12,18 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
-    HIRContext,
+    BUILD_CACHE, HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
 };
-use calsc_typing::types::TypeKind;
-use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
+
+use calsc_typing::{
+    hash::HashedTypeKind,
+    hints::{TypeHint, TypeHintContainer},
+    types::{TypeKind, primitive::PrimitiveType},
+};
+use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string, hash::HashedString};
 
 use crate::{
     stage1::types::lower_ast_type,
@@ -150,13 +157,13 @@ pub fn lower_ast_function_call(
             .get_entry_no_visibility(key.clone(), &node)?
             .as_function(&node)?;
 
-        let argument_types: Vec<_> = func_entry
+        let func_type_parameters = func_entry.type_parameters.clone();
+
+        let mut argument_types: Vec<_> = func_entry
             .arguments
             .iter()
             .map(|entry| entry.1.clone())
             .collect();
-
-        let mut hir_arguments = vec![];
 
         if arguments.len() != argument_types.len() && func_entry.triple_dot_position.is_none() {
             return Err(build_expected_number_arguments(
@@ -172,6 +179,71 @@ pub fn lower_ast_function_call(
         } else {
             argument_types.len()
         };
+
+        let mut type_params: HashMap<HashedString, TypeHintContainer> = HashMap::new();
+        let mut coherced_type_params: HashMap<HashedString, TypeKind> = HashMap::new();
+
+        for type_param in &func_entry.type_parameters {
+            type_params.insert(type_param.1.clone(), TypeHintContainer::new());
+        }
+
+        // We first coherce the type parameter actual types
+
+        for ind in 0..stop_ind {
+            let val = lower_ast_value(
+                ASTNode::clone(ast_ctx.nodes.get(&arguments[ind])),
+                local_ctx.clone(),
+                file_ctx,
+                ctx,
+                ast_ctx,
+            )?;
+
+            let val_ref = ctx.nodes.get(&val).clone();
+
+            let val_ty = val_ref
+                .get_type(local_ctx.clone(), ctx, Some(file_ctx))?
+                .clone();
+
+            let ty = &argument_types[ind];
+
+            if ty.is_directly_primitive() {
+                let ty = ty.as_primitive();
+
+                if let PrimitiveType::TypeParameter(param) = ty.ty {
+                    type_params.get_mut(&param.1).unwrap().append(
+                        if val_ref.is_weakly_typed(ctx) {
+                            TypeHint::Weak(val_ty)
+                        } else {
+                            TypeHint::Strong(val_ty)
+                        },
+                    );
+                }
+            } else {
+                continue;
+            }
+        }
+
+        // We then coherce them (get the determined type)
+
+        for type_param in &type_params {
+            let coherced = type_param.1.determine_type(&ctx.type_ctx, &node)?;
+
+            coherced_type_params.insert(type_param.0.clone(), coherced.clone());
+        }
+
+        // We then replace every mention of the old parameter type with the cohereced type
+
+        for (ind, argument_type) in argument_types.clone().iter().enumerate() {
+            if argument_type.is_directly_primitive() {
+                if let PrimitiveType::TypeParameter(param) = argument_type.as_primitive().ty {
+                    argument_types[ind] = coherced_type_params[&param.1].clone();
+                }
+            }
+        }
+
+        // We then handle arguments as normal
+
+        let mut hir_arguments = vec![];
 
         for ind in 0..stop_ind {
             let val = lower_ast_value(
@@ -218,14 +290,38 @@ pub fn lower_ast_function_call(
             return Err(build_expected_entry_type(&"function", &"?? TODO", &node).into());
         }
 
-        let node = HIRNode::new(
+        let kind = if !type_params.is_empty() {
+            // Append the type parameter combination to the build cache for later monophormization
+            {
+                let mut combinations: Vec<HashedTypeKind> = vec![];
+
+                for param_name in func_type_parameters {
+                    let coherced = coherced_type_params[&param_name.1].clone();
+
+                    combinations.push(HashedTypeKind::new(coherced, &ctx.type_ctx));
+                }
+
+                let mut module_path = key.module_path.clone();
+                module_path.append_single_bit(key.name.clone());
+
+                BUILD_CACHE.with_borrow_mut(|cache| {
+                    cache.append_used_type_param_combination(module_path, combinations)
+                })
+            }
+
+            HIRNodeKind::TypedParamFunctionCall {
+                func: key,
+                arguments: hir_arguments,
+                type_parameters: coherced_type_params,
+            }
+        } else {
             HIRNodeKind::FunctionCall {
                 func: key,
                 arguments: hir_arguments,
-            },
-            node.start.clone(),
-            node.end.clone(),
-        );
+            }
+        };
+
+        let node = HIRNode::new(kind, node.start.clone(), node.end.clone());
 
         Ok(node.push(ctx))
     } else {
@@ -319,8 +415,11 @@ pub fn lower_ast_function_decl(
         return_type,
         body,
         visibility: _,
+        type_parameters: _,
     } = node.kind.clone()
     {
+        let group = ctx.type_ctx.type_params.start_param_group();
+
         let mut key =
             GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
 
@@ -328,6 +427,20 @@ pub fn lower_ast_function_decl(
 
         if is_main_function {
             key = GlobalContextKey::new("main".into());
+        }
+
+        // Add back the type parameters to the type parameter scope
+
+        for type_param in ctx
+            .scope
+            .get_entry_no_visibility(key.clone(), &node)?
+            .as_function(&node)?
+            .type_parameters
+            .clone()
+        {
+            ctx.type_ctx
+                .type_params
+                .append_to_active(&type_param, &node)?;
         }
 
         let mut hir_arguments = vec![];
@@ -391,6 +504,8 @@ pub fn lower_ast_function_decl(
             |entry| entry.mutate_function(|ff| ff.impl_node = Some(r.clone()), &node),
             &node,
         )??;
+
+        ctx.type_ctx.type_params.end_group(group);
 
         Ok(r)
     } else {

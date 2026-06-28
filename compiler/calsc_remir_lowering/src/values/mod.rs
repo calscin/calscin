@@ -13,6 +13,7 @@ use remir::{
 use crate::{
     funcs::lower_hir_function_call,
     indexes::lower_hir_index_usage,
+    mono::resolver::lower_hir_typed_function_call,
     result::CalscinRemirResult,
     values::{
         bool::{lower_hir_compare, lower_hir_inverse_condition},
@@ -43,6 +44,7 @@ pub fn lower_hir_value(
         | HIRNodeKind::FloatLiteral(_, _, _)
         | HIRNodeKind::StringLiteral(_)
         | HIRNodeKind::BooleanLiteral(_)
+        | HIRNodeKind::CharLiteral(_)
         | HIRNodeKind::TypedStructuredInit { .. } => lower_hir_literal(node, ctx, module, hirctx),
 
         HIRNodeKind::InverseCondition(_) => {
@@ -76,6 +78,21 @@ pub fn lower_hir_value(
             }
         }
 
+        HIRNodeKind::TypedParamFunctionCall { .. } => {
+            let val = lower_hir_typed_function_call(node.clone(), ctx, module, hirctx)?;
+
+            if val.is_some() {
+                Ok(val.unwrap())
+            } else {
+                Err(build_expected_type_error(
+                    &"void".to_string(),
+                    &"non-void".to_string(),
+                    &node_ref,
+                )
+                .into())
+            }
+        }
+
         HIRNodeKind::VariableReference { .. } => {
             lower_hir_variable_reference_val(node, ctx, module, hirctx)
         }
@@ -88,7 +105,7 @@ pub fn lower_hir_value(
 
         HIRNodeKind::CastNode { .. } => lower_hir_cast_node(node, ctx, module, hirctx),
 
-        _ => return Err(build_internal_hir_node_leaked(&node, &node_ref).into()),
+        _ => return Err(build_internal_hir_node_leaked(&node_ref, &node_ref).into()),
     }
 }
 

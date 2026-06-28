@@ -2,7 +2,10 @@
 
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
+use crate::{
+    allocs::STRUCT_CONTAINER_ALLOC, ctx::TypeCtx, params::TypeParameterId, traits::FieldedType,
+    types::TypeKind,
+};
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(PartialEq, Clone)]
@@ -30,6 +33,8 @@ pub enum PrimitiveType {
     /// The handle represents a [`TypedFunction`][`crate::funcs::TypedFunction`]
     ///
     Function(ArenaHandle),
+
+    TypeParameter(TypeParameterId),
 
     /// Represents a size type
     Size,
@@ -73,11 +78,8 @@ impl PrimitiveType {
 impl FieldedType for PrimitiveType {
     fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
         match self {
-            Self::Struct(container) => ctx
-                .struct_container_arena
-                .get(container)
-                .fields
-                .has_field(name, ctx),
+            Self::Struct(container) => STRUCT_CONTAINER_ALLOC
+                .with(|f| f.borrow().get(container).fields.has_field(name, ctx)),
 
             _ => false,
         }
@@ -85,11 +87,9 @@ impl FieldedType for PrimitiveType {
 
     fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString> {
         match self {
-            Self::Struct(container) => ctx
-                .struct_container_arena
-                .get(container)
-                .fields
-                .get_fields(ctx),
+            Self::Struct(container) => {
+                STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(container).fields.get_fields(ctx))
+            }
 
             _ => vec![],
         }
@@ -97,11 +97,8 @@ impl FieldedType for PrimitiveType {
 
     fn get_field_index(&self, field: &HashedString, ctx: &TypeCtx) -> usize {
         match self {
-            Self::Struct(container) => ctx
-                .struct_container_arena
-                .get(container)
-                .fields
-                .get_field_index(field, ctx),
+            Self::Struct(container) => STRUCT_CONTAINER_ALLOC
+                .with(|f| f.borrow().get(container).fields.get_field_index(field, ctx)),
 
             _ => panic!("Type cannot hold field"),
         }
@@ -110,10 +107,8 @@ impl FieldedType for PrimitiveType {
     unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
         match self {
             Self::Struct(container) => unsafe {
-                ctx.struct_container_arena
-                    .get(container)
-                    .fields
-                    .get_field(field, ctx)
+                STRUCT_CONTAINER_ALLOC
+                    .with(|f| f.borrow().get(container).fields.get_field(field, ctx))
             },
 
             _ => panic!("Type cannot hold field"),

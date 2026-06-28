@@ -6,7 +6,9 @@ use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
-    parser::{parse_ast_body, types::parse_ast_type, values::parse_ast_value},
+    parser::{
+        parse_ast_body, types::parse_ast_type, utils::parse_ast_list, values::parse_ast_value,
+    },
     path::ElementPath,
     types::ASTType,
     visibility::Visibility,
@@ -123,4 +125,37 @@ pub fn parse_visibility_form(tokens: &Vec<Token>, ind: &mut usize) -> Option<Vis
     }
 
     visibility
+}
+
+pub fn parse_type_parameter_declaration(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<HashedString> {
+    let name = tokens[*ind].expects_keyword()?.into();
+
+    Ok(name)
+}
+
+pub fn parse_type_parameters_declaration_form(
+    tokens: &Vec<Token>,
+    ind: &mut usize,
+) -> DiagResult<Vec<HashedString>> {
+    let mut list = vec![];
+
+    if tokens[*ind].kind != TokenKind::AngelBracketOpen {
+        return Ok(list);
+    }
+
+    *ind += 1; // <
+
+    list = parse_ast_list(
+        tokens,
+        ind,
+        &mut |tokens, ind| parse_type_parameter_declaration(tokens, ind),
+        TokenKind::AngelBracketClose,
+        true,
+        true,
+    )?;
+
+    Ok(list)
 }

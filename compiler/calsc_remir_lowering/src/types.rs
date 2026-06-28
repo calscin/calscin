@@ -1,6 +1,7 @@
 use calsc_diagnostics::DiagResult;
 
 use calsc_typing::{
+    allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
     traits::FieldedType,
     types::{HeldPrimitive, TypeKind, primitive::PrimitiveType},
@@ -9,17 +10,18 @@ use remir::values::ValueType;
 
 #[allow(unsafe_code)]
 pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType> {
-    match ty.0 {
+    match ty.ty {
         PrimitiveType::Boolean => Ok(ValueType::Int(false, 1)),
-        PrimitiveType::Int(signed) => Ok(ValueType::Int(signed, ty.1.0)),
-        PrimitiveType::Float => Ok(ValueType::Float(ty.1.0)),
+        PrimitiveType::Int(signed) => Ok(ValueType::Int(signed, ty.size.0)),
+        PrimitiveType::Float => Ok(ValueType::Float(ty.size.0)),
         PrimitiveType::Str => Ok(ValueType::new_any_pointer()),
         PrimitiveType::Struct(container) => {
             let mut type_fields = vec![];
-            let container = ctx.struct_container_arena.get(&container);
+            let container = STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).clone());
 
             for field in container.fields.get_fields(ctx) {
                 let field_ty = unsafe { container.fields.get_field(&field, ctx) }; // This is safe since get_fields return the list of fields
+                let field_ty = ty.lower_type_parameter_type(field_ty, ctx);
 
                 type_fields.push(Box::new(lower_type(field_ty, ctx)?))
             }
@@ -29,14 +31,15 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
 
         PrimitiveType::Size => Ok(ValueType::new_int(false, usize::BITS as usize)),
         PrimitiveType::Function(_) => Ok(ValueType::new_any_pointer()),
+        PrimitiveType::TypeParameter(param) => {
+            lower_type(ctx.type_params.get_resolved(&param.1), ctx)
+        }
     }
 }
 
 pub fn lower_type(ty: TypeKind, ctx: &TypeCtx) -> DiagResult<ValueType> {
     match ty {
-        TypeKind::Primitive(primitive, size) => {
-            lower_type_base(HeldPrimitive(primitive, size), ctx)
-        }
+        TypeKind::Primitive(primitive) => lower_type_base(primitive, ctx),
 
         TypeKind::Reference(_, inner) => {
             let inner = ctx.type_kind_arena.get(&inner).clone();

@@ -84,6 +84,7 @@ pub enum ASTNodeKind {
         return_type: ASTType,
         body: Vec<ArenaHandle>,
         visibility: Option<Visibility>,
+        type_parameters: Vec<HashedString>,
     },
 
     ExternFunctionDeclaration {
@@ -146,6 +147,7 @@ pub enum ASTNodeKind {
         name: HashedString,
         fields: Vec<(ASTType, HashedString)>,
         visibility: Option<Visibility>,
+        type_parameters: Vec<HashedString>,
     },
 
     StructDeclBlock {
@@ -195,6 +197,7 @@ impl ASTNode {
                 return_type: _,
                 body: _,
                 visibility: _,
+                type_parameters: _,
             } => name.clone(),
 
             ASTNodeKind::ExternFunctionDeclaration {
@@ -208,6 +211,7 @@ impl ASTNode {
                 name,
                 fields: _,
                 visibility: _,
+                type_parameters: _,
             } => name.clone(),
 
             _ => panic!("Cannot get level top level name on a non top level node"),

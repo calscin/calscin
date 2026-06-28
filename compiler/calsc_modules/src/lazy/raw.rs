@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use calsc_diagnostics::{DiagPossible, DiagnosticSource, diags::errors::build_already_in_scope};
+use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_utils::hash::{HashedCounter, HashedString};
 
 use crate::{
@@ -12,6 +12,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum LazyLoadedRawTypeKind {
     Simple,
+    TypeParameter,
 
     Struct {
         fields: HashMap<HashedString, (LazyLoadedType, usize)>,
@@ -22,32 +23,11 @@ pub enum LazyLoadedRawTypeKind {
 #[derive(Debug, Clone)]
 pub struct LazyLoadedRawType {
     pub kind: LazyLoadedRawTypeKind,
-
-    pub functions: HashMap<HashedString, (Vec<(HashedString, LazyLoadedType)>, LazyLoadedType)>,
 }
 
 impl LazyLoadedRawType {
     pub fn new(kind: LazyLoadedRawTypeKind) -> Self {
-        Self {
-            kind,
-            functions: HashMap::new(),
-        }
-    }
-
-    pub fn append_function<S: DiagnosticSource>(
-        &mut self,
-        name: HashedString,
-        ret_type: LazyLoadedType,
-        arguments: Vec<(HashedString, LazyLoadedType)>,
-        source: &S,
-    ) -> DiagPossible {
-        if self.functions.contains_key(&name) {
-            return Err(build_already_in_scope(&name, source).into());
-        }
-
-        self.functions.insert(name, (arguments, ret_type));
-
-        Ok(())
+        Self { kind }
     }
 }
 
@@ -59,6 +39,7 @@ impl LazyLoadedTypeLike for LazyLoadedRawType {
         source: &S,
     ) -> DiagPossible {
         match &self.kind {
+            LazyLoadedRawTypeKind::TypeParameter => Ok(()),
             LazyLoadedRawTypeKind::Simple => Ok(()),
             LazyLoadedRawTypeKind::Struct {
                 fields,

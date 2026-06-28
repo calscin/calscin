@@ -157,10 +157,10 @@ pub fn convert_numerical_literal_into(
     ty: HeldPrimitive,
     ctx: &TypeCtx,
 ) -> DiagResult<HIRNode> {
-    assert!(ty.1.is_active());
+    assert!(ty.size.is_active());
 
-    let size = ty.1.0;
-    let ty = ty.0;
+    let size = ty.size.0;
+    let ty = ty.ty.clone();
     let signed = ty.get_signed_state();
 
     let kind = match &lit.kind {
@@ -205,7 +205,7 @@ pub fn weakly_transmute(curr_node: ArenaHandle, ty: &TypeKind, ctx: &mut HIRCont
         HIRNodeKind::IntLiteral(_, _, _) => {
             let base = ty.as_primitive();
 
-            if !base.0.is_int() {
+            if !base.ty.is_int() {
                 panic!()
             }
 
@@ -215,7 +215,7 @@ pub fn weakly_transmute(curr_node: ArenaHandle, ty: &TypeKind, ctx: &mut HIRCont
         HIRNodeKind::FloatLiteral(_, _, _) => {
             let base = ty.as_primitive();
 
-            if !base.0.is_float() {
+            if !base.ty.is_float() {
                 panic!()
             }
 

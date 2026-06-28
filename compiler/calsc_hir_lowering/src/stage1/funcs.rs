@@ -2,7 +2,8 @@ use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{
     DiagPossible,
     diags::errors::{
-        build_internal_hir_node_leaked, build_restricted_arument_type, build_restricted_return_type,
+        build_internal_hir_node_leaked, build_restricted_arument_type,
+        build_restricted_return_type, build_restricted_type_parameters,
     },
 };
 use calsc_hir::{
@@ -27,9 +28,22 @@ pub fn lower_ast_function_decl_first_stage(
         return_type,
         body: _,
         visibility,
+        type_parameters,
     } = node.kind.clone()
     {
+        let group = ctx.type_ctx.type_params.start_param_group();
+
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+        let mut owned_type_params = vec![];
+
+        for type_parameter in type_parameters {
+            let id = ctx
+                .type_ctx
+                .type_params
+                .append_type_param(type_parameter, &node)?;
+
+            owned_type_params.push(id);
+        }
 
         let mut key =
             GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
@@ -65,14 +79,24 @@ pub fn lower_ast_function_decl_first_stage(
             if ret_type != TypeKind::Void {
                 return Err(build_restricted_return_type(&"void".to_string(), &node).into());
             }
+
+            if !owned_type_params.is_empty() {
+                return Err(
+                    build_restricted_type_parameters::<String, ASTNode>(&vec![], &node).into(),
+                );
+            }
         }
 
-        let func =
+        let mut func =
             HIRFunction::new_stage_1(key.clone(), local_ctx, ret_type, args, is_main_function);
+
+        func.type_parameters = owned_type_params;
 
         let _ = ctx
             .scope
             .append(key, GlobalContextValue::Function(func), visibility, &node)?;
+
+        ctx.type_ctx.type_params.end_group(group);
 
         Ok(())
     } else {

@@ -7,6 +7,7 @@ use calsc_modules::{
     lazy::raw::{LazyLoadedRawType, LazyLoadedRawTypeKind},
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
+use calsc_typing::ctx::TypeCtx;
 
 use crate::{convert_visibility, stage0::fill::types::lower_ast_type};
 
@@ -14,13 +15,23 @@ pub fn lower_ast_type_struct_declaration(
     node: ASTNode,
     file_ctx: &mut HIRFileContext,
     tree: &mut ModuleTree,
+    type_ctx: &mut TypeCtx,
 ) -> DiagPossible {
     if let ASTNodeKind::StructDeclaration {
         name,
         fields,
         visibility,
+        type_parameters,
     } = node.kind.clone()
     {
+        let group = type_ctx.type_params.start_param_group();
+
+        for type_parameter in type_parameters {
+            type_ctx
+                .type_params
+                .append_type_param(type_parameter, &node)?;
+        }
+
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
 
         if !visibility.can_be_imported() {
@@ -34,7 +45,7 @@ pub fn lower_ast_type_struct_declaration(
         for field in fields {
             lowered_fields.insert(
                 field.1.clone(),
-                (lower_ast_type(field.0, tree, file_ctx), ind),
+                (lower_ast_type(field.0, tree, file_ctx, type_ctx), ind),
             );
             field_order.push(field.1);
 
@@ -57,6 +68,8 @@ pub fn lower_ast_type_struct_declaration(
                 cache.append_related_node(path_to_append_to.clone(), node.clone());
             })
         }
+
+        type_ctx.type_params.end_group(group);
 
         tree.traverse_to_append(
             path_to_append_to,

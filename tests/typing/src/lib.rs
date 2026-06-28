@@ -24,6 +24,7 @@ fn test_base_type_creation() {
     let _ = TypeKind::new_primitive(
         PrimitiveType::Int(true),
         SizeParameter(40),
+        vec![],
         &mut type_ctx,
         &fake_source,
     )

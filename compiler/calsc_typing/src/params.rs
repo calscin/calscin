@@ -1,58 +1,163 @@
-//! Definitions for type parameters
-//!
+//! Declarations for type parameters
 
-use crate::{base::instance::BaseTypeInstance, tree::Type};
+use std::collections::HashMap;
+
+use calsc_diagnostics::{
+    DiagPossible, DiagResult, DiagnosticSource,
+    diags::errors::{build_already_in_scope, build_cannot_find_element_no_closest},
+};
 use calsc_utils::hash::HashedString;
 
-/// Represents a type that can have type parameters
-pub trait TypeParameterHaving {
-    /// Checks if the type has a type parameter of the given name
-    fn has_type_parameter(&self, name: HashedString) -> bool;
+use crate::types::TypeKind;
 
-    /// Gets the type parameter's type in order to use it based on the given name.
-    ///
-    /// # Panics
-    /// This function will panic if the type parameter doesn't exist in the type.
-    /// Make sure to use [`has_type_parameter`][`TypeParameterHaving::has_type_parameter`] first.
-    ///
-    fn get_type_parameter_type(&self, name: HashedString) -> Type;
+/// This is a safe handle from a type parameter stored inside of a [`TypeParamCtx`] this enforces that type parameters go trough the expected path.
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(PartialEq, Clone, Hash)]
+pub struct TypeParameterId(pub usize, pub HashedString);
 
-    /// Gets the amount of type parameters the type contains
-    fn get_type_parameter_count(&self) -> usize;
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
+pub struct TypeParamCtx {
+    params: Vec<HeldTypeParam>,
+    resolved_params: HashMap<HashedString, HeldResolvedTypeParam>,
+    current_params: HashMap<HashedString, usize>,
+    param_group: usize,
 }
 
-/// Resolves a [`Type`] that is potentially a type parameter into a clean [`Type`] based on the given instance's type parameters.
-///
-/// This function handles type parameters and lowers the type into a type parameter-less version. This function guarantees the output to be type parameter less
-///
-/// # Panics
-/// This function may panic if the type parameter type has an parameter index outside of the range of parameter type of the given instance.
-/// To avoid this, make sure to provide the [`BaseTypeInstance`] of the given type instead of a random one.
-///
-/// # Returns
-/// Returns the lowered type as a [`Type`].
-///
-///
-pub fn resolve_type_parameter_type(to_resolve: Type, instance: &BaseTypeInstance) -> Type {
-    match to_resolve {
-        Type::Array { size, inner } => Type::Array {
-            size,
-            inner: Box::new(resolve_type_parameter_type(*inner, &instance)),
-        },
+#[allow(unused)]
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
+struct HeldTypeParam {
+    name: HashedString,
+    id: usize,
+    group: usize,
+}
 
-        Type::Reference { mutable, inner } => Type::Reference {
-            mutable,
-            inner: Box::new(resolve_type_parameter_type(*inner, instance)),
-        },
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
+struct HeldResolvedTypeParam {
+    resolved: TypeKind,
+    group: usize,
+}
 
-        Type::Pointer { mutable, inner } => Type::Pointer {
-            mutable,
-            inner: Box::new(resolve_type_parameter_type(*inner, instance)),
-        },
+impl TypeParamCtx {
+    pub fn new() -> Self {
+        Self {
+            params: vec![],
+            current_params: HashMap::new(),
+            resolved_params: HashMap::new(),
+            param_group: 0,
+        }
+    }
 
-        Type::Base(_) => to_resolve,
-        Type::TypeParameter { name: _, param_ind } => instance.type_parameters[param_ind].clone(),
+    pub fn start_param_group(&mut self) -> usize {
+        self.param_group += 1;
+        self.param_group
+    }
 
-        Type::Void => Type::Void,
+    pub fn end_group(&mut self, group: usize) {
+        let mut to_delete = vec![];
+        let mut to_delete_resolved = vec![];
+
+        for curr in &self.current_params {
+            if self.params[*curr.1].group == group {
+                to_delete.push(curr.0.clone());
+            }
+        }
+
+        for (name, curr) in &self.resolved_params {
+            if curr.group == group {
+                to_delete_resolved.push(name.clone());
+            }
+        }
+
+        for del in to_delete {
+            self.current_params.remove(&del);
+        }
+
+        for del in to_delete_resolved {
+            self.resolved_params.remove(&del);
+        }
+    }
+
+    /// Appends the related type parameter to the active type parameter scope and change the type parameter's group into the current group
+    pub fn append_to_active<S: DiagnosticSource>(
+        &mut self,
+        id: &TypeParameterId,
+        source: &S,
+    ) -> DiagPossible {
+        self.params[id.0].group = self.param_group;
+
+        if self.current_params.contains_key(&id.1) {
+            return Err(build_already_in_scope(&id.1, source).into());
+        }
+
+        self.current_params.insert(id.1.clone(), id.0);
+
+        Ok(())
+    }
+
+    pub fn append_resolved(&mut self, id: HashedString, kind: TypeKind) {
+        self.resolved_params.insert(
+            id,
+            HeldResolvedTypeParam {
+                resolved: kind,
+                group: self.param_group,
+            },
+        );
+    }
+
+    pub fn get_resolved(&self, id: &HashedString) -> TypeKind {
+        self.resolved_params[id].clone().resolved
+    }
+
+    /// Gets the type parameter from the name
+    ///
+    /// # Errors
+    /// This function will error if the type parameter doesn't exist, to avoid this, use [`TypeParamCtx::has_type_parameter`]
+    ///
+    pub fn get_type_param<S: DiagnosticSource>(
+        &self,
+        name: &HashedString,
+        source: &S,
+    ) -> DiagResult<TypeParameterId> {
+        if !self.current_params.contains_key(name) {
+            return Err(build_cannot_find_element_no_closest(&name, source).into());
+        }
+
+        Ok(TypeParameterId(self.current_params[name], name.clone()))
+    }
+
+    /// Appends a type parameter inside of the context
+    ///
+    /// # Errors
+    /// This function will error if a type parameter with the given name already exists.
+    ///
+    pub fn append_type_param<S: DiagnosticSource>(
+        &mut self,
+        name: HashedString,
+        source: &S,
+    ) -> DiagResult<TypeParameterId> {
+        if self.current_params.contains_key(&name) {
+            return Err(build_already_in_scope(&name, source).into());
+        }
+
+        let id = self.params.len();
+
+        let held_param = HeldTypeParam {
+            name: name.clone(),
+            id,
+            group: self.param_group,
+        };
+
+        self.current_params.insert(name.clone(), id);
+
+        self.params.push(held_param);
+
+        Ok(TypeParameterId(id, name))
+    }
+
+    pub fn has_type_parameter(&self, name: &HashedString) -> bool {
+        self.current_params.contains_key(name)
     }
 }
