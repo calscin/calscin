@@ -3,8 +3,9 @@ use std::collections::HashMap;
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_hir::{BUILD_CACHE, HIRContext};
 use calsc_modules::lazy::LazyLoadedType;
-use calsc_typing::types::{
-    HeldPrimitive, MutationState, SizeParameter, TypeKind, primitive::PrimitiveType,
+use calsc_typing::{
+    traits::TypeParameteredType,
+    types::{HeldPrimitive, MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
 
 pub fn lower_module_path_type<S: DiagnosticSource>(
@@ -27,6 +28,7 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
             module_path,
             element_name,
             size_specifiers,
+            type_parameters,
         } => {
             let mut new_path = module_path.clone();
             new_path.append_single_bit(element_name);
@@ -34,10 +36,23 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
             let primitive =
                 BUILD_CACHE.with_borrow(|cache| cache.type_storage.map[&new_path].clone());
 
+            let primitive_type_parameters = primitive.get_type_params(&hir_ctx.type_ctx);
+
+            let mut lowered_type_parameters = HashMap::new();
+
+            for (ind, type_parameter) in type_parameters.iter().enumerate() {
+                let ty = lower_module_path_type(type_parameter.clone(), origin, hir_ctx)?;
+
+                lowered_type_parameters.insert(
+                    primitive_type_parameters[ind].clone(),
+                    hir_ctx.type_ctx.type_kind_arena.append(ty),
+                );
+            }
+
             Ok(TypeKind::Primitive(HeldPrimitive {
                 ty: primitive,
                 size: SizeParameter(size_specifiers),
-                type_parameters: todo!(),
+                type_parameters: lowered_type_parameters,
             }))
         }
 
