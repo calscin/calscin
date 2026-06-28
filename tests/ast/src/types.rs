@@ -21,7 +21,7 @@ pub fn test_simple_type_parsing() {
 
     assert_eq!(
         ty,
-        ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None)
+        ASTType::Generic(ElementPath::new_relative(vec!["s32".into()]), None, vec![])
     );
 }
 
@@ -34,7 +34,11 @@ pub fn test_simple_type_parsing_size_spec() {
 
     assert_eq!(
         ty,
-        ASTType::Generic(ElementPath::new_relative(vec!["s".into()]), Some(32),)
+        ASTType::Generic(
+            ElementPath::new_relative(vec!["s".into()]),
+            Some(32),
+            vec![]
+        )
     )
 }
 
@@ -53,7 +57,8 @@ pub fn test_complex_type_parsing() {
                 Some(32),
                 Box::new(ASTType::Generic(
                     ElementPath::new_relative(vec!["s".into()]),
-                    Some(32)
+                    Some(32),
+                    vec![]
                 ))
             ))
         )
