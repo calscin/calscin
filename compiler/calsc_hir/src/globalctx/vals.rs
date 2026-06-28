@@ -90,7 +90,7 @@ impl GlobalContextValue {
     pub fn craft_type<K: DiagnosticSource>(
         &self,
         origin: &K,
-        ctx: &TypeCtx,
+        ctx: &mut TypeCtx,
         size_parameter: SizeParameter,
     ) -> DiagResult<TypeKind> {
         match self {

@@ -8,7 +8,11 @@ use calsc_diagnostics::{
 };
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string, hash::HashedString};
 
-use crate::{ctx::TypeCtx, traits::FieldedType, types::primitive::PrimitiveType};
+use crate::{
+    ctx::TypeCtx,
+    traits::{FieldedType, TypeParameteredType},
+    types::primitive::PrimitiveType,
+};
 
 pub mod fmt;
 pub mod primitive;
@@ -94,7 +98,7 @@ impl TypeKind {
         primitive: PrimitiveType,
         param: SizeParameter,
         type_parameters: Vec<TypeKind>,
-        ctx: &TypeCtx,
+        ctx: &mut TypeCtx,
         source: &S,
     ) -> DiagResult<Self> {
         if primitive.requires_size_parameter() != param.is_active() {
@@ -113,12 +117,20 @@ impl TypeKind {
             .into());
         }
 
-        todo!();
+        let mut type_params = HashMap::new();
+        let ty_params = primitive.get_type_params(ctx);
+
+        for (ind, param) in type_parameters.iter().enumerate() {
+            type_params.insert(
+                ty_params[ind].clone(),
+                ctx.type_kind_arena.append(param.clone()),
+            );
+        }
 
         return Ok(Self::Primitive(HeldPrimitive {
             ty: primitive,
             size: param,
-            type_parameters: HashMap::new(),
+            type_parameters: type_params,
         }));
     }
 

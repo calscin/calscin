@@ -42,6 +42,7 @@ fn test_alive_variable() {
     let sample_type = TypeKind::new_primitive(
         PrimitiveType::Boolean,
         SizeParameter(0),
+        vec![],
         &mut type_ctx,
         &origin,
     )
@@ -71,6 +72,7 @@ fn test_alive_variable_next_branch() {
     let sample_type = TypeKind::new_primitive(
         PrimitiveType::Boolean,
         SizeParameter(0),
+        vec![],
         &mut type_ctx,
         &origin,
     )
@@ -105,6 +107,7 @@ fn test_variable_gather() {
     let sample_type = TypeKind::new_primitive(
         PrimitiveType::Boolean,
         SizeParameter(0),
+        vec![],
         &mut type_ctx,
         &origin,
     )

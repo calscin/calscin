@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_hir::{BUILD_CACHE, HIRContext};
 use calsc_modules::lazy::LazyLoadedType;
@@ -17,6 +19,7 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
             Ok(TypeKind::Primitive(HeldPrimitive {
                 ty: PrimitiveType::TypeParameter(res),
                 size: SizeParameter(0),
+                type_parameters: HashMap::new(),
             }))
         }
 
@@ -34,6 +37,7 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
             Ok(TypeKind::Primitive(HeldPrimitive {
                 ty: primitive,
                 size: SizeParameter(size_specifiers),
+                type_parameters: todo!(),
             }))
         }
 

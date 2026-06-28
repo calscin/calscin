@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     path::ElementPath,
@@ -203,6 +205,7 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
             return Ok(TypeKind::Primitive(HeldPrimitive {
                 ty: PrimitiveType::TypeParameter(param),
                 size: SizeParameter(0),
+                type_parameters: HashMap::new(),
             }));
         }
     }
@@ -212,7 +215,7 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
     let ty = ctx
         .scope
         .get_entry(key, &file_ctx.current_module, origin)?
-        .craft_type(origin, &ctx.type_ctx, SizeParameter(size_specifier))?;
+        .craft_type(origin, &mut ctx.type_ctx, SizeParameter(size_specifier))?;
 
     Ok(ty)
 }

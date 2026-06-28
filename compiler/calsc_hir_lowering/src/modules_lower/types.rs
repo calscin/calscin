@@ -121,6 +121,7 @@ pub fn lower_type<S: DiagnosticSource>(
             Ok(TypeKind::Primitive(HeldPrimitive {
                 ty: raw_type,
                 size: SizeParameter(size_specifier),
+                type_parameters: todo!(),
             }))
         }
 
