@@ -36,7 +36,7 @@ pub fn lower_hir_literal(
             if master_type.is_some() {
                 let master_type = master_type.unwrap().as_primitive();
 
-                if !master_type.0.is_int() {
+                if !master_type.ty.is_int() {
                     return Err(build_internal_singleton_error(
                         InternalErrors::StrongerTypeLiterals,
                         &node_ref,
@@ -44,8 +44,8 @@ pub fn lower_hir_literal(
                     .into());
                 }
 
-                size = master_type.1.0;
-                signed = master_type.0.get_signed_state();
+                size = master_type.size.0;
+                signed = master_type.ty.get_signed_state();
             }
 
             let val = build_const_int(module, value, size, signed)
@@ -60,7 +60,7 @@ pub fn lower_hir_literal(
             if master_type.is_some() {
                 let master_type = master_type.unwrap().as_primitive();
 
-                if !master_type.0.is_float() {
+                if !master_type.ty.is_float() {
                     return Err(build_internal_singleton_error(
                         InternalErrors::StrongerTypeLiterals,
                         &node_ref,
@@ -68,7 +68,7 @@ pub fn lower_hir_literal(
                     .into());
                 }
 
-                size = master_type.1.0;
+                size = master_type.size.0;
             }
 
             let val = build_const_float(module, value, size)

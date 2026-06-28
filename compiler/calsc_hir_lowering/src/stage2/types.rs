@@ -1,7 +1,9 @@
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_hir::{BUILD_CACHE, HIRContext};
 use calsc_modules::lazy::LazyLoadedType;
-use calsc_typing::types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType};
+use calsc_typing::types::{
+    HeldPrimitive, MutationState, SizeParameter, TypeKind, primitive::PrimitiveType,
+};
 
 pub fn lower_module_path_type<S: DiagnosticSource>(
     ty: LazyLoadedType,
@@ -12,10 +14,10 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
         LazyLoadedType::TypeParameter { id: _, name } => {
             let res = hir_ctx.type_ctx.type_params.get_type_param(&name, origin)?;
 
-            Ok(TypeKind::Primitive(
-                PrimitiveType::TypeParameter(res),
-                SizeParameter(0),
-            ))
+            Ok(TypeKind::Primitive(HeldPrimitive {
+                ty: PrimitiveType::TypeParameter(res),
+                size: SizeParameter(0),
+            }))
         }
 
         LazyLoadedType::Base {
@@ -29,10 +31,10 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
             let primitive =
                 BUILD_CACHE.with_borrow(|cache| cache.type_storage.map[&new_path].clone());
 
-            Ok(TypeKind::Primitive(
-                primitive,
-                SizeParameter(size_specifiers),
-            ))
+            Ok(TypeKind::Primitive(HeldPrimitive {
+                ty: primitive,
+                size: SizeParameter(size_specifiers),
+            }))
         }
 
         LazyLoadedType::Array { size, inner } => {

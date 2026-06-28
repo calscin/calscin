@@ -17,7 +17,7 @@ use calsc_hir::{
 };
 
 use calsc_typing::types::{
-    MutationState, SizeParameter, TypeKind,
+    HeldPrimitive, MutationState, SizeParameter, TypeKind,
     primitive::PrimitiveType,
     structs::{NamedField, StructContainer},
 };
@@ -34,6 +34,7 @@ pub fn lower_ast_struct_declaration(
         name,
         fields,
         visibility,
+        type_parameters: _,
     } = node.kind.clone()
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
@@ -87,9 +88,9 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
 
         let ty = lower_ast_generic_base(generic, 0, origin, file_ctx, ctx)?;
 
-        if let TypeKind::Primitive(primitive, size) = ty {
-            if size.is_active() {
-                return Ok(primitive);
+        if let TypeKind::Primitive(primitive) = ty {
+            if primitive.size.is_active() {
+                return Ok(primitive.ty);
             }
         }
     }
@@ -199,10 +200,10 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
                 .type_params
                 .get_type_param(&name.members[0], origin)?;
 
-            return Ok(TypeKind::Primitive(
-                PrimitiveType::TypeParameter(param),
-                SizeParameter(0),
-            ));
+            return Ok(TypeKind::Primitive(HeldPrimitive {
+                ty: PrimitiveType::TypeParameter(param),
+                size: SizeParameter(0),
+            }));
         }
     }
 

@@ -1,3 +1,5 @@
+use std::os::raw;
+
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     types::ASTType,
@@ -18,7 +20,7 @@ use calsc_modules::{
 use calsc_typing::{
     ctx::TypeCtx,
     types::{
-        MutationState, SizeParameter, TypeKind,
+        HeldPrimitive, MutationState, SizeParameter, TypeKind,
         primitive::PrimitiveType,
         structs::{NamedField, StructContainer},
     },
@@ -118,7 +120,10 @@ pub fn lower_type<S: DiagnosticSource>(
 
             let raw_type = BUILD_CACHE.with_borrow(|state| state.type_storage.map[&path].clone());
 
-            Ok(TypeKind::Primitive(raw_type, SizeParameter(size_specifier)))
+            Ok(TypeKind::Primitive(HeldPrimitive {
+                ty: raw_type,
+                size: SizeParameter(size_specifier),
+            }))
         }
 
         ASTType::Void => Ok(TypeKind::Void),
@@ -152,6 +157,7 @@ pub fn lower_type_struct_decl(
         name,
         fields,
         visibility: _,
+        type_parameters: _,
     } = node.kind.clone()
     {
         let mut container = StructContainer::new(name, hir_file_ctx.current_module.clone());

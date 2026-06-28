@@ -16,6 +16,7 @@ pub fn lower_stage_0_append_pass_struct_declaration(
         name,
         fields: _,
         visibility,
+        type_parameters: _,
     } = node.kind.clone()
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());

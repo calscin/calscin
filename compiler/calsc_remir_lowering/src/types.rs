@@ -9,10 +9,10 @@ use remir::values::ValueType;
 
 #[allow(unsafe_code)]
 pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType> {
-    match ty.0 {
+    match ty.ty {
         PrimitiveType::Boolean => Ok(ValueType::Int(false, 1)),
-        PrimitiveType::Int(signed) => Ok(ValueType::Int(signed, ty.1.0)),
-        PrimitiveType::Float => Ok(ValueType::Float(ty.1.0)),
+        PrimitiveType::Int(signed) => Ok(ValueType::Int(signed, ty.size.0)),
+        PrimitiveType::Float => Ok(ValueType::Float(ty.size.0)),
         PrimitiveType::Str => Ok(ValueType::new_any_pointer()),
         PrimitiveType::Struct(container) => {
             let mut type_fields = vec![];
@@ -37,9 +37,7 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
 
 pub fn lower_type(ty: TypeKind, ctx: &TypeCtx) -> DiagResult<ValueType> {
     match ty {
-        TypeKind::Primitive(primitive, size) => {
-            lower_type_base(HeldPrimitive(primitive, size), ctx)
-        }
+        TypeKind::Primitive(primitive) => lower_type_base(primitive, ctx),
 
         TypeKind::Reference(_, inner) => {
             let inner = ctx.type_kind_arena.get(&inner).clone();

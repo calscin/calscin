@@ -21,6 +21,7 @@ pub fn lower_ast_type_struct_declaration(
         name,
         fields,
         visibility,
+        type_parameters: _,
     } = node.kind.clone()
     {
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());

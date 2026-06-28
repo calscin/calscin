@@ -209,7 +209,7 @@ pub fn lower_ast_function_call(
             if ty.is_directly_primitive() {
                 let ty = ty.as_primitive();
 
-                if let PrimitiveType::TypeParameter(param) = ty.0 {
+                if let PrimitiveType::TypeParameter(param) = ty.ty {
                     type_params.get_mut(&param.1).unwrap().append(
                         if val_ref.is_weakly_typed(ctx) {
                             TypeHint::Weak(val_ty)
@@ -235,7 +235,7 @@ pub fn lower_ast_function_call(
 
         for (ind, argument_type) in argument_types.clone().iter().enumerate() {
             if argument_type.is_directly_primitive() {
-                if let PrimitiveType::TypeParameter(param) = argument_type.as_primitive().0 {
+                if let PrimitiveType::TypeParameter(param) = argument_type.as_primitive().ty {
                     argument_types[ind] = coherced_type_params[&param.1].clone();
                 }
             }
