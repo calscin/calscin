@@ -24,6 +24,7 @@ pub struct TypeParamCtx {
     param_group: usize,
 }
 
+#[allow(unused)]
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 struct HeldTypeParam {

@@ -8,7 +8,6 @@ use calsc_diagnostics::{
 };
 
 use calsc_typing::{
-    params::TypeParameterId,
     traits::FieldedType,
     types::{MutationState, TypeKind, primitive::PrimitiveType},
 };
