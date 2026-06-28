@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     types::ASTType,
@@ -17,6 +19,7 @@ use calsc_modules::{
 
 use calsc_typing::{
     ctx::TypeCtx,
+    traits::TypeParameteredType,
     types::{
         HeldPrimitive, MutationState, SizeParameter, TypeKind,
         primitive::PrimitiveType,
@@ -106,7 +109,7 @@ pub fn lower_type<S: DiagnosticSource>(
             Ok(TypeKind::Pointer(MutationState(mutable), inner))
         }
 
-        ASTType::Generic(name, size_specs) => {
+        ASTType::Generic(name, size_specs, type_parameters) => {
             let mut size_specifier = 0;
 
             if size_specs.is_some() {
@@ -118,10 +121,27 @@ pub fn lower_type<S: DiagnosticSource>(
 
             let raw_type = BUILD_CACHE.with_borrow(|state| state.type_storage.map[&path].clone());
 
+            let ty_type_parameters = raw_type.get_type_params(type_ctx);
+            let mut lowered_type_params = HashMap::new();
+
+            for (ind, type_parameter) in type_parameters.iter().enumerate() {
+                let ty = lower_type(
+                    *type_parameter.clone(),
+                    tree,
+                    hir_file_ctx,
+                    type_ctx,
+                    source,
+                )?;
+
+                let ty = type_ctx.type_kind_arena.append(ty);
+
+                lowered_type_params.insert(ty_type_parameters[ind].clone(), ty);
+            }
+
             Ok(TypeKind::Primitive(HeldPrimitive {
                 ty: raw_type,
                 size: SizeParameter(size_specifier),
-                type_parameters: todo!(),
+                type_parameters: lowered_type_params,
             }))
         }
 
