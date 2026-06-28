@@ -35,6 +35,7 @@ pub struct StructContainer {
     pub module: ModulePath,
 
     pub fields: FieldContainer,
+    pub type_parameters: Vec<HashedString>,
 }
 
 impl StructContainer {
@@ -43,6 +44,7 @@ impl StructContainer {
             name,
             module: path,
             fields: FieldContainer::new(),
+            type_parameters: vec![],
         }
     }
 }
