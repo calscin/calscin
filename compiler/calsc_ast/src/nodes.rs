@@ -147,6 +147,7 @@ pub enum ASTNodeKind {
         name: HashedString,
         fields: Vec<(ASTType, HashedString)>,
         visibility: Option<Visibility>,
+        type_parameters: Vec<HashedString>,
     },
 
     StructDeclBlock {
@@ -210,6 +211,7 @@ impl ASTNode {
                 name,
                 fields: _,
                 visibility: _,
+                type_parameters: _,
             } => name.clone(),
 
             _ => panic!("Cannot get level top level name on a non top level node"),

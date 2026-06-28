@@ -6,7 +6,9 @@ use crate::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
     parser::{
-        forms::{parse_ast_field_form, parse_visibility_form},
+        forms::{
+            parse_ast_field_form, parse_type_parameters_declaration_form, parse_visibility_form,
+        },
         func::parse_function_declaration,
         types::parse_ast_type,
         utils::parse_ast_list,
@@ -24,6 +26,8 @@ pub fn parse_ast_struct_declaration(
     let visibility = parse_visibility_form(tokens, ind);
 
     *ind += 1; // struct
+
+    let type_parameters = parse_type_parameters_declaration_form(tokens, ind)?;
 
     let name: HashedString = tokens[*ind].expects_keyword()?.into();
     *ind += 1; // keyword
@@ -47,6 +51,7 @@ pub fn parse_ast_struct_declaration(
             name,
             fields,
             visibility,
+            type_parameters,
         },
         start,
         end,
