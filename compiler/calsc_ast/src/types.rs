@@ -2,6 +2,8 @@
 
 use std::fmt::Display;
 
+use calsc_diagnostics::fmt::fmt_list;
+
 use crate::path::ElementPath;
 
 /// The AST representation of type. Works on a tree-like structure where nodes can have an "inner" child node that is deeper.
@@ -34,12 +36,13 @@ pub enum ASTType {
     /// `s32&[56]` would be `Array(56, Reference(Generic(s32)))`
     Array(Option<usize>, Box<ASTType>),
 
-    /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`. The second parameter represents the size specifier
+    /// Represents a generic / normal type. The first parameter represents the generic type name as an `HashedString`.
+    /// The second parameter represents the size specifier. The third parameter represents the type parameters
     ///
     ///
     /// # Example
     /// `s32` would be `Generic(s32, None)`
-    Generic(ElementPath, Option<usize>),
+    Generic(ElementPath, Option<usize>, Vec<Box<ASTType>>),
 
     /// The void type
     Void,
@@ -51,13 +54,13 @@ pub enum SimpleASTType {
     Reference(bool),
     Pointer(bool),
     Array(Option<usize>),
-    Generic(ElementPath, Option<usize>),
+    Generic(ElementPath, Option<usize>, Vec<ASTType>),
 }
 
 impl SimpleASTType {
     pub fn is_generic(&self) -> bool {
         match self {
-            Self::Generic(_, _) => true,
+            Self::Generic(_, _, _) => true,
             _ => false,
         }
     }
@@ -66,11 +69,15 @@ impl SimpleASTType {
 impl Display for ASTType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Generic(name, size_params) => {
+            Self::Generic(name, size_params, type_parameters) => {
                 write!(f, "{}", name)?;
 
                 if size_params.is_some() {
                     write!(f, ".{}", size_params.as_ref().unwrap())?;
+                }
+
+                if !type_parameters.is_empty() {
+                    write!(f, "<{}>", fmt_list(&type_parameters))?;
                 }
 
                 Ok(())
