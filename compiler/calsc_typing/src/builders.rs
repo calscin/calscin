@@ -1,5 +1,7 @@
 //! Common builders for frequently used types
 
+use std::collections::HashMap;
+
 use crate::types::{HeldPrimitive, SizeParameter, TypeKind, primitive::PrimitiveType};
 
 impl TypeKind {
@@ -7,6 +9,7 @@ impl TypeKind {
         TypeKind::Primitive(HeldPrimitive {
             ty: PrimitiveType::Int(signed),
             size: SizeParameter(size),
+            type_parameters: HashMap::new(),
         })
     }
 
@@ -14,6 +17,7 @@ impl TypeKind {
         TypeKind::Primitive(HeldPrimitive {
             ty: PrimitiveType::Float,
             size: SizeParameter(size),
+            type_parameters: HashMap::new(),
         })
     }
 
@@ -21,6 +25,7 @@ impl TypeKind {
         TypeKind::Primitive(HeldPrimitive {
             ty: PrimitiveType::Boolean,
             size: SizeParameter(0),
+            type_parameters: HashMap::new(),
         })
     }
 
@@ -28,6 +33,7 @@ impl TypeKind {
         TypeKind::Primitive(HeldPrimitive {
             ty: PrimitiveType::Str,
             size: SizeParameter(0),
+            type_parameters: HashMap::new(),
         })
     }
 
@@ -35,6 +41,7 @@ impl TypeKind {
         TypeKind::Primitive(HeldPrimitive {
             ty: PrimitiveType::Size,
             size: SizeParameter(0),
+            type_parameters: HashMap::new(),
         })
     }
 }

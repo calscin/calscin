@@ -1,5 +1,7 @@
 //! The kind of type used.
 
+use std::collections::HashMap;
+
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
     diags::errors::{build_no_require_type_parameter, build_requires_type_parameter},
@@ -29,6 +31,7 @@ pub struct SizeParameter(pub usize);
 pub struct HeldPrimitive {
     pub ty: PrimitiveType,
     pub size: SizeParameter,
+    pub type_parameters: HashMap<HashedString, ArenaHandle>,
 }
 
 /// The kind of type. Represents types. Uses the arena allocator to contain inner types
@@ -90,6 +93,7 @@ impl TypeKind {
     pub fn new_primitive<S: DiagnosticSource>(
         primitive: PrimitiveType,
         param: SizeParameter,
+        type_parameters: Vec<TypeKind>,
         ctx: &TypeCtx,
         source: &S,
     ) -> DiagResult<Self> {
@@ -109,9 +113,12 @@ impl TypeKind {
             .into());
         }
 
+        todo!();
+
         return Ok(Self::Primitive(HeldPrimitive {
             ty: primitive,
             size: param,
+            type_parameters: HashMap::new(),
         }));
     }
 

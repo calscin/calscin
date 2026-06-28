@@ -102,7 +102,9 @@ impl GlobalContextValue {
                 }
             }
 
-            Self::Type(ty) => TypeKind::new_primitive(ty.clone(), size_parameter, ctx, origin),
+            Self::Type(ty) => {
+                TypeKind::new_primitive(ty.clone(), size_parameter, vec![], ctx, origin)
+            }
 
             _ => return Err(build_expected_entry_type(&"type".to_string(), self, origin).into()),
         }
