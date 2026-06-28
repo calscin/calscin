@@ -25,7 +25,11 @@ pub struct MutationState(pub bool);
 pub struct SizeParameter(pub usize);
 
 /// A primitive held inside of [`TypeKind`]
-pub struct HeldPrimitive(pub PrimitiveType, pub SizeParameter);
+#[derive(Clone, Debug, PartialEq)]
+pub struct HeldPrimitive {
+    pub ty: PrimitiveType,
+    pub size: SizeParameter,
+}
 
 /// The kind of type. Represents types. Uses the arena allocator to contain inner types
 #[cfg_attr(feature = "debug", derive(Debug))]
@@ -64,7 +68,7 @@ pub enum TypeKind {
     Segment(ArenaHandle),
 
     /// A primitive type represents a primitive type instance with a size parameter.
-    Primitive(PrimitiveType, SizeParameter),
+    Primitive(HeldPrimitive),
 
     /// Represents a void type. A void type basically means that the value has no type
     Void,
@@ -105,7 +109,10 @@ impl TypeKind {
             .into());
         }
 
-        return Ok(Self::Primitive(primitive, param));
+        return Ok(Self::Primitive(HeldPrimitive {
+            ty: primitive,
+            size: param,
+        }));
     }
 
     pub fn get_inner<'a>(&self, ctx: &'a TypeCtx) -> &'a TypeKind {
@@ -134,14 +141,14 @@ impl TypeKind {
 
     pub fn is_directly_numeric(&self) -> bool {
         match self {
-            Self::Primitive(primitive, _) => primitive.is_numeric(),
+            Self::Primitive(primitive) => primitive.ty.is_numeric(),
             _ => false,
         }
     }
 
     pub fn as_primitive(&self) -> HeldPrimitive {
         match self {
-            Self::Primitive(primitive, size) => HeldPrimitive(primitive.clone(), size.clone()),
+            Self::Primitive(primitive) => primitive.clone(),
 
             #[cfg(feature = "debug")]
             _ => panic!("Direct type of {:#?} is not primitive!", self),
@@ -153,7 +160,7 @@ impl TypeKind {
 
     pub fn is_static(&self, ctx: &TypeCtx) -> bool {
         match self {
-            Self::Primitive(_, _) => true,
+            Self::Primitive(_) => true,
             Self::Reference(_, _) => false,
             Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).is_static(ctx),
             Self::Array(_, inner) => ctx.type_kind_arena.get(inner).is_static(ctx),
@@ -171,7 +178,7 @@ impl TypeKind {
     }
 
     pub fn is_directly_primitive(&self) -> bool {
-        matches!(self, Self::Primitive(_, _))
+        matches!(self, Self::Primitive(_))
     }
 }
 
@@ -180,7 +187,7 @@ impl FieldedType for TypeKind {
         match self {
             Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).has_field(name, ctx),
             Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).has_field(name, ctx),
-            Self::Primitive(primitive, _) => primitive.has_field(name, ctx),
+            Self::Primitive(primitive) => primitive.ty.has_field(name, ctx),
 
             _ => false,
         }
@@ -190,7 +197,7 @@ impl FieldedType for TypeKind {
         match self {
             Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_fields(ctx),
             Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_fields(ctx),
-            Self::Primitive(primitive, _) => primitive.get_fields(ctx),
+            Self::Primitive(primitive) => primitive.ty.get_fields(ctx),
 
             _ => vec![],
         }
@@ -200,7 +207,7 @@ impl FieldedType for TypeKind {
         match self {
             Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_field_index(field, ctx),
             Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_field_index(field, ctx),
-            Self::Primitive(primitive, _) => primitive.get_field_index(field, ctx),
+            Self::Primitive(primitive) => primitive.ty.get_field_index(field, ctx),
 
             _ => panic!("Type cannot hold fields!"),
         }
@@ -211,7 +218,7 @@ impl FieldedType for TypeKind {
             match self {
                 Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_field(field, ctx),
                 Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_field(field, ctx),
-                Self::Primitive(primitive, _) => primitive.get_field(field, ctx),
+                Self::Primitive(primitive) => primitive.ty.get_field(field, ctx),
 
                 _ => panic!("Type cannot hold fields!"),
             }

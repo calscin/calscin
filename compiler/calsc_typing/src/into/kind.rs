@@ -17,14 +17,14 @@ impl TypeTransmutation for TypeKind {
                 mutable == into_mutable || !into_mutable.0
             }
 
-            (Self::Primitive(primitive, _), Self::Pointer(_, _)) => {
-                primitive == &PrimitiveType::Size
+            (Self::Primitive(primitive), Self::Pointer(_, _)) => {
+                &primitive.ty == &PrimitiveType::Size
             }
 
-            (Self::Primitive(primitive, size), Self::Primitive(into_primitive, into_size)) => {
-                size.is_active() == into_size.is_active()
-                    && into_size.0 >= size.0
-                    && primitive.can_transmute(into_primitive, ctx)
+            (Self::Primitive(primitive), Self::Primitive(into)) => {
+                primitive.size.is_active() == into.size.is_active()
+                    && into.size.0 >= primitive.size.0
+                    && primitive.ty.can_transmute(&primitive.ty, ctx)
             }
 
             _ => false,
@@ -37,8 +37,8 @@ impl TypeTransmutation for TypeKind {
         }
 
         match (self, into) {
-            (Self::Primitive(primitive, _), Self::Primitive(into_primitive, _)) => {
-                primitive.can_transmute_weakly(into_primitive, ctx)
+            (Self::Primitive(primitive), Self::Primitive(into_primitive)) => {
+                primitive.ty.can_transmute_weakly(&into_primitive.ty, ctx)
             }
 
             _ => false,
@@ -59,8 +59,8 @@ impl TypeCasting for TypeKind {
 
             (Self::Pointer(mutable, _), Self::Pointer(_, _)) => !mutable.0,
 
-            (Self::Primitive(primitive, _), Self::Primitive(into_primitive, _)) => {
-                primitive.can_cast(into_primitive, ctx)
+            (Self::Primitive(primitive), Self::Primitive(into_primitive)) => {
+                primitive.ty.can_cast(&into_primitive.ty, ctx)
             }
 
             _ => false,
