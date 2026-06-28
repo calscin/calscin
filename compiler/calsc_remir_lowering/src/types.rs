@@ -20,6 +20,7 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
 
             for field in container.fields.get_fields(ctx) {
                 let field_ty = unsafe { container.fields.get_field(&field, ctx) }; // This is safe since get_fields return the list of fields
+                let field_ty = ty.lower_type_parameter_type(field_ty, ctx);
 
                 type_fields.push(Box::new(lower_type(field_ty, ctx)?))
             }

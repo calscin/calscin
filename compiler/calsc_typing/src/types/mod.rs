@@ -213,43 +213,30 @@ impl TypeKind {
         matches!(self, Self::Primitive(_))
     }
 
-    pub(crate) fn get_type_parameter_type_value(
-        &self,
-        name: HashedString,
-        ctx: &TypeCtx,
-    ) -> Option<TypeKind> {
+    pub fn lower_type_parameter_type(&self, ty: TypeKind, ctx: &TypeCtx) -> TypeKind {
         match self {
-            Self::Primitive(primitive) => {
-                if !primitive.type_parameters.contains_key(&name) {
-                    None
-                } else {
-                    let handle = primitive.type_parameters[&name].clone();
-
-                    Some(ctx.type_kind_arena.get(&handle).clone())
-                }
-            }
-
+            Self::Primitive(primitive) => primitive.lower_type_parameter_type(ty, ctx),
             Self::Array(_, inner) => ctx
                 .type_kind_arena
                 .get(inner)
-                .get_type_parameter_type_value(name, ctx),
+                .lower_type_parameter_type(ty, ctx),
 
             Self::Pointer(_, inner) => ctx
                 .type_kind_arena
                 .get(inner)
-                .get_type_parameter_type_value(name, ctx),
+                .lower_type_parameter_type(ty, ctx),
 
             Self::Reference(_, inner) => ctx
                 .type_kind_arena
                 .get(inner)
-                .get_type_parameter_type_value(name, ctx),
+                .lower_type_parameter_type(ty, ctx),
 
             Self::Segment(inner) => ctx
                 .type_kind_arena
                 .get(inner)
-                .get_type_parameter_type_value(name, ctx),
+                .lower_type_parameter_type(ty, ctx),
 
-            Self::Void => None,
+            Self::Void => ty,
         }
     }
 }
@@ -287,13 +274,47 @@ impl FieldedType for TypeKind {
 
     unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
         unsafe {
-            match self {
+            let ty = match self {
                 Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_field(field, ctx),
                 Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_field(field, ctx),
                 Self::Primitive(primitive) => primitive.ty.get_field(field, ctx),
 
                 _ => panic!("Type cannot hold fields!"),
+            };
+
+            self.lower_type_parameter_type(ty, ctx)
+        }
+    }
+}
+
+impl HeldPrimitive {
+    pub(crate) fn get_type_parameter_type_value(
+        &self,
+        name: HashedString,
+        ctx: &TypeCtx,
+    ) -> Option<TypeKind> {
+        if !self.type_parameters.contains_key(&name) {
+            None
+        } else {
+            Some(
+                ctx.type_kind_arena
+                    .get(&self.type_parameters[&name])
+                    .clone(),
+            )
+        }
+    }
+
+    pub fn lower_type_parameter_type(&self, ty: TypeKind, ctx: &TypeCtx) -> TypeKind {
+        if let TypeKind::Primitive(primitive) = &ty {
+            if let PrimitiveType::TypeParameter(param) = &primitive.ty {
+                let lowered = self.get_type_parameter_type_value(param.1.clone(), ctx);
+
+                if lowered.is_some() {
+                    return lowered.unwrap();
+                }
             }
         }
+
+        ty
     }
 }
