@@ -92,10 +92,11 @@ impl GlobalContextValue {
         origin: &K,
         ctx: &mut TypeCtx,
         size_parameter: SizeParameter,
+        type_parameters: Vec<TypeKind>,
     ) -> DiagResult<TypeKind> {
         match self {
             Self::TypeAlias(ty) => {
-                if !size_parameter.is_active() {
+                if !size_parameter.is_active() && type_parameters.is_empty() {
                     Ok(ty.clone())
                 } else {
                     Err(build_unexpected_type_alias_additional_parameters(origin).into())
@@ -103,7 +104,7 @@ impl GlobalContextValue {
             }
 
             Self::Type(ty) => {
-                TypeKind::new_primitive(ty.clone(), size_parameter, vec![], ctx, origin)
+                TypeKind::new_primitive(ty.clone(), size_parameter, type_parameters, ctx, origin)
             }
 
             _ => return Err(build_expected_entry_type(&"type".to_string(), self, origin).into()),

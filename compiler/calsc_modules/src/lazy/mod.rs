@@ -20,6 +20,7 @@ pub enum LazyLoadedType {
         element_name: HashedString,
 
         size_specifiers: usize,
+        type_parameters: Vec<LazyLoadedType>,
     },
 
     TypeParameter {
@@ -70,6 +71,7 @@ impl LazyLoadedTypeLike for LazyLoadedType {
                 module_path,
                 element_name,
                 size_specifiers: _,
+                type_parameters: _, // TODO: check if type parameters must be dependencies
             } => {
                 let mut path_to_check = module_path.clone();
                 path_to_check.path.push(element_name.clone());

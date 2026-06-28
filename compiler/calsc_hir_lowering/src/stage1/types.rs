@@ -83,12 +83,12 @@ pub fn lower_simple_ast_type<K: DiagnosticSource>(
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
 ) -> DiagResult<PrimitiveType> {
-    if let ASTType::Generic(generic, size_param) = ty.clone() {
-        if size_param.is_some() {
+    if let ASTType::Generic(generic, size_param, type_parameters) = ty.clone() {
+        if size_param.is_some() || !type_parameters.is_empty() {
             return Err(build_expected_simple_type(origin).into());
         }
 
-        let ty = lower_ast_generic_base(generic, 0, origin, file_ctx, ctx)?;
+        let ty = lower_ast_generic_base(generic, 0, type_parameters, origin, file_ctx, ctx)?;
 
         if let TypeKind::Primitive(primitive) = ty {
             if primitive.size.is_active() {
@@ -167,14 +167,21 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
             Ok(TypeKind::Pointer(MutationState(mutable), inner))
         }
 
-        ASTType::Generic(generic, size_param) => {
+        ASTType::Generic(generic, size_param, type_parameters) => {
             let mut size_specifiers = 0;
 
             if size_param.is_some() {
                 size_specifiers = size_param.unwrap();
             }
 
-            let ty = lower_ast_generic_base(generic, size_specifiers, origin, file_ctx, ctx)?;
+            let ty = lower_ast_generic_base(
+                generic,
+                size_specifiers,
+                type_parameters,
+                origin,
+                file_ctx,
+                ctx,
+            )?;
 
             Ok(ty)
         }
@@ -186,6 +193,7 @@ pub fn lower_ast_type_complex<K: DiagnosticSource>(
 pub fn lower_ast_generic_base<K: DiagnosticSource>(
     name: ElementPath,
     size_specifier: usize,
+    type_parameters: Vec<Box<ASTType>>,
     origin: &K,
     file_ctx: &mut HIRFileContext,
     ctx: &mut HIRContext,
@@ -212,10 +220,27 @@ pub fn lower_ast_generic_base<K: DiagnosticSource>(
 
     let key = lower_ast_key(name, origin, true, file_ctx, ctx)?;
 
+    let mut lowered_type_parameters = vec![];
+
+    for type_parameter in type_parameters {
+        lowered_type_parameters.push(lower_ast_type_complex(
+            *type_parameter,
+            origin,
+            false,
+            file_ctx,
+            ctx,
+        )?)
+    }
+
     let ty = ctx
         .scope
         .get_entry(key, &file_ctx.current_module, origin)?
-        .craft_type(origin, &mut ctx.type_ctx, SizeParameter(size_specifier))?;
+        .craft_type(
+            origin,
+            &mut ctx.type_ctx,
+            SizeParameter(size_specifier),
+            lowered_type_parameters,
+        )?;
 
     Ok(ty)
 }
