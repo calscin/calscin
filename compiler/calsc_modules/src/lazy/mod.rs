@@ -67,6 +67,8 @@ impl LazyLoadedTypeLike for LazyLoadedType {
         match self {
             Self::Array { size: _, inner } => inner.get_dependencies(tree, counter, source),
             Self::Reference { mutable: _, inner } => inner.get_dependencies(tree, counter, source),
+            Self::Pointer { mutable: _, inner } => inner.get_dependencies(tree, counter, source),
+
             Self::Base {
                 module_path,
                 element_name,

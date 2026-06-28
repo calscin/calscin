@@ -16,6 +16,7 @@ pub enum ErrorCode {
     CannotParse,
     UnexpectedToken,
     ExpectedToken,
+    EmptyType,
 
     // Typing
     UnexpectedType,
@@ -675,5 +676,16 @@ pub fn build_type_hint_coherce_not_transmutable<S: DiagnosticSource, T: Display>
             "replace {} with a type that is transmutable into {}",
             target, ty
         )],
+    )
+}
+
+pub fn build_empty_type<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::EmptyType as usize),
+        "the type parser detected an empty type".to_string(),
+        None,
+        vec![],
+        vec!["this can be related to the type not being written correctly".to_string()],
+        vec!["make sure the type is a valid written one".to_string()],
     )
 }

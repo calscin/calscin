@@ -1,6 +1,9 @@
 //! Parsing related to types
 
-use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
+use calsc_diagnostics::{
+    DiagResult,
+    diags::errors::{build_empty_type, build_unexpected_token_error},
+};
 use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
@@ -50,6 +53,10 @@ pub fn parse_ast_type(
         } else {
             break;
         }
+    }
+
+    if simples.is_empty() {
+        return Err(build_empty_type(&tokens[*ind]).into());
     }
 
     let len = simples.len() - 1;
@@ -162,7 +169,7 @@ pub(crate) fn parse_type_step(
             SimpleASTType::Array(size)
         }
 
-        TokenKind::Keyword(_) => {
+        TokenKind::Keyword(_) | TokenKind::Colon => {
             if *already_parsed_generic {
                 return Ok(None);
             }
@@ -196,7 +203,7 @@ pub fn parse_type_generic(
     ind: &mut usize,
     allow_generic_parameters: bool,
 ) -> DiagResult<SimpleASTType> {
-    if let TokenKind::Keyword(_) = tokens[*ind].kind.clone() {
+    if let TokenKind::Keyword(_) | TokenKind::Colon = tokens[*ind].kind.clone() {
         let name = parse_element_path_form(tokens, ind)?;
 
         let size_spec;

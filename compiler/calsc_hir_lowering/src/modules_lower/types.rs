@@ -8,6 +8,7 @@ use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{
         build_expected_entry_type, build_internal_hir_node_leaked, build_type_not_static,
+        build_unexpected_type_alias_additional_parameters,
     },
 };
 use calsc_hir::{BUILD_CACHE, file::HIRFileContext};
@@ -46,6 +47,8 @@ pub fn lower_type_from_tree(
     let r = tree.traverse_to(path.clone(), &source)?;
 
     if let ModuleTreeEntry::FilledType(ty) = r {
+        println!("Type to lower: {:#?}", ty);
+
         let mut dependencies = HashedCounter::new();
 
         ty.get_dependencies(tree, &mut dependencies, &source)?;
@@ -117,7 +120,23 @@ pub fn lower_type<S: DiagnosticSource>(
             }
 
             let (mut path, element_name) = lower_stage0_key(name, hir_file_ctx, tree);
-            path.append_single_bit(element_name);
+            path.append_single_bit(element_name.clone());
+
+            println!("Type name: {}", element_name);
+
+            if type_ctx.type_params.has_type_parameter(&element_name) {
+                if size_specs.is_some() || !type_parameters.is_empty() {
+                    return Err(build_unexpected_type_alias_additional_parameters(source).into());
+                }
+
+                let type_param = type_ctx.type_params.get_type_param(&element_name, source)?;
+
+                return Ok(TypeKind::Primitive(HeldPrimitive {
+                    ty: PrimitiveType::TypeParameter(type_param),
+                    size: SizeParameter(0),
+                    type_parameters: HashMap::new(),
+                }));
+            }
 
             let raw_type = BUILD_CACHE.with_borrow(|state| state.type_storage.map[&path].clone());
 
@@ -179,10 +198,16 @@ pub fn lower_type_struct_decl(
         type_parameters,
     } = node.kind.clone()
     {
+        let group = type_ctx.type_params.start_param_group();
+
         let mut container = StructContainer::new(name, hir_file_ctx.current_module.clone());
 
         for type_parameter in type_parameters {
-            container.type_parameters.push(type_parameter);
+            container.type_parameters.push(type_parameter.clone());
+
+            type_ctx
+                .type_params
+                .append_type_param(type_parameter, &node)?;
         }
 
         for field in fields {
@@ -207,6 +232,8 @@ pub fn lower_type_struct_decl(
                 .map
                 .insert(path, PrimitiveType::Struct(container))
         });
+
+        type_ctx.type_params.end_group(group);
 
         Ok(())
     } else {

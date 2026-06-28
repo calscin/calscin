@@ -12,6 +12,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum LazyLoadedRawTypeKind {
     Simple,
+    TypeParameter,
 
     Struct {
         fields: HashMap<HashedString, (LazyLoadedType, usize)>,
@@ -38,6 +39,7 @@ impl LazyLoadedTypeLike for LazyLoadedRawType {
         source: &S,
     ) -> DiagPossible {
         match &self.kind {
+            LazyLoadedRawTypeKind::TypeParameter => Ok(()),
             LazyLoadedRawTypeKind::Simple => Ok(()),
             LazyLoadedRawTypeKind::Struct {
                 fields,

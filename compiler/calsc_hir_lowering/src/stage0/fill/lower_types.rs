@@ -21,9 +21,17 @@ pub fn lower_ast_type_struct_declaration(
         name,
         fields,
         visibility,
-        type_parameters: _,
+        type_parameters,
     } = node.kind.clone()
     {
+        let group = type_ctx.type_params.start_param_group();
+
+        for type_parameter in type_parameters {
+            type_ctx
+                .type_params
+                .append_type_param(type_parameter, &node)?;
+        }
+
         let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
 
         if !visibility.can_be_imported() {
@@ -60,6 +68,8 @@ pub fn lower_ast_type_struct_declaration(
                 cache.append_related_node(path_to_append_to.clone(), node.clone());
             })
         }
+
+        type_ctx.type_params.end_group(group);
 
         tree.traverse_to_append(
             path_to_append_to,
