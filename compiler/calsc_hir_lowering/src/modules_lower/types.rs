@@ -1,5 +1,3 @@
-use std::os::raw;
-
 use calsc_ast::{
     nodes::{ASTNode, ASTNodeKind},
     types::ASTType,

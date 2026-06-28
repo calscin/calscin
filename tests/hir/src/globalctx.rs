@@ -13,7 +13,9 @@ use calsc_hir::globalctx::{GlobalContext, key::GlobalContextKey, vals::GlobalCon
 #[cfg(test)]
 use calsc_modules::visibility::Visibility;
 
+#[cfg(test)]
 use calsc_state::GLOBAL_STATE;
+
 #[cfg(test)]
 use calsc_typing::types::primitive::PrimitiveType;
 
