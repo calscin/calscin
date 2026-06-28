@@ -1,7 +1,10 @@
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::file::HIRFileContext;
-use calsc_modules::tree::{ModuleTree, entry::ModuleTreeEntry};
+use calsc_modules::{
+    lazy::func::LazyLoadedFunction,
+    tree::{ModuleTree, entry::ModuleTreeEntry},
+};
 
 use crate::{convert_visibility, stage0::fill::types::lower_ast_type};
 
@@ -39,7 +42,8 @@ pub fn lower_ast_function_decl_stage_zero(
         let mut path_to_append_to = file_ctx.current_module.clone();
         path_to_append_to.path.push(name);
 
-        let entry = ModuleTreeEntry::FilledFunction(return_type, arguments);
+        let entry =
+            ModuleTreeEntry::FilledFunction(LazyLoadedFunction::new(return_type, arguments));
 
         tree.traverse_to_append(path_to_append_to, entry, &node)
     } else {
@@ -80,7 +84,8 @@ pub fn lower_ast_extern_func_decl_stage_zero(
         let mut path_to_append_to = file_ctx.current_module.clone();
         path_to_append_to.path.push(name);
 
-        let entry = ModuleTreeEntry::FilledFunction(return_type, arguments);
+        let entry =
+            ModuleTreeEntry::FilledFunction(LazyLoadedFunction::new(return_type, arguments));
 
         tree.traverse_to_append(path_to_append_to, entry, &node)
     } else {

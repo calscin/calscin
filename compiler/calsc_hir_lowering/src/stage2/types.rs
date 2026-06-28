@@ -1,7 +1,7 @@
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_hir::{BUILD_CACHE, HIRContext};
 use calsc_modules::lazy::LazyLoadedType;
-use calsc_typing::types::{MutationState, SizeParameter, TypeKind};
+use calsc_typing::types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType};
 
 pub fn lower_module_path_type<S: DiagnosticSource>(
     ty: LazyLoadedType,
@@ -9,6 +9,15 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
     hir_ctx: &mut HIRContext,
 ) -> DiagResult<TypeKind> {
     match ty {
+        LazyLoadedType::TypeParameter { id: _, name } => {
+            let res = hir_ctx.type_ctx.type_params.get_type_param(&name, origin)?;
+
+            Ok(TypeKind::Primitive(
+                PrimitiveType::TypeParameter(res),
+                SizeParameter(0),
+            ))
+        }
+
         LazyLoadedType::Base {
             module_path,
             element_name,

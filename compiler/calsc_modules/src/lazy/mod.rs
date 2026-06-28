@@ -9,6 +9,7 @@ use crate::{
     tree::{ModuleTree, entry::ModuleTreeEntry},
 };
 
+pub mod func;
 pub mod raw;
 
 /// Represents a lazy loaded type. This should normally live before HIR lowering stage 2 as types will be obtained back there.
@@ -19,6 +20,11 @@ pub enum LazyLoadedType {
         element_name: HashedString,
 
         size_specifiers: usize,
+    },
+
+    TypeParameter {
+        id: usize,
+        name: HashedString,
     },
 
     Reference {

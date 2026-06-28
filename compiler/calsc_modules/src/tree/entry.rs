@@ -8,7 +8,7 @@ use calsc_diagnostics::{
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    lazy::{LazyLoadedType, raw::LazyLoadedRawType},
+    lazy::{func::LazyLoadedFunction, raw::LazyLoadedRawType},
     path::ModulePath,
     tree::traversal::ModuleTreeTraversal,
 };
@@ -17,7 +17,7 @@ use crate::{
 #[derive(Debug, Clone)]
 pub enum ModuleTreeEntry {
     /// A function that had it's contents loadded. This state is available after and during the filling pass of layer 0.
-    FilledFunction(LazyLoadedType, Vec<(HashedString, LazyLoadedType)>),
+    FilledFunction(LazyLoadedFunction),
 
     /// A type that had it's contents loadded. This state is available after and during the filling pass of layer 0.
     FilledType(LazyLoadedRawType),
@@ -67,7 +67,7 @@ impl ModuleTreeEntry {
     }
 
     pub fn is_function(&self) -> bool {
-        matches!(self, Self::FilledFunction(_, _))
+        matches!(self, Self::FilledFunction(_))
     }
 
     pub fn can_be_replaced(&self) -> bool {
