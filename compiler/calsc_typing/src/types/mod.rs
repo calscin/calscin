@@ -212,6 +212,46 @@ impl TypeKind {
     pub fn is_directly_primitive(&self) -> bool {
         matches!(self, Self::Primitive(_))
     }
+
+    pub(crate) fn get_type_parameter_type_value(
+        &self,
+        name: HashedString,
+        ctx: &TypeCtx,
+    ) -> Option<TypeKind> {
+        match self {
+            Self::Primitive(primitive) => {
+                if !primitive.type_parameters.contains_key(&name) {
+                    None
+                } else {
+                    let handle = primitive.type_parameters[&name].clone();
+
+                    Some(ctx.type_kind_arena.get(&handle).clone())
+                }
+            }
+
+            Self::Array(_, inner) => ctx
+                .type_kind_arena
+                .get(inner)
+                .get_type_parameter_type_value(name, ctx),
+
+            Self::Pointer(_, inner) => ctx
+                .type_kind_arena
+                .get(inner)
+                .get_type_parameter_type_value(name, ctx),
+
+            Self::Reference(_, inner) => ctx
+                .type_kind_arena
+                .get(inner)
+                .get_type_parameter_type_value(name, ctx),
+
+            Self::Segment(inner) => ctx
+                .type_kind_arena
+                .get(inner)
+                .get_type_parameter_type_value(name, ctx),
+
+            Self::Void => None,
+        }
+    }
 }
 
 impl FieldedType for TypeKind {
