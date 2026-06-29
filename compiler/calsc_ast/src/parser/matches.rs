@@ -5,7 +5,7 @@ use calsc_diagnostics::{
     diags::errors::{build_match_already_branch, build_unexpected_token_error},
 };
 use calsc_lexer::toks::{Token, TokenKind};
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     ASTContext,
@@ -15,7 +15,7 @@ use crate::{
 };
 
 struct MatchBlockParsingCtx {
-    branches: HashMap<ASTType, Vec<ArenaHandle>>,
+    branches: HashMap<ASTType, (HashedString, Vec<ArenaHandle>)>,
     default_branch: Option<Vec<ArenaHandle>>,
 }
 
@@ -38,7 +38,7 @@ pub fn parse_match_block(
     tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
-    while tokens[*ind].kind != TokenKind::BracketClose {
+    while tokens[*ind].kind != TokenKind::BraceClose {
         parse_match_branch(tokens, ind, ctx, &mut parse_ctx)?; // Auto increments
     }
 
@@ -92,7 +92,10 @@ fn parse_match_branch(
         _ => {
             let start = *ind;
 
-            let ty = parse_ast_type(tokens, ind, false)?;
+            let ty = parse_ast_type(tokens, ind, false)?; // Auto increments
+
+            let var_name: HashedString = tokens[*ind].expects_keyword()?.into();
+            *ind += 1; // var name keyword
 
             parse_match_arrow(tokens, ind)?; // Auto increments
 
@@ -102,7 +105,7 @@ fn parse_match_branch(
                 return Err(build_match_already_branch(&ty, &tokens[start]).into());
             }
 
-            parse_ctx.branches.insert(ty, body);
+            parse_ctx.branches.insert(ty, (var_name, body));
 
             Ok(())
         }

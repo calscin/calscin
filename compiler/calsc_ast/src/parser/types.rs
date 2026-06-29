@@ -56,7 +56,7 @@ pub fn parse_ast_type(
     }
 
     if simples.is_empty() {
-        return Err(build_empty_type(&tokens[*ind]).into());
+        return Err(build_unexpected_token_error(&tokens[*ind].kind, &tokens[*ind]).into());
     }
 
     let len = simples.len() - 1;
@@ -183,6 +183,7 @@ pub(crate) fn parse_type_step(
         }
 
         _ => {
+            println!("Tok: {:#?}", tokens[*ind]);
             return Ok(None);
         }
     };

@@ -175,7 +175,7 @@ pub enum ASTNodeKind {
 
     MatchBlock {
         val: ArenaHandle,
-        matches: Vec<(ASTType, Vec<ArenaHandle>)>,
+        matches: Vec<(ASTType, (HashedString, Vec<ArenaHandle>))>,
         default_match: Option<Vec<ArenaHandle>>,
     },
 
@@ -247,6 +247,7 @@ impl ASTNodeKind {
             | Self::ForLoop { .. }
             | Self::WhileLoop { .. }
             | Self::Loop { .. } => true,
+            Self::MatchBlock { .. } => true,
 
             Self::ReturnStatement { val } => val.is_none(),
 
