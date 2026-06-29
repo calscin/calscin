@@ -3,7 +3,7 @@ use std::fmt::Display;
 use calsc_utils::{DisplayWith, display_with_list, display_with_to_string};
 
 use crate::{
-    allocs::STRUCT_CONTAINER_ALLOC,
+    allocs::{ENUM_CONTAINER_ALLOC, STRUCT_CONTAINER_ALLOC},
     ctx::TypeCtx,
     types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
@@ -20,6 +20,18 @@ impl DisplayWith<&TypeCtx> for PrimitiveType {
                 let arena_ref = ff.borrow().get(container);
 
                 write!(f, "{}::{}", arena_ref.module, arena_ref.name)
+            }),
+
+            Self::Enum(container) => ENUM_CONTAINER_ALLOC.with(|ff| {
+                let arena_ref = ff.borrow().get(container);
+
+                write!(f, "{}::{}", arena_ref.module, arena_ref.name)
+            }),
+
+            Self::EnumEntry(container, name) => ENUM_CONTAINER_ALLOC.with(|ff| {
+                let arena_ref = ff.borrow().get(container);
+
+                write!(f, "{}::{}::{}", arena_ref.module, arena_ref.name, name)
             }),
 
             Self::Function(func) => {

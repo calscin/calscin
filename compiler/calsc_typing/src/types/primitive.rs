@@ -28,6 +28,19 @@ pub enum PrimitiveType {
     ///
     Struct(ArenaHandle),
 
+    /// Represents an enum type
+    ///
+    /// The handle represents an [`EnumContainer`][`crate::types::enums::EnumContainer`]
+    ///
+    Enum(ArenaHandle),
+
+    /// Represents an enum entry type
+    ///
+    /// The handle represents an [`EnumContainer`][`crate::types::enums::EnumContainer`]
+    /// The hashed string represents the entry name
+    ///
+    EnumEntry(ArenaHandle, HashedString),
+
     /// Represents a reference to a function or lambda
     ///
     /// The handle represents a [`TypedFunction`][`crate::funcs::TypedFunction`]
