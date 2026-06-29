@@ -89,6 +89,9 @@ pub enum TokenKind {
     /// `into`
     Into,
 
+    /// `match`
+    Match,
+
     /// ;
     SemiColon,
 
@@ -519,6 +522,7 @@ impl Display for TokenKind {
             Self::Protected => "prot",
             Self::Private => "priv",
             Self::Into => "into",
+            Self::Match => "match",
             Self::SemiColon => ";",
             Self::Comma => ",",
             Self::Dot => ".",

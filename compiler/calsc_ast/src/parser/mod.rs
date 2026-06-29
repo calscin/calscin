@@ -18,6 +18,7 @@ use crate::{
         ctx::CommentContext,
         func::{parse_extern_function_declaration, parse_function_declaration},
         import::parse_ast_import_statement,
+        matches::parse_match_block,
         structs::{parse_ast_struct_decl_block, parse_ast_struct_declaration},
         values::parse_ast_value,
         vars::parse_ast_variable_declaration,
@@ -72,6 +73,7 @@ pub fn parse_ast_node_body_member(
         TokenKind::While => Some(parse_ast_while_loop(tokens, ind, ctx)),
         TokenKind::If => Some(parse_ast_if_statement(tokens, ind, ctx)),
         TokenKind::Return => Some(parse_ast_return_statement(tokens, ind, ctx)),
+        TokenKind::Match => Some(parse_match_block(tokens, ind, ctx)),
         TokenKind::Comment(_) => {
             *ind += 1; // We do not care about body comments
             None

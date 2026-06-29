@@ -14,7 +14,7 @@ use crate::path::ElementPath;
 /// -	-> `Pointer()`
 /// - 	-->`Generic(s32)`
 #[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(PartialEq, Clone, Hash)]
+#[derive(PartialEq, Clone, Hash, Eq)]
 pub enum ASTType {
     /// Represents a reference node. The parameter represents the inner type.
     ///

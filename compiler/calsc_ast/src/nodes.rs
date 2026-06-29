@@ -169,7 +169,7 @@ pub enum ASTNodeKind {
     MatchBlock {
         val: ArenaHandle,
         matches: Vec<(ASTType, Vec<ArenaHandle>)>,
-        default_match: Vec<ArenaHandle>,
+        default_match: Option<Vec<ArenaHandle>>,
     },
 
     None,

@@ -17,6 +17,7 @@ pub enum ErrorCode {
     UnexpectedToken,
     ExpectedToken,
     EmptyType,
+    AlreadyBranchMatch,
 
     // Typing
     UnexpectedType,
@@ -687,5 +688,19 @@ pub fn build_empty_type<S: DiagnosticSource>(source: &S) -> Diagnostic {
         vec![],
         vec!["this can be related to the type not being written correctly".to_string()],
         vec!["make sure the type is a valid written one".to_string()],
+    )
+}
+
+pub fn build_match_already_branch<S: DiagnosticSource, B: Display>(
+    branch: &B,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::AlreadyBranchMatch as usize),
+        format!("match block branch {} is already registered", branch),
+        Some("second declaration introduced here".to_string()),
+        vec![],
+        vec![],
+        vec![],
     )
 }
