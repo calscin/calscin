@@ -1,9 +1,14 @@
 use calsc_utils::hash::HashedString;
 
 use crate::{
-    allocs::STRUCT_CONTAINER_ALLOC,
+    allocs::{ENUM_CONTAINER_ALLOC, STRUCT_CONTAINER_ALLOC},
     ctx::TypeCtx,
-    types::{TypeKind, primitive::PrimitiveType, structs::StructContainer},
+    types::{
+        TypeKind,
+        enums::{EnumContainer, EnumEntryContainer},
+        primitive::PrimitiveType,
+        structs::StructContainer,
+    },
 };
 
 pub trait TypeParameteredType {
@@ -18,6 +23,26 @@ impl TypeParameteredType for StructContainer {
 
     fn has_type_param(&self, name: &HashedString, _ctx: &TypeCtx) -> bool {
         self.type_parameters.contains(name)
+    }
+}
+
+impl TypeParameteredType for EnumContainer {
+    fn get_type_params(&self, _ctx: &TypeCtx) -> Vec<HashedString> {
+        self.type_parameters.clone()
+    }
+
+    fn has_type_param(&self, name: &HashedString, _ctx: &TypeCtx) -> bool {
+        self.type_parameters.contains(name)
+    }
+}
+
+impl TypeParameteredType for EnumEntryContainer {
+    fn get_type_params(&self, ctx: &TypeCtx) -> Vec<HashedString> {
+        ENUM_CONTAINER_ALLOC.with(|f| f.borrow().get(&self.parent).get_type_params(ctx))
+    }
+
+    fn has_type_param(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
+        ENUM_CONTAINER_ALLOC.with(|f| f.borrow().get(&self.parent).has_type_param(name, ctx))
     }
 }
 
