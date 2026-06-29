@@ -1,0 +1,14 @@
+enum my_enum {
+    A(str field1),
+    B(bool option)
+}
+
+func main() {
+    var my_enum test_enum = my_enum::A("hello world");
+
+    match test_enum {
+        my_enum::A a_variant => {},
+        my_enum::B b_variant => {},
+        _ => {}
+    }
+}

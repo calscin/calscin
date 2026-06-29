@@ -2,9 +2,3 @@ struct my_struct {
 	s.32 field_a,
 	bool field_b
 }
-
-decl my_struct {
-	func new() -> my_struct {
-		return { field_a: 0, field_b: false };
-	}
-}

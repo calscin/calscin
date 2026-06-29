@@ -1,4 +1,5 @@
 target/
 
-!examples/*
 *.cal
+
+!examples/*.cal
