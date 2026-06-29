@@ -17,6 +17,7 @@ use crate::{
     types::primitive::PrimitiveType,
 };
 
+pub mod enums;
 pub mod fmt;
 pub mod primitive;
 pub mod structs;

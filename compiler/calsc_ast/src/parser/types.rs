@@ -1,9 +1,6 @@
 //! Parsing related to types
 
-use calsc_diagnostics::{
-    DiagResult,
-    diags::errors::{build_empty_type, build_unexpected_token_error},
-};
+use calsc_diagnostics::{DiagResult, diags::errors::build_unexpected_token_error};
 use calsc_lexer::toks::{Token, TokenKind};
 
 use crate::{
