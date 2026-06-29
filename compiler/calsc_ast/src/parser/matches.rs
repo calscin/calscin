@@ -35,7 +35,7 @@ pub fn parse_match_block(
 
     let val = parse_ast_value(tokens, ind, true, false, true, ctx)?; // Auto increments
 
-    tokens[*ind].expects(TokenKind::BraceClose)?;
+    tokens[*ind].expects(TokenKind::BraceOpen)?;
     *ind += 1; // {
 
     while tokens[*ind].kind != TokenKind::BracketClose {

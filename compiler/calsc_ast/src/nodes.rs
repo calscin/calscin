@@ -150,6 +150,13 @@ pub enum ASTNodeKind {
         type_parameters: Vec<HashedString>,
     },
 
+    EnumDeclaration {
+        name: HashedString,
+        entries: HashMap<HashedString, Vec<(ASTType, HashedString)>>,
+        visibility: Option<Visibility>,
+        type_parameters: Vec<HashedString>,
+    },
+
     StructDeclBlock {
         target: ASTType,
         functions: Vec<ArenaHandle>,

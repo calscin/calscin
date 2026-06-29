@@ -62,6 +62,9 @@ pub enum TokenKind {
     /// `struct`
     Struct,
 
+    /// `enum`
+    Enum,
+
     /// `decl`
     Decl,
 
@@ -515,6 +518,7 @@ impl Display for TokenKind {
             Self::Var => "var",
             Self::Mut => "mut",
             Self::Struct => "struct",
+            Self::Enum => "enum",
             Self::Decl => "decl",
             Self::Return => "return",
             Self::Module => "module",

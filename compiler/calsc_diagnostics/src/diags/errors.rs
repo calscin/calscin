@@ -18,6 +18,7 @@ pub enum ErrorCode {
     ExpectedToken,
     EmptyType,
     AlreadyBranchMatch,
+    AlreadyEnumEntry,
 
     // Typing
     UnexpectedType,
@@ -698,6 +699,20 @@ pub fn build_match_already_branch<S: DiagnosticSource, B: Display>(
     source.make_diagnostic_simple(
         DiagnosticCode::new(Level::Error, ErrorCode::AlreadyBranchMatch as usize),
         format!("match block branch {} is already registered", branch),
+        Some("second declaration introduced here".to_string()),
+        vec![],
+        vec![],
+        vec![],
+    )
+}
+
+pub fn build_enum_entry_already_present<S: DiagnosticSource, B: Display>(
+    entry: &B,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::AlreadyEnumEntry as usize),
+        format!("enum entry {} is already registered", entry),
         Some("second declaration introduced here".to_string()),
         vec![],
         vec![],

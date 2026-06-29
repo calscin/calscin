@@ -16,6 +16,7 @@ use crate::{
             while_loop::parse_ast_while_loop,
         },
         ctx::CommentContext,
+        enums::parse_ast_enum_declaration,
         func::{parse_extern_function_declaration, parse_function_declaration},
         import::parse_ast_import_statement,
         matches::parse_match_block,
@@ -27,6 +28,7 @@ use crate::{
 
 pub mod control;
 pub mod ctx;
+pub mod enums;
 pub mod forms;
 pub mod func;
 pub mod import;
@@ -148,7 +150,7 @@ pub fn parse_ast_top_level(
         TokenKind::Public | TokenKind::Private | TokenKind::Protected => {
             if matches!(
                 tokens[*ind + 1].kind,
-                TokenKind::Function | TokenKind::ExternFunc | TokenKind::Struct
+                TokenKind::Function | TokenKind::ExternFunc | TokenKind::Struct | TokenKind::Enum
             ) {
                 *ind + 1
             } else {
@@ -162,6 +164,7 @@ pub fn parse_ast_top_level(
         TokenKind::Function => Some(parse_function_declaration(tokens, ind, ctx)),
         TokenKind::ExternFunc => Some(parse_extern_function_declaration(tokens, ind, ctx)),
         TokenKind::Struct => Some(parse_ast_struct_declaration(tokens, ind, ctx)),
+        TokenKind::Enum => Some(parse_ast_enum_declaration(tokens, ind, ctx)),
         TokenKind::Decl => Some(parse_ast_struct_decl_block(tokens, ind, ctx)),
         TokenKind::Import => Some(parse_ast_import_statement(tokens, ind, ctx)),
         TokenKind::Module => Some(parse_ast_module(tokens, ind, ctx)),

@@ -36,6 +36,7 @@ pub const PROT_HASH: u64 = fnvhash!("prot");
 pub const PRIV_HASH: u64 = fnvhash!("priv");
 pub const INTO_HASH: u64 = fnvhash!("into");
 pub const MATCH_HASH: u64 = fnvhash!("match");
+pub const ENUM_HASH: u64 = fnvhash!("enum");
 
 /// Converts raw texts into lexer tokens.
 /// # Examples
@@ -83,14 +84,18 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
         }
 
         if c.is_alphabetic() || c == '_' {
-            if content.chars().nth(i + 1).unwrap().is_alphabetic() {
+            if c != '_' || content.chars().nth(i + 1).unwrap().is_alphabetic() {
                 tokens.push(parse_keyword(content, &mut i, &mut pos)?);
             } else {
+                i += 1;
+
                 tokens.push(Token::new(
                     TokenKind::Underscore,
                     pos.clone(),
                     pos.step_col(1),
-                ))
+                ));
+
+                pos = pos.step_col(1);
             }
             continue;
         }
@@ -210,6 +215,7 @@ pub fn parse_keyword(
         PRIV_HASH => TokenKind::Private,
         INTO_HASH => TokenKind::Into,
         MATCH_HASH => TokenKind::Match,
+        ENUM_HASH => TokenKind::Enum,
         _ => TokenKind::Keyword(slice),
     };
 
