@@ -81,8 +81,16 @@ pub fn lexer_tokenize(content: &str, file_path: String) -> DiagResult<Vec<Token>
             continue;
         }
 
-        if c.is_alphabetic() {
-            tokens.push(parse_keyword(content, &mut i, &mut pos)?);
+        if c.is_alphabetic() || c == '_' {
+            if content.chars().nth(i + 1).unwrap().is_alphabetic() {
+                tokens.push(parse_keyword(content, &mut i, &mut pos)?);
+            } else {
+                tokens.push(Token::new(
+                    TokenKind::Underscore,
+                    pos.clone(),
+                    pos.step_col(1),
+                ))
+            }
             continue;
         }
 
@@ -331,7 +339,7 @@ pub fn parse_string_token(
     ind: &mut usize,
     start_pos: &mut FilePosition,
 ) -> DiagResult<Token> {
-    *ind += 1; // Increment to skip the first " 
+    *ind += 1; // Increment to skip the first "
 
     let start = *ind;
     let mut closed = false;

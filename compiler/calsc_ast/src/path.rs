@@ -2,7 +2,7 @@ use std::fmt::Display;
 
 use calsc_utils::hash::HashedString;
 
-#[derive(PartialEq, Eq, Clone, Debug)]
+#[derive(PartialEq, Eq, Clone, Debug, Hash)]
 pub struct ElementPath {
     pub relative: bool,
     pub members: Vec<HashedString>,

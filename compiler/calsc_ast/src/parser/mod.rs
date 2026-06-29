@@ -30,6 +30,7 @@ pub mod forms;
 pub mod func;
 pub mod import;
 pub mod lru;
+pub mod matches;
 pub mod structs;
 pub mod types;
 pub mod utils;
