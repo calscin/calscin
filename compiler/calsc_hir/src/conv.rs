@@ -134,13 +134,6 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
 
             let field_node = ctx.nodes.get(&values[&field]).clone();
 
-            println!(
-                "Field {} -> {} ({})",
-                field,
-                &display_with_to_string(ty, &ctx.type_ctx),
-                ty.has_field(&field, &ctx.type_ctx)
-            );
-
             vals.insert(
                 field.clone(),
                 field_node

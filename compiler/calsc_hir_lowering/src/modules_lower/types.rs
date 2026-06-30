@@ -123,8 +123,6 @@ pub fn lower_type<S: DiagnosticSource>(
             let (mut path, element_name) = lower_stage0_key(name, hir_file_ctx, tree);
             path.append_single_bit(element_name.clone());
 
-            println!("Type name: {}", element_name);
-
             if type_ctx.type_params.has_type_parameter(&element_name) {
                 if size_specs.is_some() || !type_parameters.is_empty() {
                     return Err(build_unexpected_type_alias_additional_parameters(source).into());

@@ -143,8 +143,6 @@ pub fn lower_ast_enum_declaration(
                     .append_named(NamedField(field.1, ty), &node)?;
             }
 
-            println!("Test: {:#?}", enum_entry.fields);
-
             let has_entry = ENUM_CONTAINER_ALLOC.with(|f| {
                 f.borrow()
                     .get(&enum_container)

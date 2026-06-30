@@ -338,8 +338,6 @@ impl HeldPrimitive {
             if let PrimitiveType::TypeParameter(param) = &primitive.ty {
                 let lowered = self.get_type_parameter_type_value(param.1.clone(), ctx);
 
-                println!("{} -> {:#?}", display_with_to_string(&ty, ctx), lowered);
-
                 if lowered.is_some() {
                     return lowered.unwrap();
                 }

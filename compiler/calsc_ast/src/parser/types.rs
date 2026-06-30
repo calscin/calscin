@@ -180,7 +180,6 @@ pub(crate) fn parse_type_step(
         }
 
         _ => {
-            println!("Tok: {:#?}", tokens[*ind]);
             return Ok(None);
         }
     };

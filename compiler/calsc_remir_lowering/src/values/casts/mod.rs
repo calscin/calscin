@@ -49,6 +49,13 @@ pub fn lower_hir_cast(
         return Ok(val); // Handles pointer -> reference & reference -> pointer cases for example
     }
 
+    if let ValueType::Struct(_) = val.value_type.clone() {
+        if let ValueType::Struct(_) = into {
+            return Ok(val); // Handles enums -> enum entries & enum entries -> enum cases
+            // TODO: check if this is okay
+        }
+    }
+
     if let ValueType::Int(_, _) = val.value_type.clone() {
         let val =
             SSAIntValue::try_from(val.clone()).convert(node.start.clone(), node.end.clone())?;
