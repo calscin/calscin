@@ -34,11 +34,13 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
         PrimitiveType::Enum(container_ref) => {
             let mut max_size = 0;
             let mut marker_type = TypeKind::Void;
+            let mut marker_size = 0;
 
             ENUM_CONTAINER_ALLOC.with(|f| {
                 let container = f.borrow().get(&container_ref);
 
                 marker_type = container.get_marker_type();
+                marker_size = marker_type.as_primitive().size.0;
 
                 for (entry, _) in &container.entries {
                     let sz = lower_type_base(
@@ -49,7 +51,8 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
                         },
                         ctx,
                     )?
-                    .get_size();
+                    .get_size()
+                        - marker_size;
 
                     if sz > max_size {
                         max_size = sz;
