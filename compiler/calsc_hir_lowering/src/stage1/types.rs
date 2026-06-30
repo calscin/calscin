@@ -158,8 +158,21 @@ pub fn lower_ast_enum_declaration(
                 f.borrow_mut()
                     .get_mut(&enum_container)
                     .entries
-                    .insert(entry_name, enum_entry)
+                    .insert(entry_name.clone(), enum_entry)
             });
+
+            // Append to HIR context
+            let entry_key = GlobalContextKey::new(entry_name.clone()).associated_type(key.clone());
+
+            ctx.scope.append(
+                entry_key,
+                GlobalContextValue::Type(PrimitiveType::EnumEntry(
+                    enum_container.clone(),
+                    entry_name,
+                )),
+                visibility.clone(),
+                &node,
+            )?;
         }
 
         ctx.scope.append(
