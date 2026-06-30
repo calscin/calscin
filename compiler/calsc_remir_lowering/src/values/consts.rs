@@ -5,8 +5,12 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{HIRContext, localctx::LocalContext, nodes::HIRNodeKind};
-use calsc_typing::traits::FieldedType;
-use calsc_utils::alloc::arena::ArenaHandle;
+use calsc_typing::{
+    allocs::ENUM_CONTAINER_ALLOC,
+    traits::FieldedType,
+    types::{TypeKind, primitive::PrimitiveType},
+};
+use calsc_utils::{alloc::arena::ArenaHandle, vec_contains};
 use remir::{
     builders::{
         build_const_array, build_const_float, build_const_int, build_const_string,
@@ -107,7 +111,25 @@ pub fn lower_hir_literal(
             let mut vals = vec![];
             let mir_ty = lower_type(ty.clone(), &hirctx.type_ctx)?;
 
-            if ty.is_directly_primitive() && ty.as_primitive().ty.is_enum_entry() {}
+            if ty.is_directly_primitive() && ty.as_primitive().ty.is_enum_entry() {
+                if let PrimitiveType::EnumEntry(container, name) = ty.as_primitive().ty {
+                    ENUM_CONTAINER_ALLOC.with(|f| {
+                        let container = f.borrow().get(&container);
+                        let marker_ty = container.get_marker_type().as_primitive();
+
+                        let marker = build_const_int(
+                            module,
+                            vec_contains(&container.entries_order, &name).unwrap() as i128,
+                            marker_ty.size.0,
+                            false,
+                        )
+                        .convert(node_ref.start.clone(), node_ref.end.clone())?;
+
+                        vals.push(marker.into());
+                        Ok::<_, ()>(())
+                    })?;
+                }
+            }
 
             for field in ty.get_fields(&hirctx.type_ctx) {
                 vals.push(lower_hir_value(
