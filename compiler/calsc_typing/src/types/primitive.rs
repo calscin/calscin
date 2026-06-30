@@ -80,6 +80,14 @@ impl PrimitiveType {
         matches!(self, Self::Size)
     }
 
+    pub fn is_struct(&self) -> bool {
+        matches!(self, Self::Struct(_))
+    }
+
+    pub fn is_enum_entry(&self) -> bool {
+        matches!(self, Self::EnumEntry(_, _))
+    }
+
     pub fn get_signed_state(&self) -> bool {
         match self {
             Self::Int(signed) => *signed,

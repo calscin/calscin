@@ -41,6 +41,18 @@ impl HIRNode {
         file_ctx: &HIRFileContext,
     ) -> DiagResult<HIRNode> {
         if let HIRNodeKind::StructuredInit { .. } = self.kind.clone() {
+            if !ty.is_directly_primitive()
+                || (!ty.as_primitive().ty.is_struct() && !ty.as_primitive().ty.is_enum_entry())
+            {
+                return Err(build_expected_type_error(
+                    &"structured type",
+                    &display_with_to_string(ty, &ctx.type_ctx),
+                    self,
+                )
+                .into());
+            }
+            {}
+
             return convert_structured_init_into(
                 self.clone(),
                 ty,
