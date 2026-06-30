@@ -14,6 +14,9 @@ impl TypeTransmutation for PrimitiveType {
 
         match (self, into) {
             (PrimitiveType::Int(signed), PrimitiveType::Int(_)) => !signed, // Allow unsigned -> signed convertion
+            (PrimitiveType::EnumEntry(container, _name), PrimitiveType::Enum(container_into)) => {
+                container == container_into
+            }
 
             _ => false,
         }
