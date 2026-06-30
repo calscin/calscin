@@ -1,13 +1,11 @@
 use std::collections::HashSet;
 
-use calsc_utils::alloc::arena::ArenaHandle;
-
-use crate::path::ModulePath;
+use crate::{path::ModulePath, treev2::module::TreeModule};
 
 pub enum TreeEntryKind {
     Type,
     Function,
-    Module(ArenaHandle),
+    Module(TreeModule),
 }
 
 pub struct TreeEntry {

@@ -7,10 +7,7 @@ use std::{
 
 use calsc_utils::{alloc::arena::ArenaAllocator, hash::HashedString};
 
-use crate::{
-    path::ModulePath,
-    treev2::{entry::TreeEntry, module::TreeModule},
-};
+use crate::{path::ModulePath, treev2::entry::TreeEntry};
 
 pub mod entry;
 pub mod module;
@@ -18,8 +15,9 @@ pub mod module;
 pub struct ModuleTree {
     pub children: HashMap<HashedString, TreeEntry>,
     pub resolved_cache: HashMap<ModulePath, TreeEntry>,
-    pub module_arena: ArenaAllocator<TreeModule>,
     pub used_files: HashSet<PathBuf>,
+
+    pub entry_arena: ArenaAllocator<TreeEntry>,
 }
 
 impl ModuleTree {
@@ -27,8 +25,9 @@ impl ModuleTree {
         Self {
             children: HashMap::new(),
             resolved_cache: HashMap::new(),
-            module_arena: ArenaAllocator::new(),
             used_files: HashSet::new(),
+
+            entry_arena: ArenaAllocator::new(),
         }
     }
 }
