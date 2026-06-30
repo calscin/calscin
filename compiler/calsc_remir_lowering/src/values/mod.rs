@@ -15,6 +15,7 @@ use crate::{
     indexes::lower_hir_index_usage,
     mono::resolver::lower_hir_typed_function_call,
     result::CalscinRemirResult,
+    utils::get_true_field_index,
     values::{
         bool::{lower_hir_compare, lower_hir_inverse_condition},
         casts::lower_hir_cast_node,
@@ -123,9 +124,17 @@ pub fn lower_hir_field_reference(
         name: _,
     } = node_ref.kind.clone()
     {
+        let val_type =
+            hirctx
+                .nodes
+                .get(&val)
+                .clone()
+                .get_type(Some(ctx.local_key.clone()), hirctx, None)?;
+
         let val = lower_hir_value(val, ctx, module, hirctx)?;
 
         let field_val;
+        let field_ind = get_true_field_index(val_type, field_ind);
 
         if let ValueType::Pointer(_) = &val.value_type {
             let val: SSAPointerValue = val

@@ -13,8 +13,8 @@ use remir::{
 };
 
 use crate::{
-    reads::lower_hir_readable_pointer, result::CalscinRemirResult, values::lower_hir_value,
-    vars::lower_hir_variable_reference,
+    reads::lower_hir_readable_pointer, result::CalscinRemirResult, utils::get_true_field_index,
+    values::lower_hir_value, vars::lower_hir_variable_reference,
 };
 
 pub fn lower_hir_writable(
@@ -86,7 +86,15 @@ pub fn lower_hir_field_writable(
         name: _,
     } = node_ref.kind.clone()
     {
+        let val_type =
+            ctx.nodes
+                .get(&val)
+                .clone()
+                .get_type(Some(local_ctx.local_key.clone()), ctx, None)?;
+
         let val = lower_hir_value(val, local_ctx, module, ctx)?;
+
+        let field_ind = get_true_field_index(val_type, field_ind);
 
         if let ValueType::Pointer(_) = &val.value_type {
             let val: SSAPointerValue = val

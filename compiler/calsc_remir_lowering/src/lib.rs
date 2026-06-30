@@ -24,6 +24,7 @@ pub mod range;
 pub mod reads;
 pub mod result;
 pub mod types;
+pub mod utils;
 pub mod values;
 pub mod vars;
 pub mod writes;
