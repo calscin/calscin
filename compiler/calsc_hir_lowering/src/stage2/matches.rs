@@ -46,7 +46,7 @@ pub fn lower_ast_matches(
                 .clone()
                 .get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
-        if !val_type.has_direct_primitive(&ctx.type_ctx) {
+        if val_type.has_direct_primitive(&ctx.type_ctx) {
             let ty = val_type.get_primitive(&ctx.type_ctx);
 
             if !ty.ty.is_enum() {
@@ -57,11 +57,18 @@ pub fn lower_ast_matches(
                 )
                 .into());
             }
+        } else {
+            return Err(build_expected_type_error(
+                &"enum type".to_string(),
+                &display_with_to_string(&val_type, &ctx.type_ctx),
+                &node,
+            )
+            .into());
         }
 
         let primitive_container = match val_type.get_primitive(&ctx.type_ctx).ty {
             PrimitiveType::Enum(container) => container.clone(),
-            _ => unreachable!(),
+            _ => panic!("{:#?}", val_type.get_primitive(&ctx.type_ctx)),
         };
 
         // We first handle the branches

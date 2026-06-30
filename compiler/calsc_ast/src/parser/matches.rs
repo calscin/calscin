@@ -92,7 +92,7 @@ fn parse_match_branch(
         _ => {
             let start = *ind;
 
-            let ty = parse_ast_type(tokens, ind, false)?; // Auto increments
+            let ty = parse_ast_type(tokens, ind, true)?; // Auto increments
 
             let var_name: HashedString = tokens[*ind].expects_keyword()?.into();
             *ind += 1; // var name keyword

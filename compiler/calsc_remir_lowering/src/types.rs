@@ -45,7 +45,7 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
                         HeldPrimitive {
                             ty: PrimitiveType::EnumEntry(container_ref.clone(), entry.clone()),
                             size: SizeParameter(0),
-                            type_parameters: HashMap::new(),
+                            type_parameters: ty.type_parameters.clone(),
                         },
                         ctx,
                     )?

@@ -4,7 +4,10 @@ use calsc_utils::alloc::arena::ArenaHandle;
 use remir::module::Module;
 
 use crate::{
-    control::{fors::lower_hir_for_loop, ifs::lower_hir_if_statement, loops::lower_hir_while_loop},
+    control::{
+        fors::lower_hir_for_loop, ifs::lower_hir_if_statement, loops::lower_hir_while_loop,
+        matches::lower_hir_match_block,
+    },
     funcs::{lower_hir_function_call, lower_hir_function_return},
     values::lower_hir_value,
     vars::{lower_hir_variable_assign, lower_hir_variable_declaration},
@@ -33,6 +36,7 @@ pub fn lower_hir_body_node(
         HIRNodeKind::IfStatement { .. } => lower_hir_if_statement(node, ctx, module, hirctx),
         HIRNodeKind::ForLoop { .. } => lower_hir_for_loop(node, ctx, module, hirctx),
         HIRNodeKind::WhileLoop { .. } => lower_hir_while_loop(node, ctx, module, hirctx),
+        HIRNodeKind::MatchBlock { .. } => lower_hir_match_block(node, ctx, module, hirctx),
 
         HIRNodeKind::ReturnStatement { .. } => lower_hir_function_return(node, ctx, module, hirctx),
 
