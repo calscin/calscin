@@ -172,6 +172,12 @@ pub enum HIRNodeKind {
         /// Represents whenever the cast was done explicitly by the user (using into)
         explicit_cast: bool,
     },
+
+    MatchBlock {
+        val: ArenaHandle,
+        matches: Vec<(PrimitiveType, HashedString, usize, Vec<ArenaHandle>)>,
+        default_match: Option<Vec<ArenaHandle>>,
+    },
 }
 
 /// Represents a full HIR node. Holds the node kind and the start and end positions of it

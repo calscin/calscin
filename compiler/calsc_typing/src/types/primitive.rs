@@ -91,6 +91,10 @@ impl PrimitiveType {
         matches!(self, Self::EnumEntry(_, _))
     }
 
+    pub fn is_enum(&self) -> bool {
+        matches!(self, Self::Enum(_))
+    }
+
     pub fn get_signed_state(&self) -> bool {
         match self {
             Self::Int(signed) => *signed,

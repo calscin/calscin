@@ -32,6 +32,7 @@ use crate::{
             lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop,
         },
         key::lower_ast_key,
+        matches::lower_ast_matches,
         values::{lower_ast_value, lru::lower_ast_lru},
         vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
     },
@@ -65,6 +66,10 @@ pub fn lower_ast_body_node(
             lower_ast_while_loop(node, local_ctx, file_ctx, ctx, ast_ctx)
         }
         ASTNodeKind::Loop { .. } => lower_ast_loop(node, local_ctx, file_ctx, ctx, ast_ctx),
+
+        ASTNodeKind::MatchBlock { .. } => {
+            lower_ast_matches(node, local_ctx, file_ctx, ctx, ast_ctx)
+        }
 
         ASTNodeKind::ReturnStatement { .. } => {
             lower_ast_return_statement(node, local_ctx, file_ctx, ctx, ast_ctx)

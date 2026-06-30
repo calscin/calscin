@@ -16,6 +16,7 @@ pub mod control;
 pub mod funcs;
 pub mod imports;
 pub mod key;
+pub mod matches;
 pub mod types;
 pub mod values;
 pub mod vars;

@@ -161,6 +161,26 @@ impl TypeKind {
         }
     }
 
+    pub fn get_primitive(&self, ctx: &TypeCtx) -> HeldPrimitive {
+        match self {
+            Self::Primitive(container) => container.clone(),
+            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_primitive(ctx),
+            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_primitive(ctx),
+            Self::Array(_, inner) => ctx.type_kind_arena.get(inner).get_primitive(ctx),
+            Self::Segment(inner) => ctx.type_kind_arena.get(inner).get_primitive(ctx),
+            Self::Void => panic!(),
+        }
+    }
+
+    pub fn has_direct_primitive(&self, ctx: &TypeCtx) -> bool {
+        match self {
+            Self::Primitive(_) => true,
+            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).has_direct_primitive(ctx),
+            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).has_direct_primitive(ctx),
+            _ => false,
+        }
+    }
+
     /// Checks whenther the type is compatible with mutation operations.
     /// This mostly will be used for references and pointers
     pub fn is_mutation_compatible(&self) -> bool {
@@ -189,6 +209,14 @@ impl TypeKind {
             #[cfg(not(feature = "debug"))]
             _ => panic!("Direct type of type is not primitive!"),
         }
+    }
+
+    pub fn is_reference(&self) -> bool {
+        matches!(self, Self::Reference(_, _))
+    }
+
+    pub fn is_pointer(&self) -> bool {
+        matches!(self, Self::Pointer(_, _))
     }
 
     pub fn is_static(&self, ctx: &TypeCtx) -> bool {
