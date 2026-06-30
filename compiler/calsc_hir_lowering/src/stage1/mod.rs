@@ -20,7 +20,7 @@ use calsc_typing::prelude::apply_prelude;
 
 use crate::stage1::{
     funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
-    types::lower_ast_struct_declaration,
+    types::{lower_ast_enum_declaration, lower_ast_struct_declaration},
 };
 
 pub mod funcs;
@@ -43,6 +43,8 @@ pub fn lower_hir_stage_1_node(
         ASTNodeKind::StructDeclaration { .. } => {
             lower_ast_struct_declaration(ASTNode::clone(&node), file_ctx, ctx)?
         }
+
+        ASTNodeKind::EnumDeclaration { .. } => lower_ast_enum_declaration(node, file_ctx, ctx)?,
 
         ASTNodeKind::Module { .. } => lower_hir_stage_1_module(node, file_ctx, ctx, ast_ctx)?,
 

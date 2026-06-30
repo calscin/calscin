@@ -8,8 +8,8 @@ use calsc_ast::{
 use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{
-        build_compile_time_size, build_expected_simple_type, build_internal_hir_node_leaked,
-        build_type_not_static,
+        build_compile_time_size, build_enum_entry_already_present, build_expected_simple_type,
+        build_internal_hir_node_leaked, build_type_not_static,
     },
 };
 use calsc_hir::{
@@ -19,9 +19,10 @@ use calsc_hir::{
 };
 
 use calsc_typing::{
-    allocs::STRUCT_CONTAINER_ALLOC,
+    allocs::{ENUM_CONTAINER_ALLOC, STRUCT_CONTAINER_ALLOC},
     types::{
         HeldPrimitive, MutationState, SizeParameter, TypeKind,
+        enums::{EnumContainer, EnumEntryContainer},
         primitive::PrimitiveType,
         structs::{NamedField, StructContainer},
     },
@@ -87,6 +88,88 @@ pub fn lower_ast_struct_declaration(
 
         ctx.type_ctx.type_params.end_group(group);
 
+        Ok(())
+    } else {
+        return Err(build_internal_hir_node_leaked(&node, &node).into());
+    }
+}
+
+pub fn lower_ast_enum_declaration(
+    node: ASTNode,
+    file_ctx: &mut HIRFileContext,
+    ctx: &mut HIRContext,
+) -> DiagPossible {
+    if let ASTNodeKind::EnumDeclaration {
+        name,
+        entries,
+        visibility,
+        type_parameters,
+    } = node.kind.clone()
+    {
+        let group = ctx.type_ctx.type_params.start_param_group();
+
+        let mut enum_container = EnumContainer::new(name.clone(), file_ctx.current_module.clone());
+
+        for type_parameter in type_parameters {
+            ctx.type_ctx
+                .type_params
+                .append_type_param(type_parameter.clone(), &node)?;
+
+            enum_container.type_parameters.push(type_parameter);
+        }
+
+        let enum_container = ENUM_CONTAINER_ALLOC.with(|f| f.borrow_mut().append(enum_container));
+
+        let visibility = convert_visibility(visibility, file_ctx.current_module.clone());
+
+        let key = GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
+
+        for (entry_name, fields) in entries {
+            let mut enum_entry = EnumEntryContainer::new(entry_name.clone(), enum_container);
+
+            for field in fields {
+                let ty = lower_ast_type(field.0, &node, file_ctx, ctx)?;
+
+                if !ty.is_static(&ctx.type_ctx) {
+                    return Err(build_type_not_static(
+                        &display_with_to_string(&ty, &ctx.type_ctx),
+                        &node,
+                    )
+                    .into());
+                }
+
+                enum_entry
+                    .fields
+                    .append_named(NamedField(field.1, ty), &node)?;
+            }
+
+            let has_entry = ENUM_CONTAINER_ALLOC.with(|f| {
+                f.borrow()
+                    .get(&enum_container)
+                    .entries
+                    .contains_key(&entry_name)
+            });
+
+            if has_entry {
+                return Err(build_enum_entry_already_present(&entry_name, &node).into());
+            }
+
+            ENUM_CONTAINER_ALLOC.with(|f| {
+                f.borrow_mut()
+                    .get_mut(&enum_container)
+                    .entries
+                    .insert(entry_name, enum_entry)
+            });
+        }
+
+        ctx.scope.append(
+            key,
+            GlobalContextValue::Type(PrimitiveType::Enum(enum_container)),
+            visibility,
+            &node,
+        )?;
+
+        ctx.type_ctx.type_params.end_group(group);
         Ok(())
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
