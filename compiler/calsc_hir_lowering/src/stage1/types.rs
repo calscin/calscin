@@ -143,6 +143,8 @@ pub fn lower_ast_enum_declaration(
                     .append_named(NamedField(field.1, ty), &node)?;
             }
 
+            println!("Test: {:#?}", enum_entry.fields);
+
             let has_entry = ENUM_CONTAINER_ALLOC.with(|f| {
                 f.borrow()
                     .get(&enum_container)
@@ -157,8 +159,7 @@ pub fn lower_ast_enum_declaration(
             ENUM_CONTAINER_ALLOC.with(|f| {
                 f.borrow_mut()
                     .get_mut(&enum_container)
-                    .entries
-                    .insert(entry_name.clone(), enum_entry)
+                    .append_entry(entry_name.clone(), enum_entry);
             });
 
             // Append to HIR context

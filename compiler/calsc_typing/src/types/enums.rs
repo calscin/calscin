@@ -3,11 +3,7 @@ use std::collections::HashMap;
 use calsc_modules::path::ModulePath;
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{
-    ctx::TypeCtx,
-    traits::FieldedType,
-    types::{TypeKind, structs::FieldContainer},
-};
+use crate::types::{TypeKind, structs::FieldContainer};
 
 /// The container for an enum type
 pub struct EnumContainer {
@@ -15,6 +11,7 @@ pub struct EnumContainer {
     pub module: ModulePath,
 
     pub entries: HashMap<HashedString, EnumEntryContainer>,
+    pub entries_order: Vec<HashedString>,
     pub type_parameters: Vec<HashedString>,
 }
 
@@ -32,8 +29,14 @@ impl EnumContainer {
             name,
             module,
             entries: HashMap::new(),
+            entries_order: vec![],
             type_parameters: vec![],
         }
+    }
+
+    pub fn append_entry(&mut self, name: HashedString, container: EnumEntryContainer) {
+        self.entries.insert(name.clone(), container);
+        self.entries_order.push(name);
     }
 
     pub fn get_marker_type(&self) -> TypeKind {

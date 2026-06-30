@@ -143,3 +143,13 @@ pub fn display_with_list<K: Clone, T: DisplayWith<K>>(dw: &[T], k: K) -> String 
 
     str
 }
+
+pub fn vec_contains<K: PartialEq>(vec: &[K], elem: &K) -> Option<usize> {
+    for i in 0..vec.len() {
+        if &vec[i] == elem {
+            return Some(i);
+        }
+    }
+
+    None
+}

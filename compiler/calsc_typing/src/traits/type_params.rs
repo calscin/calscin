@@ -53,6 +53,14 @@ impl TypeParameteredType for PrimitiveType {
                 STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).get_type_params(ctx))
             }
 
+            PrimitiveType::Enum(container) => {
+                ENUM_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).get_type_params(ctx))
+            }
+
+            PrimitiveType::EnumEntry(container, _) => {
+                ENUM_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).get_type_params(ctx))
+            }
+
             _ => vec![],
         }
     }
@@ -61,6 +69,14 @@ impl TypeParameteredType for PrimitiveType {
         match self {
             Self::Struct(container) => STRUCT_CONTAINER_ALLOC
                 .with(|f| f.borrow().get(&container).has_type_param(name, ctx)),
+
+            PrimitiveType::Enum(container) => {
+                ENUM_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).has_type_param(name, ctx))
+            }
+
+            PrimitiveType::EnumEntry(container, _) => {
+                ENUM_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).has_type_param(name, ctx))
+            }
 
             _ => false,
         }

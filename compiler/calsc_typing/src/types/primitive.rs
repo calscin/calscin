@@ -100,15 +100,15 @@ impl PrimitiveType {
 }
 
 impl FieldedType for PrimitiveType {
-    fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
+    fn has_field(&self, field: &HashedString, ctx: &TypeCtx) -> bool {
         match self {
             Self::Struct(container) => STRUCT_CONTAINER_ALLOC
-                .with(|f| f.borrow().get(container).fields.has_field(name, ctx)),
+                .with(|f| f.borrow().get(container).fields.has_field(field, ctx)),
 
             Self::EnumEntry(container, name) => ENUM_CONTAINER_ALLOC.with(|f| {
                 f.borrow().get(container).entries[&name]
                     .fields
-                    .has_field(name, ctx)
+                    .has_field(field, ctx)
             }),
 
             _ => false,

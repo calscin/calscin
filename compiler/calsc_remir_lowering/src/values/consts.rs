@@ -107,6 +107,8 @@ pub fn lower_hir_literal(
             let mut vals = vec![];
             let mir_ty = lower_type(ty.clone(), &hirctx.type_ctx)?;
 
+            if ty.is_directly_primitive() && ty.as_primitive().ty.is_enum_entry() {}
+
             for field in ty.get_fields(&hirctx.type_ctx) {
                 vals.push(lower_hir_value(
                     values[&field].clone(),
