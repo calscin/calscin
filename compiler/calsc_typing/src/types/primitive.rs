@@ -3,7 +3,10 @@
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
-    allocs::STRUCT_CONTAINER_ALLOC, ctx::TypeCtx, params::TypeParameterId, traits::FieldedType,
+    allocs::{ENUM_CONTAINER_ALLOC, STRUCT_CONTAINER_ALLOC},
+    ctx::TypeCtx,
+    params::TypeParameterId,
+    traits::FieldedType,
     types::TypeKind,
 };
 
@@ -102,6 +105,12 @@ impl FieldedType for PrimitiveType {
             Self::Struct(container) => STRUCT_CONTAINER_ALLOC
                 .with(|f| f.borrow().get(container).fields.has_field(name, ctx)),
 
+            Self::EnumEntry(container, name) => ENUM_CONTAINER_ALLOC.with(|f| {
+                f.borrow().get(container).entries[&name]
+                    .fields
+                    .has_field(name, ctx)
+            }),
+
             _ => false,
         }
     }
@@ -112,6 +121,12 @@ impl FieldedType for PrimitiveType {
                 STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(container).fields.get_fields(ctx))
             }
 
+            Self::EnumEntry(container, name) => ENUM_CONTAINER_ALLOC.with(|f| {
+                f.borrow().get(&container).entries[&name]
+                    .fields
+                    .get_fields(ctx)
+            }),
+
             _ => vec![],
         }
     }
@@ -120,6 +135,12 @@ impl FieldedType for PrimitiveType {
         match self {
             Self::Struct(container) => STRUCT_CONTAINER_ALLOC
                 .with(|f| f.borrow().get(container).fields.get_field_index(field, ctx)),
+
+            Self::EnumEntry(container, name) => ENUM_CONTAINER_ALLOC.with(|f| {
+                f.borrow().get(container).entries[&name]
+                    .fields
+                    .get_field_index(field, ctx)
+            }),
 
             _ => panic!("Type cannot hold field"),
         }
@@ -131,6 +152,12 @@ impl FieldedType for PrimitiveType {
                 STRUCT_CONTAINER_ALLOC
                     .with(|f| f.borrow().get(container).fields.get_field(field, ctx))
             },
+
+            Self::EnumEntry(container, name) => ENUM_CONTAINER_ALLOC.with(|f| unsafe {
+                f.borrow().get(container).entries[&name]
+                    .fields
+                    .get_field(field, ctx)
+            }),
 
             _ => panic!("Type cannot hold field"),
         }

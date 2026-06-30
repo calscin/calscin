@@ -3,7 +3,11 @@ use std::collections::HashMap;
 use calsc_modules::path::ModulePath;
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::types::{TypeKind, structs::FieldContainer};
+use crate::{
+    ctx::TypeCtx,
+    traits::FieldedType,
+    types::{TypeKind, structs::FieldContainer},
+};
 
 /// The container for an enum type
 pub struct EnumContainer {
