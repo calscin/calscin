@@ -1,16 +1,18 @@
+use std::collections::HashMap;
+
 use calsc_diagnostics::DiagResult;
 
 use calsc_typing::{
-    allocs::STRUCT_CONTAINER_ALLOC,
+    allocs::{ENUM_CONTAINER_ALLOC, STRUCT_CONTAINER_ALLOC},
     ctx::TypeCtx,
     traits::FieldedType,
-    types::{HeldPrimitive, TypeKind, primitive::PrimitiveType},
+    types::{HeldPrimitive, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
 use remir::values::ValueType;
 
 #[allow(unsafe_code)]
 pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType> {
-    match ty.ty {
+    match ty.ty.clone() {
         PrimitiveType::Boolean => Ok(ValueType::Int(false, 1)),
         PrimitiveType::Int(signed) => Ok(ValueType::Int(signed, ty.size.0)),
         PrimitiveType::Float => Ok(ValueType::Float(ty.size.0)),
@@ -28,6 +30,60 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
 
             Ok(ValueType::Struct(type_fields))
         }
+
+        PrimitiveType::Enum(container_ref) => {
+            let mut max_size = 0;
+            let mut marker_type = TypeKind::Void;
+
+            ENUM_CONTAINER_ALLOC.with(|f| {
+                let container = f.borrow().get(&container_ref);
+
+                marker_type = container.get_marker_type();
+
+                for (entry, _) in &container.entries {
+                    let sz = lower_type_base(
+                        HeldPrimitive {
+                            ty: PrimitiveType::EnumEntry(container_ref.clone(), entry.clone()),
+                            size: SizeParameter(0),
+                            type_parameters: HashMap::new(),
+                        },
+                        ctx,
+                    )?
+                    .get_size();
+
+                    if sz > max_size {
+                        max_size = sz;
+                    }
+                }
+
+                Ok::<(), ()>(())
+            })?;
+
+            Ok(ValueType::Struct(vec![
+                Box::new(lower_type(marker_type, ctx)?),
+                Box::new(ValueType::Int(false, max_size)),
+            ]))
+        }
+
+        PrimitiveType::EnumEntry(container_ref, name) => ENUM_CONTAINER_ALLOC.with(|f| {
+            let container = f.borrow().get(&container_ref);
+            let entry = &container.entries[&name];
+
+            let marker_type = container.get_marker_type();
+
+            let mut fields = vec![];
+
+            fields.push(Box::new(lower_type(marker_type, ctx)?));
+
+            for field in entry.fields.get_fields(ctx) {
+                let field_ty = unsafe { entry.fields.get_field(&field, ctx) }; // This is safe since get_fields return the list of fields
+                let field_ty = ty.lower_type_parameter_type(field_ty, ctx);
+
+                fields.push(Box::new(lower_type(field_ty, ctx)?))
+            }
+
+            Ok(ValueType::Struct(fields))
+        }),
 
         PrimitiveType::Size => Ok(ValueType::new_int(false, usize::BITS as usize)),
         PrimitiveType::Function(_) => Ok(ValueType::new_any_pointer()),
