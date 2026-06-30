@@ -47,6 +47,10 @@ impl TypeCasting for PrimitiveType {
 
             (PrimitiveType::Int(_), PrimitiveType::Int(_)) => true,
 
+            (PrimitiveType::Enum(container), PrimitiveType::EnumEntry(container_into, _)) => {
+                container == container_into
+            }
+
             _ => false,
         }
     }
