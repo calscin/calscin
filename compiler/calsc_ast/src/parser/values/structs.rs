@@ -40,7 +40,7 @@ pub fn parse_ast_structured_init(
         ind,
         &mut |tokens, ind| parse_structured_init_field(tokens, ind, ctx),
         TokenKind::BraceClose,
-        true,
+        false,
         false,
     )?;
 

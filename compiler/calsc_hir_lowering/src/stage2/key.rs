@@ -28,14 +28,22 @@ pub fn lower_ast_key<S: DiagnosticSource>(
     let everything_but_last = path.everything_but_last();
     let last = path.last();
 
-    if check && everything_but_last.members.len() > 1 {
+    if check && everything_but_last.members.len() >= 1 {
         let key = lower_ast_key(everything_but_last, source, false, file_ctx, ctx)?;
 
-        let is_module = ctx.scope.has_entry(&key)
+        let is_entry = ctx.scope.has_entry(&key);
+
+        let is_module = is_entry
             && ctx
                 .scope
                 .get_entry(key.clone(), &file_ctx.current_module, source)?
                 .is_module();
+
+        let is_type = is_entry
+            && ctx
+                .scope
+                .get_entry(key.clone(), &file_ctx.current_module, source)?
+                .is_type();
 
         if is_module {
             let module = ctx
@@ -44,6 +52,10 @@ pub fn lower_ast_key<S: DiagnosticSource>(
                 .as_module(source)?;
 
             return Ok(GlobalContextKey::new(last).module_path(module));
+        }
+
+        if is_type {
+            return Ok(GlobalContextKey::new(last).associated_type(key));
         }
 
         return lower_ast_key(path, source, false, file_ctx, ctx);

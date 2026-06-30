@@ -63,7 +63,7 @@ impl Display for GlobalContextKey {
         }
 
         if self.associated_type.is_some() {
-            write!(f, "{}::", self.associated_type.as_ref().unwrap())?;
+            write!(f, "{}->", self.associated_type.as_ref().unwrap())?;
         }
 
         write!(f, "{}", *self.name)
