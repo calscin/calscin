@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use calsc_modules::path::ModulePath;
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::types::structs::FieldContainer;
+use crate::types::{TypeKind, structs::FieldContainer};
 
 /// The container for an enum type
 pub struct EnumContainer {
@@ -20,6 +20,23 @@ pub struct EnumEntryContainer {
 
     pub fields: FieldContainer,
     pub parent: ArenaHandle,
+}
+
+impl EnumContainer {
+    pub fn new(name: HashedString, module: ModulePath) -> Self {
+        Self {
+            name,
+            module,
+            entries: HashMap::new(),
+            type_parameters: vec![],
+        }
+    }
+
+    pub fn get_marker_type(&self) -> TypeKind {
+        let bits_needed = usize::BITS - (self.entries.len() - 1).leading_zeros();
+
+        TypeKind::make_int_type(false, bits_needed as usize)
+    }
 }
 
 impl EnumEntryContainer {
