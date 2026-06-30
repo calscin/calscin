@@ -90,7 +90,10 @@ fn parse_ast_enum_entry(
 
         map.insert(name, fields);
     } else {
-        tokens[*ind].expects(TokenKind::Comma)?;
+        if tokens[*ind].kind != TokenKind::Comma {
+            tokens[*ind].expects(TokenKind::BraceClose)?;
+        }
+
         // Do not increment to let parse_ast_list handle it
 
         map.insert(name, vec![]);

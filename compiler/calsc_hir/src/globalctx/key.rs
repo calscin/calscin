@@ -62,7 +62,7 @@ impl Display for GlobalContextKey {
             write!(f, "{}::", self.module_path)?;
         }
 
-        if !self.associated_type.is_some() {
+        if self.associated_type.is_some() {
             write!(f, "{}::", self.associated_type.as_ref().unwrap())?;
         }
 

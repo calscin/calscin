@@ -51,6 +51,8 @@ pub fn lower_hir_stage_2_node(
         ASTNodeKind::ExternFunctionDeclaration { .. } => return Ok(()),
         ASTNodeKind::StructDeclaration { .. } => return Ok(()),
 
+        ASTNodeKind::EnumDeclaration { .. } => return Ok(()),
+
         ASTNodeKind::Module { .. } => lower_hir_stage_2_module(node, file_ctx, ctx, ast_context)?,
 
         ASTNodeKind::ImportStatement { .. } => {

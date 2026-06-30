@@ -139,6 +139,8 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let _ = lower_hir_stage_2(ast_ctx, &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();
 
+    println!("{:#?}", hir_ctx.scope);
+
     if !target.requires_remir() {
         return None;
     }
