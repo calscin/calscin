@@ -5,12 +5,16 @@ use std::{
     path::PathBuf,
 };
 
+use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_utils::{
     alloc::arena::{ArenaAllocator, ArenaHandle},
     hash::HashedString,
 };
 
-use crate::{path::ModulePath, treev2::entry::TreeEntry};
+use crate::{
+    path::ModulePath,
+    treev2::{entry::TreeEntry, traverse::TraverseTree},
+};
 
 pub mod entry;
 pub mod module;
@@ -33,5 +37,30 @@ impl ModuleTree {
 
             entry_arena: ArenaAllocator::new(),
         }
+    }
+
+    pub fn get_entry<'a, S: DiagnosticSource>(
+        &'a self,
+        path: &ModulePath,
+        source: &S,
+    ) -> DiagResult<&'a TreeEntry> {
+        let mut entry = self.get(path.get_ref(0), path, self, source)?;
+
+        for i in 1..path.get_size() {
+            entry = entry.get(path.get_ref(i), path, self, source)?;
+        }
+
+        Ok(entry)
+    }
+
+    pub fn get_entry_mut<'a, S: DiagnosticSource>(
+        &'a mut self,
+        path: &ModulePath,
+        source: &S,
+    ) -> DiagResult<&'a mut TreeEntry> {
+        let entry = self.get_entry(path, source)?;
+        let handle = self.resolved_cache[&entry.self_path].clone();
+
+        Ok(self.entry_arena.get_mut(&handle))
     }
 }

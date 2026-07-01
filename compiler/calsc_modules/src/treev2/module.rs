@@ -2,10 +2,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{
-    path::{ModulePath, PackageLessModulePath},
-    treev2::entry::TreeEntry,
-};
+use crate::path::{ModulePath, PackageLessModulePath};
 
 /// The type of module
 pub enum TreeModuleType {

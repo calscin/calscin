@@ -39,6 +39,20 @@ pub trait TraverseTree {
 
         unsafe { Ok(self.get_directly(name, tree)) }
     }
+
+    fn get_mut<'a, S: DiagnosticSource>(
+        &'a mut self,
+        name: &HashedString,
+        path: &ModulePath,
+        tree: &'a mut ModuleTree,
+        source: &S,
+    ) -> DiagResult<&'a mut TreeEntry> {
+        if !self.has(name, tree) {
+            return Err(build_cannot_find_element_no_closest(&path, source).into());
+        }
+
+        unsafe { Ok(self.get_directly_mut(name, tree)) }
+    }
 }
 
 impl TraverseTree for TreeEntry {
