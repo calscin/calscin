@@ -1,6 +1,6 @@
 use std::{collections::HashMap, path::PathBuf};
 
-use calsc_utils::hash::HashedString;
+use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
     path::{ModulePath, PackageLessModulePath},
@@ -25,7 +25,7 @@ pub struct TreeModule {
     /// - a type
     /// - a function
     /// - another module
-    pub children: HashMap<HashedString, TreeEntry>,
+    pub children: HashMap<HashedString, ArenaHandle>,
 
     /// The imports inside of the module.
     /// This represents a table of:

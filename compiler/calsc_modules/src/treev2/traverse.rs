@@ -18,6 +18,12 @@ pub trait TraverseTree {
         tree: &'a ModuleTree,
     ) -> &'a TreeEntry;
 
+    unsafe fn get_directly_mut<'a>(
+        &'a mut self,
+        name: &HashedString,
+        tree: &'a mut ModuleTree,
+    ) -> &'a mut TreeEntry;
+
     fn has(&self, name: &HashedString, tree: &ModuleTree) -> bool;
 
     fn get<'a, S: DiagnosticSource>(
@@ -46,10 +52,21 @@ impl TraverseTree for TreeEntry {
     unsafe fn get_directly<'a>(
         &'a self,
         name: &HashedString,
-        _tree: &'a ModuleTree,
+        tree: &'a ModuleTree,
     ) -> &'a TreeEntry {
         match &self.kind {
-            TreeEntryKind::Module(module) => &module.children[&name],
+            TreeEntryKind::Module(module) => tree.entry_arena.get(&module.children[&name]),
+            _ => panic!(),
+        }
+    }
+
+    unsafe fn get_directly_mut<'a>(
+        &'a mut self,
+        name: &HashedString,
+        tree: &'a mut ModuleTree,
+    ) -> &'a mut TreeEntry {
+        match &mut self.kind {
+            TreeEntryKind::Module(module) => tree.entry_arena.get_mut(&module.children[&name]),
             _ => panic!(),
         }
     }
@@ -66,5 +83,13 @@ impl TraverseTree for ModuleTree {
         _tree: &'a ModuleTree,
     ) -> &'a TreeEntry {
         self.entry_arena.get(&self.children[name])
+    }
+
+    unsafe fn get_directly_mut<'a>(
+        &'a mut self,
+        name: &HashedString,
+        _tree: &'a mut ModuleTree,
+    ) -> &'a mut TreeEntry {
+        self.entry_arena.get_mut(&self.children[name])
     }
 }
