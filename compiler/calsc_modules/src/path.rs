@@ -5,6 +5,8 @@ use std::{
 
 use calsc_utils::hash::HashedString;
 
+pub struct PackageLessModulePath(Vec<HashedString>);
+
 /// Represents a path to a module
 #[derive(Clone)]
 pub struct ModulePath {
@@ -69,6 +71,14 @@ impl ModulePath {
             self.package.clone()
         } else {
             self.path[ind - 1].clone()
+        }
+    }
+
+    pub fn get_ref<'a>(&'a self, ind: usize) -> &'a HashedString {
+        if ind == 0 {
+            &self.package
+        } else {
+            &self.path[ind - 1]
         }
     }
 

@@ -14,6 +14,7 @@ use crate::{path::ModulePath, treev2::entry::TreeEntry};
 
 pub mod entry;
 pub mod module;
+pub mod traverse;
 
 pub struct ModuleTree {
     pub children: HashMap<HashedString, ArenaHandle>,
