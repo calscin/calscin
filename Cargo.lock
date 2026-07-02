@@ -177,6 +177,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "calsc_tree_build"
+version = "0.1.0"
+dependencies = [
+ "calsc_ast",
+ "calsc_diagnostics",
+ "calsc_modules",
+]
+
+[[package]]
 name = "calsc_typing"
 version = "0.1.0"
 dependencies = [
