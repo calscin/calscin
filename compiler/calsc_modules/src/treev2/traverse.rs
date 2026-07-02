@@ -1,5 +1,6 @@
 use calsc_diagnostics::{
-    DiagResult, DiagnosticSource, diags::errors::build_cannot_find_element_no_closest,
+    DiagPossible, DiagResult, DiagnosticSource,
+    diags::errors::{build_cannot_find_element_no_closest, build_expected_entry_type},
 };
 use calsc_utils::hash::HashedString;
 
@@ -25,6 +26,15 @@ pub trait TraverseTree {
     ) -> &'a mut TreeEntry;
 
     fn has(&self, name: &HashedString, tree: &ModuleTree) -> bool;
+
+    fn set<'a, S: DiagnosticSource>(
+        &'a mut self,
+        name: HashedString,
+        path: &ModulePath,
+        val: TreeEntryKind,
+        tree: &'a mut ModuleTree,
+        source: &S,
+    ) -> DiagPossible;
 
     fn get<'a, S: DiagnosticSource>(
         &'a self,
@@ -63,6 +73,35 @@ impl TraverseTree for TreeEntry {
         }
     }
 
+    fn set<'a, S: DiagnosticSource>(
+        &'a mut self,
+        name: HashedString,
+        path: &ModulePath,
+        val: TreeEntryKind,
+        tree: &'a mut ModuleTree,
+        source: &S,
+    ) -> DiagPossible {
+        match &mut self.kind {
+            TreeEntryKind::Module(module) => {
+                let val = TreeEntry::new(val, path.clone());
+                let val = tree.entry_arena.append(val);
+
+                module.children.insert(name, val);
+
+                Ok(())
+            }
+
+            _ => {
+                return Err(build_expected_entry_type(
+                    &"module".to_string(),
+                    &"??".to_string(),
+                    source,
+                )
+                .into());
+            }
+        }
+    }
+
     unsafe fn get_directly<'a>(
         &'a self,
         name: &HashedString,
@@ -89,6 +128,21 @@ impl TraverseTree for TreeEntry {
 impl TraverseTree for ModuleTree {
     fn has(&self, name: &HashedString, _tree: &ModuleTree) -> bool {
         self.children.contains_key(name)
+    }
+
+    fn set<'a, S: DiagnosticSource>(
+        &'a mut self,
+        name: HashedString,
+        path: &ModulePath,
+        val: TreeEntryKind,
+        _tree: &'a mut ModuleTree,
+        _source: &S,
+    ) -> DiagPossible {
+        let val = TreeEntry::new(val, path.clone());
+        let val = self.entry_arena.append(val);
+
+        self.children.insert(name, val);
+        Ok(())
     }
 
     unsafe fn get_directly<'a>(

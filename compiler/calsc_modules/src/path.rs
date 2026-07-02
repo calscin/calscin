@@ -5,7 +5,7 @@ use std::{
 
 use calsc_utils::hash::HashedString;
 
-pub struct PackageLessModulePath(Vec<HashedString>);
+pub struct PackageLessModulePath(pub Vec<HashedString>);
 
 /// Represents a path to a module
 #[derive(Clone)]
