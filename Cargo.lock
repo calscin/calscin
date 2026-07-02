@@ -197,6 +197,9 @@ dependencies = [
 [[package]]
 name = "calsc_utils"
 version = "0.0.0"
+dependencies = [
+ "debugtools",
+]
 
 [[package]]
 name = "cc"
@@ -290,6 +293,12 @@ dependencies = [
  "unicode-width",
  "windows-sys",
 ]
+
+[[package]]
+name = "debugtools"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9403fe8dbdf56729e3222540c31129702657c45085ed4b8b44dc26ae3234d575"
 
 [[package]]
 name = "encode_unicode"
