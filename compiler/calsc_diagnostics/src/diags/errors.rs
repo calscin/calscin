@@ -20,6 +20,7 @@ pub enum ErrorCode {
 
     // Module Tree
     MultipleFilesModule,
+    NoFilesModule,
 
     // Typing
     UnexpectedType,
@@ -708,6 +709,26 @@ pub fn build_multiple_files_one_module<S: DiagnosticSource, M: Display>(
         )],
         vec![format!(
             "remove either {}.cal or {}/module.cal!",
+            module, module
+        )],
+    )
+}
+
+pub fn build_module_no_files<S: DiagnosticSource, M: Display>(
+    source: &S,
+    module: &M,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::MultipleFilesModule as usize),
+        format!("the module {} cannot be found", module),
+        None,
+        vec![],
+        vec![format!(
+            "both {}.cal and {}/module.cal are missing!",
+            module, module
+        )],
+        vec![format!(
+            "create either {}.cal or {}/module.cal!",
             module, module
         )],
     )

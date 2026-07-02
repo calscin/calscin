@@ -11,3 +11,33 @@
 //!
 //!
 //! We also associate every entry with the related nodes, for example every type tree entry should be related to the AST node that caused it to be added / to exist.
+
+use std::{fs, path::PathBuf};
+
+use calsc_ast::parser::ctx::parse_ast_whole;
+use calsc_diagnostics::DiagPossible;
+use calsc_lexer::lexer_tokenize;
+
+use crate::{ctx::TreeBuildingCtx, discover::discover_files};
+
+pub mod ctx;
+pub mod discover;
+
+pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+    assert!(path.parent().is_some());
+
+    let lexer = lexer_tokenize(
+        &fs::read_to_string(&path).unwrap(),
+        path.to_str().unwrap().to_string(),
+    )?;
+
+    let ast = parse_ast_whole(&lexer)?;
+
+    let files = discover_files(&ast, ctx, path.parent().unwrap().to_path_buf())?;
+
+    for file in files {
+        analyze_file(file, ctx)?;
+    }
+
+    Ok(())
+}

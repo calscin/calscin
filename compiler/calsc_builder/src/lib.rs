@@ -13,6 +13,7 @@ use calsc_lexer::lexer_tokenize;
 use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
+use calsc_tree_build::{analyze_file, ctx::TreeBuildingCtx, discover::discover_files};
 
 pub fn setup_build_state(
     out: PathBuf,
@@ -52,6 +53,14 @@ pub fn build() {
 
     // Building global module tree
     if GLOBAL_STATE.with_borrow(|state| state.is_package_enabled) {
+        {
+            let path = GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap());
+
+            let mut ctx = TreeBuildingCtx::new();
+
+            analyze_file(path, &mut ctx).unwrap_cleanly();
+        }
+
         let module_tree = build_module_tree(
             GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap()),
         );
