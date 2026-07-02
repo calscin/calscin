@@ -18,6 +18,9 @@ pub enum ErrorCode {
     ExpectedToken,
     EmptyType,
 
+    // Module Tree
+    MultipleFilesModule,
+
     // Typing
     UnexpectedType,
     ExpectedType,
@@ -687,5 +690,25 @@ pub fn build_empty_type<S: DiagnosticSource>(source: &S) -> Diagnostic {
         vec![],
         vec!["this can be related to the type not being written correctly".to_string()],
         vec!["make sure the type is a valid written one".to_string()],
+    )
+}
+
+pub fn build_multiple_files_one_module<S: DiagnosticSource, M: Display>(
+    source: &S,
+    module: &M,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::MultipleFilesModule as usize),
+        format!("the module {} can potentially be two files", module),
+        None,
+        vec![],
+        vec![format!(
+            "both {}.cal and {}/module.cal exist!",
+            module, module
+        )],
+        vec![format!(
+            "remove either {}.cal or {}/module.cal!",
+            module, module
+        )],
     )
 }
