@@ -2,7 +2,10 @@ use calsc_diagnostics::{
     DiagPossible, DiagResult, DiagnosticSource,
     diags::errors::{build_cannot_find_element_no_closest, build_expected_entry_type},
 };
-use calsc_utils::{alloc::arena::ArenaAllocator, hash::HashedString};
+use calsc_utils::{
+    alloc::arena::{ArenaAllocator, ArenaHandle},
+    hash::HashedString,
+};
 
 use crate::{
     path::ModulePath,
@@ -31,8 +34,7 @@ pub trait TraverseTree {
         &mut self,
         name: HashedString,
         path: &ModulePath,
-        val: TreeEntryKind,
-        arena: &mut ArenaAllocator<TreeEntry>,
+        val: ArenaHandle,
         source: &S,
     ) -> DiagPossible;
 
@@ -76,16 +78,12 @@ impl TraverseTree for TreeEntry {
     fn set<'a, S: DiagnosticSource>(
         &mut self,
         name: HashedString,
-        path: &ModulePath,
-        val: TreeEntryKind,
-        arena: &mut ArenaAllocator<TreeEntry>,
+        _path: &ModulePath,
+        val: ArenaHandle,
         source: &S,
     ) -> DiagPossible {
         match &mut self.kind {
             TreeEntryKind::Module(module) => {
-                let val = TreeEntry::new(val, path.clone());
-                let val = arena.append(val);
-
                 module.children.insert(name, val);
 
                 Ok(())
@@ -133,14 +131,10 @@ impl TraverseTree for ModuleTree {
     fn set<'a, S: DiagnosticSource>(
         &mut self,
         name: HashedString,
-        path: &ModulePath,
-        val: TreeEntryKind,
-        arena: &mut ArenaAllocator<TreeEntry>,
+        _path: &ModulePath,
+        val: ArenaHandle,
         _source: &S,
     ) -> DiagPossible {
-        let val = TreeEntry::new(val, path.clone());
-        let val = arena.append(val);
-
         self.children.insert(name, val);
         Ok(())
     }

@@ -73,8 +73,25 @@ impl ModuleTree {
         source: &S,
     ) -> DiagPossible {
         if path.get_size() == 1 {
-            self.set(path.get(0), path, val, arena, source)?;
+            let val = TreeEntry::new(val, path.clone());
+            let val = arena.append(val);
+
+            self.set(path.get(0), path, val, source)?;
+
+            return Ok(());
         }
+
+        let mut parent_path = path.clone();
+        let last = parent_path.last();
+
+        parent_path.path.pop();
+
+        let val = TreeEntry::new(val, path.clone());
+        let val = arena.append(val);
+
+        let parent_ref = self.get_entry_mut(path, arena, source)?;
+
+        parent_ref.set(last, path, val, source)?;
 
         Ok(())
     }
