@@ -12,7 +12,6 @@ pub mod hash;
 pub mod math;
 pub mod path;
 pub mod pos;
-pub mod refcell;
 pub mod str;
 pub mod unsafes;
 

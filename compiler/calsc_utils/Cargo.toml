@@ -5,3 +5,6 @@ edition = "2024"
 
 [features]
 debug = []
+
+[dependencies]
+debugtools = "0.1.0"
