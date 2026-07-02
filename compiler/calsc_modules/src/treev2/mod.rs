@@ -15,6 +15,7 @@ use crate::{
     path::ModulePath,
     treev2::{
         entry::{TreeEntry, TreeEntryKind},
+        module::TreeModule,
         traverse::TraverseTree,
     },
 };
@@ -94,5 +95,21 @@ impl ModuleTree {
         parent_ref.set(last, path, val, source)?;
 
         Ok(())
+    }
+
+    pub fn append_module<'a, S: DiagnosticSource>(
+        &'a mut self,
+        path: &ModulePath,
+        file_path: PathBuf,
+        arena: &'a mut ArenaAllocator<TreeEntry>,
+        source: &S,
+    ) -> DiagPossible {
+        self.used_files.insert(file_path.clone());
+
+        let name = path.last();
+
+        let entry = TreeEntryKind::Module(TreeModule::new(name, file_path));
+
+        self.append_entry(path, entry, arena, source)
     }
 }

@@ -33,3 +33,14 @@ pub struct TreeModule {
     /// The file at the origin of the module
     pub path: PathBuf,
 }
+
+impl TreeModule {
+    pub fn new(name: HashedString, file_path: PathBuf) -> Self {
+        Self {
+            name,
+            children: HashMap::new(),
+            imports: HashMap::new(),
+            path: file_path,
+        }
+    }
+}
