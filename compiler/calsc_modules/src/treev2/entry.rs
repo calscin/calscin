@@ -2,12 +2,14 @@ use std::collections::HashSet;
 
 use crate::{path::ModulePath, treev2::module::TreeModule};
 
+#[derive(Clone)]
 pub enum TreeEntryKind {
     Type,
     Function,
     Module(TreeModule),
 }
 
+#[derive(Clone)]
 pub struct TreeEntry {
     pub self_path: ModulePath,
 

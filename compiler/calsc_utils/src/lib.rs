@@ -5,6 +5,12 @@ use std::{
     marker::PhantomData,
 };
 
+#[cfg(feature = "cell-safety")]
+use debugtools::borrows::refcell::DebugRefCell;
+
+#[cfg(not(feature = "cell-safety"))]
+use crate::unsafes::UnsafeMut;
+
 pub mod alloc;
 pub mod cmp;
 pub mod fs;
@@ -14,6 +20,12 @@ pub mod path;
 pub mod pos;
 pub mod str;
 pub mod unsafes;
+
+#[cfg(feature = "cell-safety")]
+pub type StaticMut<V> = DebugRefCell<V>;
+
+#[cfg(not(feature = "cell-safety"))]
+pub type StaticMut<V> = UnsafeMut<V>;
 
 /// Stores either a value of type [`A`] or a value of type [`B`]
 pub enum Either<A, B> {

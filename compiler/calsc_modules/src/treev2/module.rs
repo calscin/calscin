@@ -13,6 +13,7 @@ pub enum TreeModuleType {
     Inner,
 }
 
+#[derive(Clone)]
 pub struct TreeModule {
     /// The name of the module.
     pub name: HashedString,
