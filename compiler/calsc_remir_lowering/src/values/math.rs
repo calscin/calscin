@@ -48,7 +48,9 @@ pub fn lower_hir_math_operation(
 
         let res: BaseSSAValue;
 
-        if ty.is_directly_primitive() && ty.as_primitive().ty.is_int() {
+        if ty.is_directly_primitive()
+            && (ty.as_primitive().ty.is_int() || ty.as_primitive().ty.is_size())
+        {
             let left_expr = SSAIntValue::try_from(left_expr_val)
                 .convert(node_ref.start.clone(), node_ref.end.clone())?;
             let right_expr = SSAIntValue::try_from(right_expr_val)

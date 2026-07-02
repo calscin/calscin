@@ -157,7 +157,9 @@ pub fn convert_numerical_literal_into(
     ty: HeldPrimitive,
     ctx: &TypeCtx,
 ) -> DiagResult<HIRNode> {
-    assert!(ty.size.is_active());
+    println!("{:#?}", ty);
+
+    assert!(ty.size.is_active() || ty.ty.is_size());
 
     let size = ty.size.0;
     let ty = ty.ty.clone();
@@ -169,6 +171,8 @@ pub fn convert_numerical_literal_into(
                 HIRNodeKind::FloatLiteral(*val as f64, size, signed)
             } else if ty.is_int() {
                 HIRNodeKind::IntLiteral(*val, size, signed)
+            } else if ty.is_size() {
+                HIRNodeKind::IntLiteral(*val, usize::BITS as usize, false)
             } else {
                 return Err(build_type_cast_failed_no_from(
                     &display_with_to_string(&ty, ctx),

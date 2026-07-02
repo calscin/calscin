@@ -33,8 +33,25 @@ pub fn parse_ast_math_operator(tokens: &Vec<Token>, ind: &mut usize) -> DiagResu
             }
         }
 
-        TokenKind::Star => MathOperation::Mul,
-        TokenKind::Slash => MathOperation::Div,
+        TokenKind::Star => {
+            if tokens[*ind + 1].kind == TokenKind::Star {
+                *ind += 1; // first *
+
+                MathOperation::ShiftLeft
+            } else {
+                MathOperation::Mul
+            }
+        }
+
+        TokenKind::Slash => {
+            if tokens[*ind + 1].kind == TokenKind::Slash {
+                *ind += 1; // first /
+
+                MathOperation::ShiftRight
+            } else {
+                MathOperation::Div
+            }
+        }
         TokenKind::BackSlash => MathOperation::Mod,
 
         TokenKind::Bang => {

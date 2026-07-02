@@ -14,6 +14,7 @@ impl TypeTransmutation for PrimitiveType {
 
         match (self, into) {
             (PrimitiveType::Int(signed), PrimitiveType::Int(_)) => !signed, // Allow unsigned -> signed convertion
+            (PrimitiveType::Int(signed), PrimitiveType::Size) => !signed,
 
             _ => false,
         }
@@ -43,6 +44,8 @@ impl TypeCasting for PrimitiveType {
             (PrimitiveType::Float, PrimitiveType::Int(_)) => true,
 
             (PrimitiveType::Int(_), PrimitiveType::Int(_)) => true,
+            (PrimitiveType::Size, PrimitiveType::Int(_)) => true,
+            (PrimitiveType::Int(_), PrimitiveType::Size) => true,
 
             _ => false,
         }
