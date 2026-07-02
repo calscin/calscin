@@ -11,5 +11,3 @@
 //!
 //!
 //! We also associate every entry with the related nodes, for example every type tree entry should be related to the AST node that caused it to be added / to exist.
-
-pub mod test;
