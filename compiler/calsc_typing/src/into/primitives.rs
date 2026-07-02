@@ -45,6 +45,7 @@ impl TypeCasting for PrimitiveType {
 
             (PrimitiveType::Int(_), PrimitiveType::Int(_)) => true,
             (PrimitiveType::Size, PrimitiveType::Int(_)) => true,
+            (PrimitiveType::Int(_), PrimitiveType::Size) => true,
 
             _ => false,
         }
