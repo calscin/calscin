@@ -42,6 +42,10 @@ impl ModuleTree {
     }
 
     pub fn has_entry(&self, path: &ModulePath, arena: &ArenaAllocator<TreeEntry>) -> bool {
+        if self.resolved_cache.contains_key(path) {
+            return true;
+        }
+
         if !self.has(path.get_ref(0)) {
             return false;
         }
