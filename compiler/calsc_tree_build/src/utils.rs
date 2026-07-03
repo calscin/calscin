@@ -1,8 +1,11 @@
 use std::{ffi::OsStr, path::PathBuf};
 
 use calsc_ast::path::ElementPath;
-use calsc_diagnostics::DiagnosticSource;
-use calsc_modules::{path::{ModulePath, PackageLessModulePath}, treev2::entry::TreeEntryKind};
+use calsc_diagnostics::{DiagResult, DiagnosticSource};
+use calsc_modules::{
+    path::{ModulePath, PackageLessModulePath},
+    treev2::entry::TreeEntryKind,
+};
 use calsc_utils::hash::HashedString;
 
 use crate::ctx::TreeBuildingCtx;
@@ -15,7 +18,7 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
     if path.members.len() == 1 {
         // Check for prelude types
 
-        let prelude_path = ModulePath::new_prelude_path(path.members);
+        let prelude_path = ModulePath::new_prelude_path(path.members.clone());
 
         if ctx.tree.has_entry(&prelude_path, &ctx.arena) {
             return Ok(prelude_path);
@@ -30,7 +33,7 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
         if let TreeEntryKind::Module(module) = &parent_module.kind {
             let key = PackageLessModulePath(path.members.clone());
 
-            if module.imports.contains_key(&key) {̣̣
+            if module.imports.contains_key(&key) {
                 return Ok(module.imports[&key].clone());
             }
         }

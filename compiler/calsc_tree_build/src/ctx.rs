@@ -1,11 +1,14 @@
 use std::{collections::HashMap, path::PathBuf};
 
 use calsc_ast::nodes::ASTNode;
+use calsc_diagnostics::{DiagnosticSource, result::CalscinResult};
 use calsc_modules::{
     path::ModulePath,
     treev2::{ModuleTree, entry::TreeEntry},
 };
 use calsc_utils::{alloc::arena::ArenaAllocator, hash::HashedString};
+
+use crate::prelude::apply_prelude;
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 pub struct TreeBuildingCtx {
@@ -19,14 +22,18 @@ pub struct TreeBuildingCtx {
 }
 
 impl TreeBuildingCtx {
-    pub fn new(package: HashedString) -> Self {
-        Self {
+    pub fn new<S: DiagnosticSource>(package: HashedString, source: &S) -> Self {
+        let mut ctx = Self {
             tree: ModuleTree::new(),
             arena: ArenaAllocator::new(),
             related_nodes: HashMap::new(),
             current_path: ModulePath::new(package, vec![]),
             current_file: PathBuf::default(),
-        }
+        };
+
+        apply_prelude(&mut ctx, source).unwrap_cleanly();
+
+        ctx
     }
 
     pub fn append_related_node(&mut self, path: ModulePath, node: ASTNode) {

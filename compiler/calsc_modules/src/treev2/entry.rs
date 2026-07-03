@@ -6,6 +6,7 @@ use crate::{path::ModulePath, treev2::module::TreeModule};
 #[derive(Clone)]
 pub enum TreeEntryKind {
     Type,
+    PrimitiveType,
     Function,
     Module(TreeModule),
 }

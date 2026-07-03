@@ -25,6 +25,7 @@ use crate::{
 
 pub mod ctx;
 pub mod discover;
+pub mod prelude;
 pub(crate) mod utils;
 pub(crate) mod walk;
 
