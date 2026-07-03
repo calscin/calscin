@@ -50,7 +50,7 @@ pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
 
     let ast = parse_ast_whole(&lexer)?;
 
-    walk_in_file(&path, &ast, ctx)?;
+    walk_in_file(&ast, ctx)?;
 
     let files = discover_files(&ast, ctx, path.parent().unwrap().to_path_buf())?;
 
