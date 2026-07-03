@@ -22,11 +22,7 @@ pub trait TraverseTree {
         arena: &'a ArenaAllocator<TreeEntry>,
     ) -> &'a TreeEntry;
 
-    unsafe fn get_directly_mut<'a>(
-        &'a mut self,
-        name: &HashedString,
-        arena: &'a mut ArenaAllocator<TreeEntry>,
-    ) -> &'a mut TreeEntry;
+    unsafe fn get_directly_handle<'a>(&'a self, name: &HashedString) -> &'a ArenaHandle;
 
     fn has(&self, name: &HashedString) -> bool;
 
@@ -52,18 +48,17 @@ pub trait TraverseTree {
         unsafe { Ok(self.get_directly(name, arena)) }
     }
 
-    fn get_mut<'a, S: DiagnosticSource>(
-        &'a mut self,
+    fn get_handle<'a, S: DiagnosticSource>(
+        &'a self,
         name: &HashedString,
         path: &ModulePath,
-        arena: &'a mut ArenaAllocator<TreeEntry>,
         source: &S,
-    ) -> DiagResult<&'a mut TreeEntry> {
+    ) -> DiagResult<&'a ArenaHandle> {
         if !self.has(name) {
             return Err(build_cannot_find_element_no_closest(&path, source).into());
         }
 
-        unsafe { Ok(self.get_directly_mut(name, arena)) }
+        unsafe { Ok(self.get_directly_handle(name)) }
     }
 }
 
@@ -111,13 +106,9 @@ impl TraverseTree for TreeEntry {
         }
     }
 
-    unsafe fn get_directly_mut<'a>(
-        &'a mut self,
-        name: &HashedString,
-        arena: &'a mut ArenaAllocator<TreeEntry>,
-    ) -> &'a mut TreeEntry {
-        match &mut self.kind {
-            TreeEntryKind::Module(module) => arena.get_mut(&module.children[&name]),
+    unsafe fn get_directly_handle<'a>(&'a self, name: &HashedString) -> &'a ArenaHandle {
+        match &self.kind {
+            TreeEntryKind::Module(module) => &module.children[&name],
             _ => panic!(),
         }
     }
@@ -147,11 +138,7 @@ impl TraverseTree for ModuleTree {
         arena.get(&self.children[&name])
     }
 
-    unsafe fn get_directly_mut<'a>(
-        &'a mut self,
-        name: &HashedString,
-        arena: &'a mut ArenaAllocator<TreeEntry>,
-    ) -> &'a mut TreeEntry {
-        arena.get_mut(&self.children[&name])
+    unsafe fn get_directly_handle<'a>(&'a self, name: &HashedString) -> &'a ArenaHandle {
+        &self.children[&name]
     }
 }
