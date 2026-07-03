@@ -18,11 +18,15 @@ use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::DiagPossible;
 use calsc_lexer::lexer_tokenize;
 
-use crate::{ctx::TreeBuildingCtx, discover::discover_files, utils::get_module_name_from_file};
+use crate::{
+    ctx::TreeBuildingCtx, discover::discover_files, utils::get_module_name_from_file,
+    walk::walk_in_file,
+};
 
 pub mod ctx;
 pub mod discover;
 pub(crate) mod utils;
+pub(crate) mod walk;
 
 pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     assert!(path.parent().is_some());
@@ -45,6 +49,8 @@ pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     )?;
 
     let ast = parse_ast_whole(&lexer)?;
+
+    walk_in_file(&path, &ast, ctx)?;
 
     let files = discover_files(&ast, ctx, path.parent().unwrap().to_path_buf())?;
 
