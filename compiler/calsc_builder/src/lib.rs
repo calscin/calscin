@@ -3,7 +3,9 @@
 use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::{container::dump_and_stop_if_errors, result::CalscinResult};
+use calsc_diagnostics::{
+    container::dump_and_stop_if_errors, panics::PanicDiagnosticSource, result::CalscinResult,
+};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_hir_lowering::{
     modules::build_module_tree, modules_lower::lower_types_from_stage_0, stage1::lower_hir_stage_1,
@@ -56,8 +58,10 @@ pub fn build() {
         {
             let path = GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap());
 
-            let mut ctx =
-                TreeBuildingCtx::new(GLOBAL_STATE.with_borrow(|f| f.package_name.clone()));
+            let mut ctx = TreeBuildingCtx::new(
+                GLOBAL_STATE.with_borrow(|f| f.package_name.clone()),
+                &PanicDiagnosticSource(),
+            );
 
             analyze_file(path, &mut ctx).unwrap_cleanly();
 
