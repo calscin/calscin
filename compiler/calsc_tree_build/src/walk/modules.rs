@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use calsc_ast::{ASTContext, nodes::ASTNodeKind};
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_utils::alloc::arena::ArenaHandle;
@@ -24,6 +26,13 @@ pub fn walk_through_module(
         ctx.current_path.append_single_bit(name.clone());
 
         println!("- Scanning module {}", ctx.current_path);
+
+        ctx.tree.append_module(
+            &ctx.current_path.clone(),
+            ctx.current_file.clone(),
+            &mut ctx.arena,
+            node_ref,
+        )?;
 
         for node in body {
             walk_through_node(node, ast, ctx)?;

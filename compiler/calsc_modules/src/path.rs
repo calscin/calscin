@@ -84,7 +84,7 @@ impl ModulePath {
     }
 
     pub fn get_size(&self) -> usize {
-        self.path.len() + 1
+        self.path.len() + if self.package.is_empty() { 0 } else { 1 }
     }
 
     pub fn last(&self) -> HashedString {

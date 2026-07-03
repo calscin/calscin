@@ -15,7 +15,7 @@
 use std::{fs, path::PathBuf};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::DiagPossible;
+use calsc_diagnostics::{DiagPossible, panics::PanicDiagnosticSource};
 use calsc_lexer::lexer_tokenize;
 
 use crate::{
@@ -43,6 +43,14 @@ pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
 
     println!("+ Scanning {}", ctx.current_path);
 
+    // Append the module to the path
+    ctx.tree.append_module(
+        &ctx.current_path,
+        path.clone(),
+        &mut ctx.arena,
+        &PanicDiagnosticSource(), // TODO: change this
+    )?;
+
     let lexer = lexer_tokenize(
         &fs::read_to_string(&path).unwrap(),
         path.to_str().unwrap().to_string(),
@@ -57,6 +65,9 @@ pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     for file in files {
         analyze_file(file, ctx)?;
     }
+
+    // Remove the appended module name
+    ctx.current_path.path.pop();
 
     Ok(())
 }

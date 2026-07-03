@@ -5,9 +5,7 @@ use std::{
     path::PathBuf,
 };
 
-use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource, panics::PanicDiagnosticSource,
-};
+use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
 use calsc_utils::{
     alloc::arena::{ArenaAllocator, ArenaHandle},
     hash::HashedString,
@@ -85,6 +83,7 @@ impl ModuleTree {
         source: &S,
     ) -> DiagResult<&'a mut TreeEntry> {
         let entry = self.get_entry(path, arena, source)?;
+
         let handle = &self.resolved_cache[&entry.self_path];
 
         Ok(arena.get_mut(handle))
@@ -114,9 +113,13 @@ impl ModuleTree {
         let val = TreeEntry::new(val, path.clone());
         let val = arena.append(val);
 
-        let parent_ref = self.get_entry_mut(path, arena, source)?;
+        println!("? Getting entry {}", parent_path);
+
+        let parent_ref = self.get_entry_mut(&parent_path, arena, source)?;
 
         parent_ref.set(last, path, val, source)?;
+
+        self.resolved_cache.insert(path.clone(), val);
 
         Ok(())
     }
@@ -132,8 +135,10 @@ impl ModuleTree {
 
         let name = path.last();
 
+        println!("Appending module {} at {}", name, path);
+
         let entry = TreeEntryKind::Module(TreeModule::new(name, file_path));
 
-        self.append_entry(path, entry, arena, source)
+        self.append_entry(&path, entry, arena, source)
     }
 }
