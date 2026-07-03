@@ -14,7 +14,7 @@
 
 use std::{fs, path::PathBuf};
 
-use calsc_ast::parser::ctx::parse_ast_whole;
+use calsc_ast::{ASTContext, parser::ctx::parse_ast_whole};
 use calsc_diagnostics::{DiagPossible, panics::PanicDiagnosticSource};
 use calsc_lexer::lexer_tokenize;
 
@@ -29,9 +29,20 @@ pub mod prelude;
 pub(crate) mod utils;
 pub(crate) mod walk;
 
-pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+pub fn build_module_tree(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     assert!(path.parent().is_some());
 
+    let lexer = lexer_tokenize(
+        &fs::read_to_string(&path).unwrap(),
+        path.to_str().unwrap().to_string(),
+    )?;
+
+    let ast = parse_ast_whole(&lexer)?;
+
+    analyze_file(path, &ast, ctx)
+}
+
+pub fn analyze_file(path: PathBuf, ast: &ASTContext, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     ctx.current_file = path.clone();
 
     {
@@ -52,19 +63,19 @@ pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
         &PanicDiagnosticSource(), // TODO: change this
     )?;
 
-    let lexer = lexer_tokenize(
-        &fs::read_to_string(&path).unwrap(),
-        path.to_str().unwrap().to_string(),
-    )?;
-
-    let ast = parse_ast_whole(&lexer)?;
-
     walk_in_file(&ast, ctx)?;
 
     let files = discover_files(&ast, ctx, path.parent().unwrap().to_path_buf())?;
 
     for file in files {
-        analyze_file(file, ctx)?;
+        let lexer = lexer_tokenize(
+            &fs::read_to_string(&file).unwrap(),
+            file.to_str().unwrap().to_string(),
+        )?;
+
+        let ast = parse_ast_whole(&lexer)?;
+
+        analyze_file(file, &ast, ctx)?;
     }
 
     // Remove the appended module name

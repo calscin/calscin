@@ -15,7 +15,7 @@ use calsc_lexer::lexer_tokenize;
 use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
-use calsc_tree_build::{analyze_file, ctx::TreeBuildingCtx};
+use calsc_tree_build::ctx::TreeBuildingCtx;
 
 pub fn setup_build_state(
     out: PathBuf,
@@ -63,7 +63,7 @@ pub fn build() {
                 &PanicDiagnosticSource(),
             );
 
-            analyze_file(path, &mut ctx).unwrap_cleanly();
+            calsc_tree_build::build_module_tree(path, &mut ctx).unwrap_cleanly();
 
             println!("{:#?}", ctx);
         }
