@@ -60,8 +60,6 @@ pub fn build() {
                 TreeBuildingCtx::new(GLOBAL_STATE.with_borrow(|f| f.package_name.clone()));
 
             analyze_file(path, &mut ctx).unwrap_cleanly();
-
-            println!("{:#?}", ctx);
         }
 
         let module_tree = build_module_tree(

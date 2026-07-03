@@ -42,7 +42,10 @@ pub fn walk_through_node(
                 TreeEntryKind::Type,
                 &mut ctx.arena,
                 node_ref,
-            )
+            )?;
+
+            ctx.append_related_node(path_to_append_to, node_ref.clone());
+            Ok(())
         }
 
         ASTNodeKind::ExternFunctionDeclaration {
@@ -60,7 +63,10 @@ pub fn walk_through_node(
                 TreeEntryKind::Function,
                 &mut ctx.arena,
                 node_ref,
-            )
+            )?;
+
+            ctx.append_related_node(path_to_append_to, node_ref.clone());
+            Ok(())
         }
 
         ASTNodeKind::FunctionDeclaration {
@@ -79,7 +85,10 @@ pub fn walk_through_node(
                 TreeEntryKind::Function,
                 &mut ctx.arena,
                 node_ref,
-            )
+            )?;
+
+            ctx.append_related_node(path_to_append_to, node_ref.clone());
+            Ok(())
         }
 
         _ => return Err(build_internal_hir_node_leaked(node_ref, node_ref).into()),
