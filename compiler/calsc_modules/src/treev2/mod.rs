@@ -26,7 +26,7 @@ pub mod traverse;
 
 pub struct ModuleTree {
     pub children: HashMap<HashedString, ArenaHandle>,
-    pub resolved_cache: HashMap<ModulePath, ArenaHandle>,
+    //pub resolved_cache: HashMap<ModulePath, ArenaHandle>, // TODO: ADD BACK LATER
     pub used_files: HashSet<PathBuf>,
 }
 
@@ -34,16 +34,11 @@ impl ModuleTree {
     pub fn new() -> Self {
         Self {
             children: HashMap::new(),
-            resolved_cache: HashMap::new(),
             used_files: HashSet::new(),
         }
     }
 
     pub fn has_entry(&self, path: &ModulePath, arena: &ArenaAllocator<TreeEntry>) -> bool {
-        if self.resolved_cache.contains_key(path) {
-            return true;
-        }
-
         if !self.has(path.get_ref(0)) {
             return false;
         }
@@ -131,8 +126,6 @@ impl ModuleTree {
         let parent_ref = self.get_entry_mut(&parent_path, arena, source)?;
 
         parent_ref.set(last, path, val, source)?;
-
-        self.resolved_cache.insert(path.clone(), val);
 
         Ok(())
     }
