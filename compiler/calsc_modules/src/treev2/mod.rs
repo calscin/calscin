@@ -5,7 +5,9 @@ use std::{
     path::PathBuf,
 };
 
-use calsc_diagnostics::{DiagPossible, DiagResult, DiagnosticSource};
+use calsc_diagnostics::{
+    DiagPossible, DiagResult, DiagnosticSource, panics::PanicDiagnosticSource,
+};
 use calsc_utils::{
     alloc::arena::{ArenaAllocator, ArenaHandle},
     hash::HashedString,
@@ -37,6 +39,24 @@ impl ModuleTree {
             resolved_cache: HashMap::new(),
             used_files: HashSet::new(),
         }
+    }
+
+    pub fn has_entry(&self, path: &ModulePath, arena: &ArenaAllocator<TreeEntry>) -> bool {
+        if !self.has(path.get_ref(0)) {
+            return false;
+        }
+
+        let mut entry = unsafe { self.get_directly(path.get_ref(0), arena) };
+
+        for i in 1..path.get_size() {
+            if !entry.has(path.get_ref(i)) {
+                return false;
+            }
+
+            entry = unsafe { entry.get_directly(path.get_ref(i), arena) };
+        }
+
+        true
     }
 
     pub fn get_entry<'a, S: DiagnosticSource>(
