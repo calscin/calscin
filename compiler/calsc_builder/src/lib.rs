@@ -56,7 +56,8 @@ pub fn build() {
         {
             let path = GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap());
 
-            let mut ctx = TreeBuildingCtx::new();
+            let mut ctx =
+                TreeBuildingCtx::new(GLOBAL_STATE.with_borrow(|f| f.package_name.clone()));
 
             analyze_file(path, &mut ctx).unwrap_cleanly();
         }

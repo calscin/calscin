@@ -18,13 +18,19 @@ use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::DiagPossible;
 use calsc_lexer::lexer_tokenize;
 
-use crate::{ctx::TreeBuildingCtx, discover::discover_files};
+use crate::{ctx::TreeBuildingCtx, discover::discover_files, utils::get_module_name_from_file};
 
 pub mod ctx;
 pub mod discover;
+pub(crate) mod utils;
 
 pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     assert!(path.parent().is_some());
+
+    ctx.current_file = path.clone();
+
+    let module_name = get_module_name_from_file(&path);
+    println!("Module name for {:#?} -> {}", path, module_name);
 
     let lexer = lexer_tokenize(
         &fs::read_to_string(&path).unwrap(),
