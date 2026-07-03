@@ -21,6 +21,7 @@ use crate::{
 };
 
 pub mod entry;
+pub mod imports;
 pub mod module;
 pub mod traverse;
 
