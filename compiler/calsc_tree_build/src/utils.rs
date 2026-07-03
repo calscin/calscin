@@ -43,8 +43,15 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
         if let TreeEntryKind::Module(module) = &parent_module.kind {
             let key = PackageLessModulePath(path.members.clone());
 
-            if module.imports.contains_key(&key) {
-                return Ok(module.imports[&key].clone());
+            for filter in &module.imports {
+                if filter.matches(&key) {
+                    let key = filter.replace_with_actual(&key);
+
+                    return Ok(ModulePath::new(
+                        key.0[0].clone(),
+                        key.0[1..key.0.len()].to_vec(),
+                    ));
+                }
             }
         }
     }
