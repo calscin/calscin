@@ -5,6 +5,7 @@ use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 use crate::path::{ModulePath, PackageLessModulePath};
 
 /// The type of module
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub enum TreeModuleType {
     /// Represents a module that envelops an entire file
     File,
@@ -13,6 +14,7 @@ pub enum TreeModuleType {
     Inner,
 }
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct TreeModule {
     /// The name of the module.

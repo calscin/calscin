@@ -13,7 +13,7 @@ use calsc_lexer::lexer_tokenize;
 use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
-use calsc_tree_build::{analyze_file, ctx::TreeBuildingCtx, discover::discover_files};
+use calsc_tree_build::{analyze_file, ctx::TreeBuildingCtx};
 
 pub fn setup_build_state(
     out: PathBuf,
@@ -60,6 +60,8 @@ pub fn build() {
                 TreeBuildingCtx::new(GLOBAL_STATE.with_borrow(|f| f.package_name.clone()));
 
             analyze_file(path, &mut ctx).unwrap_cleanly();
+
+            println!("{:#?}", ctx);
         }
 
         let module_tree = build_module_tree(

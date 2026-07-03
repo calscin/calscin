@@ -2,6 +2,7 @@ use std::collections::HashSet;
 
 use crate::{path::ModulePath, treev2::module::TreeModule};
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub enum TreeEntryKind {
     Type,
@@ -9,6 +10,7 @@ pub enum TreeEntryKind {
     Module(TreeModule),
 }
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct TreeEntry {
     pub self_path: ModulePath,

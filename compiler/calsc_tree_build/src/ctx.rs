@@ -6,6 +6,7 @@ use calsc_modules::{
 };
 use calsc_utils::{alloc::arena::ArenaAllocator, hash::HashedString};
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct TreeBuildingCtx {
     pub tree: ModuleTree,
     pub arena: ArenaAllocator<TreeEntry>,

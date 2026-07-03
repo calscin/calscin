@@ -5,6 +5,7 @@ use std::{
 
 use calsc_utils::hash::HashedString;
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct PackageLessModulePath(pub Vec<HashedString>);
 

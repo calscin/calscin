@@ -24,6 +24,7 @@ pub mod entry;
 pub mod module;
 pub mod traverse;
 
+#[cfg_attr(feature = "debug", derive(Debug))]
 pub struct ModuleTree {
     pub children: HashMap<HashedString, ArenaHandle>,
     //pub resolved_cache: HashMap<ModulePath, ArenaHandle>, // TODO: ADD BACK LATER
