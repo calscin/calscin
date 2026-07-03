@@ -29,8 +29,15 @@ pub fn analyze_file(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
 
     ctx.current_file = path.clone();
 
-    let module_name = get_module_name_from_file(&path);
-    println!("Module name for {:#?} -> {}", path, module_name);
+    {
+        let module_name = get_module_name_from_file(&path);
+
+        if !module_name.is_empty() {
+            ctx.current_path.append_single_bit(module_name);
+        }
+    }
+
+    println!("+ Scanning {}", ctx.current_path);
 
     let lexer = lexer_tokenize(
         &fs::read_to_string(&path).unwrap(),

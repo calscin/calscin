@@ -9,9 +9,14 @@ pub(crate) fn get_module_name_from_file(file: &PathBuf) -> HashedString {
         file
     };
 
-    file.with_extension("")
-        .file_name()
-        .expect("A path not ending by ..")
+    let file = file.with_extension("");
+
+    if file.file_name().is_none() {
+        return "".into(); // Handles when the main file is named module.cal
+    }
+
+    file.file_name()
+        .unwrap()
         .to_str()
         .expect("The file name is not valid unicode")
         .to_string()
