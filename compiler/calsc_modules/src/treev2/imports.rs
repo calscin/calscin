@@ -5,6 +5,8 @@ use calsc_utils::hash::HashedString;
 use crate::path::PackageLessModulePath;
 
 /// The filter used to check if a path is imported or not
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone)]
 pub struct ImportFilter {
     filter: Vec<HashedString>,
     actual: Vec<HashedString>,

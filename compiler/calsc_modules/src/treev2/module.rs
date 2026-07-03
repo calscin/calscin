@@ -2,7 +2,10 @@ use std::{collections::HashMap, path::PathBuf};
 
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::path::{ModulePath, PackageLessModulePath};
+use crate::{
+    path::{ModulePath, PackageLessModulePath},
+    treev2::imports::ImportFilter,
+};
 
 /// The type of module
 #[cfg_attr(feature = "debug", derive(Debug))]
@@ -30,7 +33,7 @@ pub struct TreeModule {
     /// The imports inside of the module.
     /// This represents a table of:
     /// - `imported element name / path -> true full path inside of the package`
-    pub imports: HashMap<PackageLessModulePath, ModulePath>,
+    pub imports: Vec<ImportFilter>,
 
     /// The file at the origin of the module
     pub path: PathBuf,
@@ -41,7 +44,7 @@ impl TreeModule {
         Self {
             name,
             children: HashMap::new(),
-            imports: HashMap::new(),
+            imports: vec![],
             path: file_path,
         }
     }

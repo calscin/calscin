@@ -4,11 +4,21 @@ use calsc_ast::path::ElementPath;
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_modules::{
     path::{ModulePath, PackageLessModulePath},
-    treev2::entry::TreeEntryKind,
+    treev2::{entry::TreeEntryKind, module::TreeModule},
 };
 use calsc_utils::hash::HashedString;
 
 use crate::ctx::TreeBuildingCtx;
+
+pub(crate) fn matches_any_import(module: &TreeModule, path: &PackageLessModulePath) -> bool {
+    for filter in &module.imports {
+        if filter.matches(path) {
+            return true;
+        }
+    }
+
+    false
+}
 
 pub(crate) fn resolve_path<S: DiagnosticSource>(
     mut path: ElementPath,
