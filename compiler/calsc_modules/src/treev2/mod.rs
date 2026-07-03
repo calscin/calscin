@@ -76,17 +76,30 @@ impl ModuleTree {
         Ok(entry)
     }
 
+    pub fn get_entry_handle<'a, S: DiagnosticSource>(
+        &'a self,
+        path: &ModulePath,
+        arena: &'a ArenaAllocator<TreeEntry>,
+        source: &S,
+    ) -> DiagResult<&'a ArenaHandle> {
+        let mut entry = self.get_handle(path.get_ref(0), path, source)?;
+
+        for i in 1..path.get_size() {
+            entry = arena.get(entry).get_handle(path.get_ref(i), path, source)?;
+        }
+
+        Ok(entry)
+    }
+
     pub fn get_entry_mut<'a, S: DiagnosticSource>(
         &'a mut self,
         path: &ModulePath,
         arena: &'a mut ArenaAllocator<TreeEntry>,
         source: &S,
     ) -> DiagResult<&'a mut TreeEntry> {
-        let entry = self.get_entry(path, arena, source)?;
+        let entry_handle = self.get_entry_handle(path, arena, source)?.clone();
 
-        let handle = &self.resolved_cache[&entry.self_path];
-
-        Ok(arena.get_mut(handle))
+        Ok(arena.get_mut(&entry_handle))
     }
 
     pub fn append_entry<'a, S: DiagnosticSource>(
