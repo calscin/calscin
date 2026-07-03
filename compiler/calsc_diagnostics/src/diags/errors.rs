@@ -22,6 +22,9 @@ pub enum ErrorCode {
     MultipleFilesModule,
     NoFilesModule,
 
+    // Importing
+    AmbiguousImport,
+
     // Typing
     UnexpectedType,
     ExpectedType,
@@ -731,5 +734,22 @@ pub fn build_module_no_files<S: DiagnosticSource, M: Display>(
             "create either {}.cal or {}/module.cal!",
             module, module
         )],
+    )
+}
+
+pub fn build_ambiguous_import_name<S: DiagnosticSource, I: Display>(
+    import: &I,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::AmbiguousImport as usize),
+        format!("import {} cannot be resolved", import),
+        None,
+        vec![],
+        vec![format!(
+            "the import for {} collided with another import",
+            import
+        )],
+        vec![format!("remove one of the imports that resolve {}", import)],
     )
 }
