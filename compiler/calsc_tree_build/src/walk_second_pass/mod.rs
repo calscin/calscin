@@ -52,8 +52,6 @@ pub fn walk_second_pass_entry(entry: ArenaHandle, ctx: &mut TreeBuildingCtx) -> 
             return Ok(()); // Skip entries without related nodes
         }
 
-        println!("{}", ctx.current_path);
-
         let (path, related_nodes) = ctx.related_nodes[&ctx.current_path].clone();
         for entry in related_nodes {
             walk_second_pass_node(&entry, &path, ctx)?;

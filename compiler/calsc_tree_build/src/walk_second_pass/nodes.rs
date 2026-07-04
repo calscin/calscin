@@ -22,8 +22,8 @@ pub fn walk_second_pass_node(
 ) -> DiagPossible {
     match &node.kind {
         ASTNodeKind::StructDeclaration { .. } => todo!(),
-        ASTNodeKind::FunctionDeclaration { .. } => todo!(),
-        ASTNodeKind::ExternFunctionDeclaration { .. } => todo!(),
+        ASTNodeKind::FunctionDeclaration { .. } => Ok(()),
+        ASTNodeKind::ExternFunctionDeclaration { .. } => Ok(()),
         ASTNodeKind::Module { .. } => todo!(),
 
         _ => return Err(build_internal_hir_node_leaked(&node, node).into()),
@@ -54,6 +54,24 @@ pub fn walk_second_pass_import(
                     vec![path.last()],
                     PackageLessModulePath::from(path.into()).0,
                 ))
+            }
+
+            ImportKind::Items(items) => {
+                for item in items {
+                    let mut path = path.clone();
+                    path.members.push(item);
+
+                    let path = resolve_import_path(path, ctx.current_path.clone());
+
+                    if matches_any_import(module, &path.clone().into()) {
+                        return Err(build_ambiguous_import_name(&path, node).into());
+                    }
+
+                    module.imports.push(ImportFilter::new(
+                        vec![path.last()],
+                        PackageLessModulePath::from(path.into()).0,
+                    ))
+                }
             }
 
             _ => todo!(),
