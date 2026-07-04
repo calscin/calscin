@@ -4,7 +4,7 @@ use calsc_ast::path::ElementPath;
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
 use calsc_modules::{
     path::{ModulePath, PackageLessModulePath},
-    treev2::{entry::TreeEntryKind, module::TreeModule},
+    treev2::{entry::TreeEntryKind, module::TreeModule, traverse::TraverseTree},
 };
 use calsc_utils::hash::HashedString;
 
@@ -62,8 +62,15 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
     Ok(curr_path)
 }
 
-pub(crate) fn resolve_import_path(path: ElementPath, current_path: ModulePath) -> ModulePath {
-    if path.relative {
+pub(crate) fn resolve_import_path(
+    path: ElementPath,
+    current_path: ModulePath,
+    ctx: &TreeBuildingCtx,
+) -> ModulePath {
+    // First we check if the path is relative by simply checking if the package exists
+    let relative = !ctx.tree.has(&path.members[0]);
+
+    if relative {
         let mut module_path = current_path;
 
         for bit in path.members {
