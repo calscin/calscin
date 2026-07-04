@@ -20,7 +20,7 @@ use calsc_lexer::lexer_tokenize;
 
 use crate::{
     ctx::TreeBuildingCtx, discover::discover_files, utils::get_module_name_from_file,
-    walk::walk_in_file,
+    walk::walk_in_file, walk_second_pass::walk_second_pass,
 };
 
 pub mod ctx;
@@ -28,6 +28,7 @@ pub mod discover;
 pub mod prelude;
 pub(crate) mod utils;
 pub(crate) mod walk;
+pub(crate) mod walk_second_pass;
 
 pub fn build_module_tree(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     assert!(path.parent().is_some());
@@ -39,10 +40,18 @@ pub fn build_module_tree(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossib
 
     let ast = parse_ast_whole(&lexer)?;
 
-    analyze_file(path, &ast, ctx)
+    analyze_file(path, ast, ctx)?;
+
+    for file in &ctx.tree.used_files.clone() {
+        println!("Used file: {:#?}", file);
+
+        walk_second_pass(file, ctx)?;
+    }
+
+    Ok(())
 }
 
-pub fn analyze_file(path: PathBuf, ast: &ASTContext, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+pub fn analyze_file(path: PathBuf, ast: ASTContext, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     ctx.current_file = path.clone();
 
     {
@@ -54,6 +63,10 @@ pub fn analyze_file(path: PathBuf, ast: &ASTContext, ctx: &mut TreeBuildingCtx) 
     }
 
     println!("+ Scanning {}", ctx.current_path);
+
+    // Append the module path base to the cache
+    ctx.module_path_base
+        .insert(path.clone(), ctx.current_path.clone());
 
     // Append the module to the path
     ctx.tree.append_module(
@@ -75,11 +88,13 @@ pub fn analyze_file(path: PathBuf, ast: &ASTContext, ctx: &mut TreeBuildingCtx) 
 
         let ast = parse_ast_whole(&lexer)?;
 
-        analyze_file(file, &ast, ctx)?;
+        analyze_file(file, ast, ctx)?;
     }
 
     // Remove the appended module name
     ctx.current_path.path.pop();
+
+    ctx.ast_contexts.insert(path, ast);
 
     Ok(())
 }

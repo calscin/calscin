@@ -44,7 +44,11 @@ pub fn walk_through_node(
                 node_ref,
             )?;
 
-            ctx.append_related_node(path_to_append_to, node_ref.clone());
+            ctx.append_related_node(
+                path_to_append_to,
+                ctx.current_file.clone(),
+                node_ref.clone(),
+            );
             Ok(())
         }
 
@@ -65,7 +69,11 @@ pub fn walk_through_node(
                 node_ref,
             )?;
 
-            ctx.append_related_node(path_to_append_to, node_ref.clone());
+            ctx.append_related_node(
+                path_to_append_to,
+                ctx.current_file.clone(),
+                node_ref.clone(),
+            );
             Ok(())
         }
 
@@ -87,9 +95,19 @@ pub fn walk_through_node(
                 node_ref,
             )?;
 
-            ctx.append_related_node(path_to_append_to, node_ref.clone());
+            ctx.append_related_node(
+                path_to_append_to,
+                ctx.current_file.clone(),
+                node_ref.clone(),
+            );
             Ok(())
         }
+
+        ASTNodeKind::ImportStatement { .. } => {
+            ctx.append_import_node(node_ref.clone());
+
+            Ok(())
+        } // Handle this in second pass
 
         _ => return Err(build_internal_hir_node_leaked(node_ref, node_ref).into()),
     }

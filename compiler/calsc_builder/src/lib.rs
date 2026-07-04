@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 
-use std::{fs, path::PathBuf, process::Command};
+use std::{fs, path::PathBuf, process::Command, time::Instant};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::{
@@ -65,7 +65,7 @@ pub fn build() {
 
             calsc_tree_build::build_module_tree(path, &mut ctx).unwrap_cleanly();
 
-            println!("{:#?}", ctx);
+            //println!("{:#?}", ctx);
         }
 
         let module_tree = build_module_tree(

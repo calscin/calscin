@@ -62,6 +62,23 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
     Ok(curr_path)
 }
 
+pub(crate) fn resolve_import_path(path: ElementPath, current_path: ModulePath) -> ModulePath {
+    if path.relative {
+        let mut module_path = current_path;
+
+        for bit in path.members {
+            module_path.append_single_bit(bit);
+        }
+
+        module_path
+    } else {
+        ModulePath {
+            package: path.members[0].clone(),
+            path: path.members[1..path.members.len()].to_vec(),
+        }
+    }
+}
+
 pub(crate) fn get_module_name_from_file(file: &PathBuf) -> HashedString {
     let file = if file.file_name() == Some(OsStr::new("module.cal")) {
         &file.parent().expect("not relative path").to_path_buf()

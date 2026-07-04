@@ -5,6 +5,8 @@ use std::{
 
 use calsc_utils::hash::HashedString;
 
+use crate::treev2::ModuleTree;
+
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PackageLessModulePath(pub Vec<HashedString>);
@@ -163,5 +165,19 @@ impl Debug for ModulePath {
         }
 
         Ok(())
+    }
+}
+
+impl Into<PackageLessModulePath> for ModulePath {
+    fn into(self) -> PackageLessModulePath {
+        let mut vec = vec![];
+
+        vec.push(self.package);
+
+        for bit in self.path {
+            vec.push(bit);
+        }
+
+        PackageLessModulePath(vec)
     }
 }

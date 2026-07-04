@@ -1,11 +1,8 @@
 use std::path::PathBuf;
 
-use calsc_ast::{
-    ASTContext,
-    nodes::{ASTNode, ASTNodeKind},
-};
+use calsc_ast::{ASTContext, nodes::ASTNodeKind};
 use calsc_diagnostics::{
-    DiagPossible, DiagResult, DiagnosticSource,
+    DiagResult, DiagnosticSource,
     diags::errors::{build_module_no_files, build_multiple_files_one_module},
 };
 use calsc_utils::hash::HashedString;
@@ -14,7 +11,7 @@ use crate::ctx::TreeBuildingCtx;
 
 pub fn discover_files(
     ast: &ASTContext,
-    ctx: &mut TreeBuildingCtx,
+    _ctx: &mut TreeBuildingCtx,
     parent_buff: PathBuf,
 ) -> DiagResult<Vec<PathBuf>> {
     let mut paths = vec![];

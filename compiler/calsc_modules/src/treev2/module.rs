@@ -2,10 +2,7 @@ use std::{collections::HashMap, path::PathBuf};
 
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
-use crate::{
-    path::{ModulePath, PackageLessModulePath},
-    treev2::imports::ImportFilter,
-};
+use crate::treev2::imports::ImportFilter;
 
 /// The type of module
 #[cfg_attr(feature = "debug", derive(Debug))]

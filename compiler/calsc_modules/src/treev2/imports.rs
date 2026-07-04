@@ -13,7 +13,7 @@ pub struct ImportFilter {
 }
 
 impl ImportFilter {
-    pub fn new(&self, filter: Vec<HashedString>, actual: Vec<HashedString>) -> Self {
+    pub fn new(filter: Vec<HashedString>, actual: Vec<HashedString>) -> Self {
         Self { filter, actual }
     }
 

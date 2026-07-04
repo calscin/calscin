@@ -123,8 +123,6 @@ impl ModuleTree {
         let val = TreeEntry::new(val, path.clone());
         let val = arena.append(val);
 
-        println!("? Getting entry {}", parent_path);
-
         let parent_ref = self.get_entry_mut(&parent_path, arena, source)?;
 
         parent_ref.set(last, path, val, source)?;
