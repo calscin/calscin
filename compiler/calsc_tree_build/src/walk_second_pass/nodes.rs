@@ -7,31 +7,64 @@ use calsc_ast::{
 use calsc_diagnostics::{
     DiagPossible,
     diags::errors::{
-        build_ambiguous_import_name, build_expected_entry_type, build_internal_hir_node_leaked,
+        build_ambiguous_import_name, build_cannot_find_element_no_closest,
+        build_internal_hir_node_leaked,
     },
 };
-use calsc_modules::{
-    path::PackageLessModulePath,
-    treev2::{ModuleTree, imports::ImportFilter, module::TreeModule},
-};
+use calsc_modules::{path::PackageLessModulePath, treev2::imports::ImportFilter};
 
 use crate::{
     ctx::TreeBuildingCtx,
     utils::{matches_any_import, resolve_import_path},
+    walk_second_pass::types::{get_semantic_deps_inner, get_typing_deps_inner},
 };
 
 pub fn walk_second_pass_node(
     node: &ASTNode,
     _path: &PathBuf,
-    _ctx: &mut TreeBuildingCtx,
+    ctx: &mut TreeBuildingCtx,
 ) -> DiagPossible {
     match &node.kind {
-        ASTNodeKind::StructDeclaration { .. } => todo!(),
+        ASTNodeKind::StructDeclaration { .. } => walk_second_pass_struct(node, ctx),
         ASTNodeKind::FunctionDeclaration { .. } => Ok(()),
         ASTNodeKind::ExternFunctionDeclaration { .. } => Ok(()),
         ASTNodeKind::Module { .. } => todo!(),
 
         _ => return Err(build_internal_hir_node_leaked(&node, node).into()),
+    }
+}
+
+pub fn walk_second_pass_struct(node: &ASTNode, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+    if let ASTNodeKind::StructDeclaration {
+        name: _,
+        fields,
+        visibility: _,
+        type_parameters,
+    } = node.kind.clone()
+    {
+        let mut semantic_deps = vec![];
+        let mut typing_deps = vec![];
+
+        for field in fields {
+            get_semantic_deps_inner(&field.0, ctx, &type_parameters, &mut semantic_deps, node)?;
+            get_typing_deps_inner(&field.0, ctx, &mut typing_deps, &type_parameters, node)?;
+        }
+
+        let entry = ctx
+            .tree
+            .get_entry_mut(&ctx.current_path, &mut ctx.arena, node)?;
+
+        for semantic in semantic_deps {
+            entry.semantic_dependencies.insert(semantic);
+        }
+
+        for typing in typing_deps {
+            entry.typing_dependencies.insert(typing);
+        }
+
+        Ok(())
+    } else {
+        unreachable!()
     }
 }
 
@@ -49,6 +82,11 @@ pub fn walk_second_pass_import(
         match kind {
             ImportKind::Module => {
                 let path = resolve_import_path(path, ctx.current_path.clone(), ctx);
+
+                if !ctx.tree.has_entry(&path, &ctx.arena) {
+                    return Err(build_cannot_find_element_no_closest(&path, node).into());
+                }
+
                 let module = ctx.arena.get_mut(&module_handle).kind.as_module_mut(node)?;
 
                 if matches_any_import(module, &PackageLessModulePath(vec![path.last()])) {
@@ -69,6 +107,10 @@ pub fn walk_second_pass_import(
                     path.members.push(item);
 
                     let path = resolve_import_path(path, ctx.current_path.clone(), ctx);
+
+                    if !ctx.tree.has_entry(&path, &ctx.arena) {
+                        return Err(build_cannot_find_element_no_closest(&path, node).into());
+                    }
 
                     if matches_any_import(
                         &module_immutable,
@@ -102,6 +144,10 @@ pub fn walk_second_pass_import(
                     let mut path = path.clone();
                     path.append_single_bit(name.clone());
 
+                    if !ctx.tree.has_entry(&path, &ctx.arena) {
+                        return Err(build_cannot_find_element_no_closest(&path, node).into());
+                    }
+
                     if matches_any_import(
                         &module_immutable,
                         &PackageLessModulePath(vec![name.clone()]),
@@ -117,8 +163,6 @@ pub fn walk_second_pass_import(
                     ))
                 }
             }
-
-            _ => todo!(),
         }
 
         Ok(())

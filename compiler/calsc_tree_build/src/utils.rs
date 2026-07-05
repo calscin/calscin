@@ -1,7 +1,9 @@
 use std::{ffi::OsStr, path::PathBuf};
 
 use calsc_ast::path::ElementPath;
-use calsc_diagnostics::{DiagResult, DiagnosticSource};
+use calsc_diagnostics::{
+    DiagResult, DiagnosticSource, diags::errors::build_cannot_find_element_no_closest,
+};
 use calsc_modules::{
     path::{ModulePath, PackageLessModulePath},
     treev2::{entry::TreeEntryKind, module::TreeModule, traverse::TraverseTree},
@@ -47,10 +49,13 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
                 if filter.matches(&key) {
                     let key = filter.replace_with_actual(&key);
 
-                    return Ok(ModulePath::new(
-                        key.0[0].clone(),
-                        key.0[1..key.0.len()].to_vec(),
-                    ));
+                    let path = ModulePath::new(key.0[0].clone(), key.0[1..key.0.len()].to_vec());
+
+                    if !ctx.tree.has_entry(&path, &ctx.arena) {
+                        return Err(build_cannot_find_element_no_closest(&path, source).into());
+                    }
+
+                    return Ok(path);
                 }
             }
         }
@@ -58,6 +63,12 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
 
     let mut curr_path = ctx.current_path.clone();
     curr_path.path.append(&mut path.members);
+
+    println!("{:#?}", curr_path);
+
+    if !ctx.tree.has_entry(&curr_path, &ctx.arena) {
+        return Err(build_cannot_find_element_no_closest(&path, source).into());
+    }
 
     Ok(curr_path)
 }

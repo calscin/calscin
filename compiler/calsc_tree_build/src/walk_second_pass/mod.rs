@@ -10,6 +10,7 @@ use crate::{
 };
 
 pub mod nodes;
+pub mod types;
 
 pub fn walk_second_pass(path: &PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     // Set back the path to the base. We do this since the hashmap randomizes the order so we cannot use the same strategy as the first walk
