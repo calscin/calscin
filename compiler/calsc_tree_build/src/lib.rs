@@ -29,7 +29,7 @@ use crate::{
 pub mod ctx;
 pub mod discover;
 pub mod prelude;
-pub(crate) mod utils;
+pub mod utils;
 pub(crate) mod walk;
 pub(crate) mod walk_second_pass;
 

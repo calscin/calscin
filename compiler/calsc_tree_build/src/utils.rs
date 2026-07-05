@@ -22,7 +22,7 @@ pub(crate) fn matches_any_import(module: &TreeModule, path: &PackageLessModulePa
     false
 }
 
-pub(crate) fn resolve_path<S: DiagnosticSource>(
+pub fn resolve_path<S: DiagnosticSource>(
     mut path: ElementPath,
     ctx: &TreeBuildingCtx,
     source: &S,
