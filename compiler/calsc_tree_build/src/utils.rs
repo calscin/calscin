@@ -64,8 +64,6 @@ pub(crate) fn resolve_path<S: DiagnosticSource>(
     let mut curr_path = ctx.current_path.clone();
     curr_path.path.append(&mut path.members);
 
-    println!("{:#?}", curr_path);
-
     if !ctx.tree.has_entry(&curr_path, &ctx.arena) {
         return Err(build_cannot_find_element_no_closest(&path, source).into());
     }

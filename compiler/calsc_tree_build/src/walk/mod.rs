@@ -104,6 +104,7 @@ pub fn walk_through_node(
         }
 
         ASTNodeKind::ImportStatement { .. } => {
+            println!("Adding import node to {}", ctx.current_path);
             ctx.append_import_node(node_ref.clone());
 
             Ok(())

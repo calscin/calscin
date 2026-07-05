@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use calsc_ast::{
     imports::ImportKind,
     nodes::{ASTNode, ASTNodeKind},
+    types::ASTType,
 };
 use calsc_diagnostics::{
     DiagPossible,
@@ -12,6 +13,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_modules::{path::PackageLessModulePath, treev2::imports::ImportFilter};
+use calsc_utils::hash::HashedString;
 
 use crate::{
     ctx::TreeBuildingCtx,
@@ -26,8 +28,10 @@ pub fn walk_second_pass_node(
 ) -> DiagPossible {
     match &node.kind {
         ASTNodeKind::StructDeclaration { .. } => walk_second_pass_struct(node, ctx),
-        ASTNodeKind::FunctionDeclaration { .. } => Ok(()),
-        ASTNodeKind::ExternFunctionDeclaration { .. } => Ok(()),
+        ASTNodeKind::FunctionDeclaration { .. } => walk_second_pass_function(node, ctx),
+        ASTNodeKind::ExternFunctionDeclaration { .. } => {
+            walk_second_pass_extern_function(node, ctx)
+        }
         ASTNodeKind::Module { .. } => todo!(),
 
         _ => return Err(build_internal_hir_node_leaked(&node, node).into()),
@@ -63,6 +67,84 @@ pub fn walk_second_pass_struct(node: &ASTNode, ctx: &mut TreeBuildingCtx) -> Dia
         }
 
         Ok(())
+    } else {
+        unreachable!()
+    }
+}
+
+pub fn walk_second_pass_any_function(
+    node: &ASTNode,
+    arguments: Vec<(ASTType, HashedString)>,
+    type_parameters: Vec<HashedString>,
+    return_type: ASTType,
+    ctx: &mut TreeBuildingCtx,
+) -> DiagPossible {
+    let mut semantic_deps = vec![];
+    let mut typing_deps = vec![];
+
+    get_semantic_deps_inner(
+        &return_type,
+        ctx,
+        &type_parameters,
+        &mut semantic_deps,
+        node,
+    )?;
+
+    get_typing_deps_inner(&return_type, ctx, &mut typing_deps, &type_parameters, node)?;
+
+    for (argument_ty, _) in arguments {
+        get_semantic_deps_inner(
+            &argument_ty,
+            ctx,
+            &type_parameters,
+            &mut semantic_deps,
+            node,
+        )?;
+
+        get_typing_deps_inner(&argument_ty, ctx, &mut typing_deps, &type_parameters, node)?;
+    }
+
+    let entry = ctx
+        .tree
+        .get_entry_mut(&ctx.current_path, &mut ctx.arena, node)?;
+
+    for semantic in semantic_deps {
+        entry.semantic_dependencies.insert(semantic);
+    }
+
+    for typing in typing_deps {
+        entry.typing_dependencies.insert(typing);
+    }
+
+    Ok(())
+}
+
+pub fn walk_second_pass_extern_function(node: &ASTNode, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+    if let ASTNodeKind::ExternFunctionDeclaration {
+        name: _,
+        arguments,
+        return_type,
+        triple_dot_position: _,
+        visibility: _,
+    } = node.kind.clone()
+    {
+        walk_second_pass_any_function(node, arguments, vec![], return_type, ctx)
+    } else {
+        unreachable!()
+    }
+}
+
+pub fn walk_second_pass_function(node: &ASTNode, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+    if let ASTNodeKind::FunctionDeclaration {
+        name: _,
+        arguments,
+        return_type,
+        body: _,
+        visibility: _,
+        type_parameters,
+    } = node.kind.clone()
+    {
+        walk_second_pass_any_function(node, arguments, type_parameters, return_type, ctx)
     } else {
         unreachable!()
     }

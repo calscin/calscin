@@ -19,8 +19,11 @@ use calsc_diagnostics::{DiagPossible, panics::PanicDiagnosticSource};
 use calsc_lexer::lexer_tokenize;
 
 use crate::{
-    ctx::TreeBuildingCtx, discover::discover_files, utils::get_module_name_from_file,
-    walk::walk_in_file, walk_second_pass::walk_second_pass,
+    ctx::TreeBuildingCtx,
+    discover::discover_files,
+    utils::get_module_name_from_file,
+    walk::walk_in_file,
+    walk_second_pass::{handle_imports, lower_imports, walk_second_pass},
 };
 
 pub mod ctx;
@@ -41,6 +44,8 @@ pub fn build_module_tree(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossib
     let ast = parse_ast_whole(&lexer)?;
 
     analyze_file(path, ast, ctx)?;
+
+    lower_imports(ctx)?; // Handle imports before handling used files
 
     for file in &ctx.tree.used_files.clone() {
         println!("Used file: {:#?}", file);

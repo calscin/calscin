@@ -20,7 +20,12 @@ pub struct TreeEntry {
 
     pub kind: TreeEntryKind,
 
+    /// The typing dependencies of the entry. Basically represents every dependency besides ones used inside refs or pointers
+    /// These are only the direct dependencies.
     pub typing_dependencies: HashSet<ModulePath>,
+
+    /// The semantic dependencies of the type. Basically represents every dependency of the entry.
+    /// These are only the direct dependencies.
     pub semantic_dependencies: HashSet<ModulePath>,
 }
 

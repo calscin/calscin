@@ -28,8 +28,7 @@ pub struct TreeModule {
     pub children: HashMap<HashedString, ArenaHandle>,
 
     /// The imports inside of the module.
-    /// This represents a table of:
-    /// - `imported element name / path -> true full path inside of the package`
+    /// This represents a table of filters.
     pub imports: Vec<ImportFilter>,
 
     /// The file at the origin of the module
