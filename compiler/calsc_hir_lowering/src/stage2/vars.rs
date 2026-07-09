@@ -18,7 +18,7 @@ use calsc_hir::{
 };
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
-use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
+use crate::stage2::{types::lower_ast_type, values::lower_ast_value};
 
 pub fn lower_ast_variable_reference(
     node: ASTNode,
@@ -53,7 +53,7 @@ pub fn lower_ast_variable_reference(
     }
 }
 
-pub fn lower_ast_variable_declaration(
+pub fn lower_ast_variable_declaration<'a>(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
@@ -67,7 +67,7 @@ pub fn lower_ast_variable_declaration(
         value,
     } = node.kind.clone()
     {
-        let var_type = lower_ast_type(var_type, &node, file_ctx, ctx)?;
+        let var_type = lower_ast_type(&var_type, &node, ctx)?;
 
         let id = ctx.scope.mutate_entry(
             curr_ctx.clone().unwrap(),

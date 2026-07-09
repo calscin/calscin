@@ -8,6 +8,7 @@ use crate::GlobalState;
 /// Represents a compilation session from the compiler.
 /// This is created once per compilation session and is shared accross module file builds for example.
 /// This is passed onto the HIR and every layer that requires it
+#[derive(Debug)]
 pub struct CompilerSession {
     pub state: GlobalState,
     pub tree_lowered: Option<TreeLowCtx>,

@@ -116,25 +116,6 @@ pub fn build() {
     }
 }
 
-pub(crate) fn consume_build_files(out_files: &mut Vec<PathBuf>) -> bool {
-    let files = GLOBAL_STATE.with_borrow_mut(|state| state.build.consume_files());
-
-    if files.is_empty() {
-        return false;
-    }
-
-    for file in files {
-        let res = build_file(file);
-
-        match res {
-            Some(v) => out_files.push(v),
-            None => continue,
-        };
-    }
-
-    true
-}
-
 pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     let target = get_target_type(); // Avoid borrows
     let out_destination = get_file_output(); // Avoid borrows

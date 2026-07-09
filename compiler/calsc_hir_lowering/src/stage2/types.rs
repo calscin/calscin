@@ -1,12 +1,25 @@
 use std::collections::HashMap;
 
+use calsc_ast::types::ASTType;
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
-use calsc_hir::{BUILD_CACHE, HIRContext};
+use calsc_hir::HIRContext;
 use calsc_modules::lazy::LazyLoadedType;
 use calsc_typing::{
     traits::TypeParameteredType,
     types::{HeldPrimitive, MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
+
+pub fn lower_ast_type<S: DiagnosticSource>(
+    ty: &ASTType,
+    origin: &S,
+    hir_ctx: &mut HIRContext,
+) -> DiagResult<TypeKind> {
+    calsc_tree_low::types::lower_ast_type(
+        ty,
+        hir_ctx.state.get_mut().get_tree_lowered_mut(),
+        origin,
+    )
+}
 
 pub fn lower_module_path_type<S: DiagnosticSource>(
     ty: LazyLoadedType,
@@ -33,8 +46,14 @@ pub fn lower_module_path_type<S: DiagnosticSource>(
             let mut new_path = module_path.clone();
             new_path.append_single_bit(element_name);
 
-            let primitive =
-                BUILD_CACHE.with_borrow(|cache| cache.type_storage.map[&new_path].clone());
+            let primitive = hir_ctx
+                .state
+                .get()
+                .get_tree_lowered()
+                .get_entry(&new_path, origin)?
+                .as_type(origin)?
+                .0
+                .clone();
 
             let primitive_type_parameters = primitive.get_type_params(&hir_ctx.type_ctx);
 

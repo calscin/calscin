@@ -15,26 +15,33 @@ use calsc_utils::hash::HashedString;
 
 use crate::prelude::apply_lower_prelude;
 
+#[derive(Debug)]
 pub struct TreeLowCtx {
     pub build_ctx: TreeBuildingCtx,
     pub type_ctx: TypeCtx,
     pub lowered_map: HashMap<ModulePath, TreeLoweredEntry>,
 }
 
+#[derive(Debug)]
 pub struct LoweredFunctionContainer(
     pub TypeKind,
     pub Vec<(TypeKind, HashedString)>,
     pub Vec<TypeParameterId>,
     pub Visibility,
 );
+
+#[derive(Debug)]
 pub struct LoweredExternFuncContainer(
     pub TypeKind,
     pub Vec<(TypeKind, HashedString)>,
     pub Option<usize>,
     pub Visibility,
 );
+
+#[derive(Debug)]
 pub struct LoweredTypeContainer(pub PrimitiveType, pub Visibility);
 
+#[derive(Debug)]
 pub enum TreeLoweredEntry {
     Function(LoweredFunctionContainer),
 

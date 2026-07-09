@@ -14,10 +14,7 @@ use calsc_hir::{
 };
 use calsc_utils::alloc::arena::ArenaHandle;
 
-use crate::{
-    stage1::types::lower_ast_type,
-    stage2::{funcs::lower_ast_body, values::lower_ast_value},
-};
+use crate::stage2::{funcs::lower_ast_body, types::lower_ast_type, values::lower_ast_value};
 
 pub fn lower_ast_if_statement_branch<K: DiagnosticSource>(
     branch: IfStatementBranch,
@@ -143,7 +140,7 @@ pub fn lower_ast_for_loop(
         body,
     } = node.kind.clone()
     {
-        let iterator_type = lower_ast_type(iterator_type, &node, file_ctx, ctx)?;
+        let iterator_type = lower_ast_type(&iterator_type, &node, ctx)?;
         let iterated = lower_ast_value(
             ASTNode::clone(&ast_ctx.nodes.get(&iterated)),
             local_ctx.clone(),

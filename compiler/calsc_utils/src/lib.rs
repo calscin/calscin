@@ -13,10 +13,10 @@ use crate::unsafes::UnsafeMut;
 
 pub mod alloc;
 pub mod cmp;
+pub mod containers;
 pub mod fs;
 pub mod hash;
 pub mod math;
-pub mod muts;
 pub mod path;
 pub mod pos;
 pub mod str;

@@ -25,16 +25,12 @@ use calsc_typing::{
 };
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string, hash::HashedString};
 
-use crate::{
-    stage1::types::lower_ast_type,
-    stage2::{
-        control::{
-            lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop,
-        },
-        key::lower_ast_key,
-        values::{lower_ast_value, lru::lower_ast_lru},
-        vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
-    },
+use crate::stage2::{
+    control::{lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop},
+    key::lower_ast_key,
+    types::lower_ast_type,
+    values::{lower_ast_value, lru::lower_ast_lru},
+    vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
 };
 
 pub fn lower_ast_body_node(
@@ -444,13 +440,10 @@ pub fn lower_ast_function_decl(
         }
 
         let mut hir_arguments = vec![];
-        let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;
+        let ret_type = lower_ast_type(&return_type, &node, ctx)?;
 
         for argument in arguments {
-            hir_arguments.push((
-                lower_ast_type(argument.0.clone(), &node, file_ctx, ctx)?,
-                argument.1,
-            ));
+            hir_arguments.push((lower_ast_type(&argument.0, &node, ctx)?, argument.1));
         }
 
         let body = lower_ast_body(

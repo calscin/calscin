@@ -4,8 +4,9 @@
 
 use std::cell::RefCell;
 
+use calsc_state::session::CompilerSession;
 use calsc_typing::ctx::TypeCtx;
-use calsc_utils::alloc::arena::ArenaAllocator;
+use calsc_utils::{alloc::arena::ArenaAllocator, containers::NoCloneContainer};
 
 use crate::{buildcache::BuildCache, globalctx::GlobalContext, nodes::HIRNode};
 
@@ -30,20 +31,19 @@ pub struct HIRContext {
     pub nodes: ArenaAllocator<HIRNode>,
     pub type_ctx: TypeCtx,
     pub scope: GlobalContext,
+
+    /// This pointer is safe and is only used to avoid using lifetimes here.
+    /// TODO: change this in the future
+    pub state: NoCloneContainer<CompilerSession>,
 }
 
 impl HIRContext {
-    pub fn new() -> Self {
+    pub fn new(session: CompilerSession) -> Self {
         Self {
             nodes: ArenaAllocator::new(),
             type_ctx: TypeCtx::new(),
             scope: GlobalContext::new(),
+            state: NoCloneContainer::new(session),
         }
-    }
-}
-
-impl Default for HIRContext {
-    fn default() -> Self {
-        HIRContext::new()
     }
 }

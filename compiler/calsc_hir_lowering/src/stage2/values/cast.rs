@@ -19,7 +19,7 @@ use calsc_hir::{
 use calsc_typing::into::{TypeCasting, TypeTransmutation};
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
-use crate::stage2::values::lower_ast_value;
+use crate::stage2::{types::lower_ast_type, values::lower_ast_value};
 
 pub fn lower_ast_cast(
     node: ASTNode,
@@ -41,7 +41,7 @@ pub fn lower_ast_cast(
 
         let val_type = val_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
-        let into = lower_ast_type(into, &node, file_ctx, ctx)?;
+        let into = lower_ast_type(&into, &node, ctx)?;
 
         if !val_type.can_cast(&into, &ctx.type_ctx) {
             return Err(build_type_cast_failed(
