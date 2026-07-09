@@ -7,19 +7,12 @@ use calsc_diagnostics::{
     container::dump_and_stop_if_errors, panics::PanicDiagnosticSource, result::CalscinResult,
 };
 use calsc_hir::{HIRContext, file::HIRFileContext};
-use calsc_hir_lowering::{
-    modules::build_module_tree, modules_lower::lower_types_from_stage_0, stage1::lower_hir_stage_1,
-    stage2::lower_hir_stage_2,
-};
+use calsc_hir_lowering::stage2::lower_hir_stage_2;
 use calsc_lexer::lexer_tokenize;
-use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
-use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
+use calsc_state::{GLOBAL_STATE, build::BuildTargetMode, session::CompilerSession};
 use calsc_tree_build::ctx::TreeBuildingCtx;
-use calsc_tree_low::{
-    ctx::TreeLowCtx,
-    lower::{self, lower_everything},
-};
+use calsc_tree_low::{ctx::TreeLowCtx, lower::lower_everything};
 
 pub fn setup_build_state(
     out: PathBuf,
@@ -57,6 +50,8 @@ pub(crate) fn get_linker() -> String {
 pub fn build() {
     let mut out_files: Vec<PathBuf> = vec![];
 
+    let mut session = CompilerSession::new();
+
     // Building global module tree
     if GLOBAL_STATE.with_borrow(|state| state.is_package_enabled) {
         {
@@ -72,26 +67,17 @@ pub fn build() {
             let mut lowered_ctx = TreeLowCtx::new(ctx);
 
             lower_everything(&mut lowered_ctx).unwrap_cleanly();
+
+            session.tree_lowered = Some(lowered_ctx);
         }
-
-        let module_tree = build_module_tree(
-            GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap()),
-        );
-
-        dump_and_stop_if_errors();
-
-        let mut module_tree = module_tree.unwrap();
-
-        module_tree.clean();
-
-        lower_types_from_stage_0(&module_tree).unwrap_cleanly();
-
-        GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
     }
 
-    loop {
-        if !consume_build_files(&mut out_files) {
-            break;
+    for file in session.get_tree_lowered().build_ctx.tree.used_files.clone() {
+        let (out_file, s) = build_file(file, session);
+        session = s;
+
+        if let Some(path) = out_file {
+            out_files.push(path);
         }
     }
 
@@ -116,7 +102,7 @@ pub fn build() {
     }
 }
 
-pub fn build_file(file: PathBuf) -> Option<PathBuf> {
+pub fn build_file(file: PathBuf, session: CompilerSession) -> (Option<PathBuf>, CompilerSession) {
     let target = get_target_type(); // Avoid borrows
     let out_destination = get_file_output(); // Avoid borrows
 
@@ -133,17 +119,14 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
 
     let ast_ctx = ast_ctx.unwrap();
 
-    let mut hir_ctx = HIRContext::new();
+    let mut hir_ctx = HIRContext::new(session);
     let mut file_ctx = HIRFileContext::new(file.clone());
-
-    let _ = lower_hir_stage_1(ast_ctx.clone(), &mut hir_ctx, &mut file_ctx);
-    dump_and_stop_if_errors();
 
     let _ = lower_hir_stage_2(ast_ctx, &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();
 
     if !target.requires_remir() {
-        return None;
+        return (None, hir_ctx.state.take());
     }
 
     let mut out_file = match target {
@@ -159,6 +142,8 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
         out_file = out_destination.join(out_file);
     }
 
+    let session = hir_ctx.state.take();
+
     let _ = compile_file(
         hir_ctx,
         out_file.clone(),
@@ -168,5 +153,5 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
     );
     dump_and_stop_if_errors();
 
-    Some(out_file)
+    (Some(out_file), session)
 }

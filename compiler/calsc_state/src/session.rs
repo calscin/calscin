@@ -36,3 +36,12 @@ impl CompilerSession {
         ))
     }
 }
+
+impl Default for CompilerSession {
+    fn default() -> Self {
+        Self {
+            state: GlobalState::Pre,
+            tree_lowered: None,
+        }
+    }
+}
