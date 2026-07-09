@@ -31,8 +31,6 @@ pub fn discover_files(
 
             let path = get_file_path_for_module_name(&parent_buff, name, node)?;
 
-            println!("Detected {:#?}", path);
-
             paths.push(path);
         }
     }

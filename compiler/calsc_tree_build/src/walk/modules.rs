@@ -23,8 +23,6 @@ pub fn walk_through_module(
 
         ctx.current_path.append_single_bit(name.clone());
 
-        println!("- Scanning module {}", ctx.current_path);
-
         ctx.tree.append_module(
             &ctx.current_path.clone(),
             ctx.current_file.clone(),
@@ -35,8 +33,6 @@ pub fn walk_through_module(
         for node in body {
             walk_through_node(node, ast, ctx)?;
         }
-
-        println!("- End of module {}", ctx.current_path);
 
         ctx.current_path.path.pop();
 

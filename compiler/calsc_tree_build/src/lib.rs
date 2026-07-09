@@ -23,7 +23,7 @@ use crate::{
     discover::discover_files,
     utils::get_module_name_from_file,
     walk::walk_in_file,
-    walk_second_pass::{handle_imports, lower_imports, walk_second_pass},
+    walk_second_pass::{lower_imports, walk_second_pass},
 };
 
 pub mod ctx;
@@ -48,8 +48,6 @@ pub fn build_module_tree(path: PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossib
     lower_imports(ctx)?; // Handle imports before handling used files
 
     for file in &ctx.tree.used_files.clone() {
-        println!("Used file: {:#?}", file);
-
         walk_second_pass(file, ctx)?;
     }
 
@@ -66,8 +64,6 @@ pub fn analyze_file(path: PathBuf, ast: ASTContext, ctx: &mut TreeBuildingCtx) -
             ctx.current_path.append_single_bit(module_name);
         }
     }
-
-    println!("+ Scanning {}", ctx.current_path);
 
     // Append the module path base to the cache
     ctx.module_path_base

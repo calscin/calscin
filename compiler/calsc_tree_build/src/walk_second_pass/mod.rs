@@ -27,27 +27,9 @@ pub fn lower_imports(ctx: &mut TreeBuildingCtx) -> DiagPossible {
     Ok(())
 }
 
-pub fn handle_imports(ctx: &mut TreeBuildingCtx) -> DiagPossible {
-    if ctx.import_nodes.contains_key(&ctx.current_path) {
-        for import_node in ctx.import_nodes[&ctx.current_path].clone() {
-            println!("Resolving import node {:#?}", import_node);
-            walk_second_pass_import(&import_node, &ctx.current_file.clone(), ctx)?;
-        }
-    } else {
-        println!("Doesn't contain! {}", ctx.current_path);
-    }
-
-    Ok(())
-}
-
 pub fn walk_second_pass(path: &PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
     // Set back the path to the base. We do this since the hashmap randomizes the order so we cannot use the same strategy as the first walk
     ctx.current_path = ctx.module_path_base[path].clone();
-
-    println!("% Second pass on {}", ctx.current_path);
-
-    // Resolve imports first
-    //handle_imports(ctx)?;
 
     for (_, entry) in ctx.tree.children.clone() {
         walk_second_pass_entry(entry, ctx)?;
@@ -65,8 +47,6 @@ pub fn walk_second_pass_entry(entry: ArenaHandle, ctx: &mut TreeBuildingCtx) -> 
     ctx.current_path = entry.self_path.clone();
 
     if let TreeEntryKind::Module(module) = &entry.kind {
-        //handle_imports(ctx)?;
-
         for (_, child) in &module.children.clone() {
             walk_second_pass_entry(child.clone(), ctx)?;
         }

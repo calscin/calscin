@@ -141,8 +141,6 @@ impl ModuleTree {
 
         let name = path.last();
 
-        println!("Appending module {} at {}", name, path);
-
         let entry = TreeEntryKind::Module(TreeModule::new(name, file_path));
 
         self.append_entry(&path, entry, arena, source)

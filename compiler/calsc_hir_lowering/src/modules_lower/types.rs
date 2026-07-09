@@ -48,8 +48,6 @@ pub fn lower_type_from_tree(
     let r = tree.traverse_to(path.clone(), &source)?;
 
     if let ModuleTreeEntry::FilledType(ty) = r {
-        println!("Type to lower: {:#?}", ty);
-
         let mut dependencies = HashedCounter::new();
 
         ty.get_dependencies(tree, &mut dependencies, &source)?;
@@ -122,8 +120,6 @@ pub fn lower_type<S: DiagnosticSource>(
 
             let (mut path, element_name) = lower_stage0_key(name, hir_file_ctx, tree);
             path.append_single_bit(element_name.clone());
-
-            println!("Type name: {}", element_name);
 
             if type_ctx.type_params.has_type_parameter(&element_name) {
                 if size_specs.is_some() || !type_parameters.is_empty() {

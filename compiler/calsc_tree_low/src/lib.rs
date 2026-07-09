@@ -33,8 +33,6 @@ pub fn get_dependencies_of_entry<S: DiagnosticSource>(
 ) -> DiagResult<HashSet<ModulePath>> {
     let mut set = HashSet::new();
 
-    println!("Getting dependencies of entry {}", path);
-
     get_dependencies_inner(ctx, path, path, &mut set, source)?;
 
     Ok(set)
@@ -47,8 +45,6 @@ fn get_dependencies_inner<S: DiagnosticSource>(
     set: &mut HashSet<ModulePath>,
     source: &S,
 ) -> DiagPossible {
-    println!("+ Inner deps {}", master);
-
     let entry = ctx
         .build_ctx
         .tree

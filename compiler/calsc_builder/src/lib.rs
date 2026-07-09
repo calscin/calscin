@@ -72,8 +72,6 @@ pub fn build() {
             let mut lowered_ctx = TreeLowCtx::new(ctx);
 
             lower_everything(&mut lowered_ctx).unwrap_cleanly();
-
-            //println!("{:#?}", ctx);
         }
 
         let module_tree = build_module_tree(

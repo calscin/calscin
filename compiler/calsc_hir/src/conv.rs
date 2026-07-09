@@ -157,8 +157,6 @@ pub fn convert_numerical_literal_into(
     ty: HeldPrimitive,
     ctx: &TypeCtx,
 ) -> DiagResult<HIRNode> {
-    println!("{:#?}", ty);
-
     assert!(ty.size.is_active() || ty.ty.is_size());
 
     let size = ty.size.0;
