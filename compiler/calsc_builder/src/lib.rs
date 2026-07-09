@@ -1,6 +1,6 @@
 #![deny(unsafe_code)]
 
-use std::{fs, path::PathBuf, process::Command, time::Instant};
+use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::{
