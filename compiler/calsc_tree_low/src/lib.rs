@@ -9,6 +9,7 @@ use crate::ctx::TreeLowCtx;
 
 pub mod ctx;
 pub mod lower;
+pub mod prelude;
 pub mod types;
 
 pub fn convert_visibility(
@@ -32,7 +33,9 @@ pub fn get_dependencies_of_entry<S: DiagnosticSource>(
 ) -> DiagResult<HashSet<ModulePath>> {
     let mut set = HashSet::new();
 
-    get_dependencies_inner(ctx, &path, path, &mut set, source)?;
+    println!("Getting dependencies of entry {}", path);
+
+    get_dependencies_inner(ctx, path, path, &mut set, source)?;
 
     Ok(set)
 }
@@ -44,6 +47,8 @@ fn get_dependencies_inner<S: DiagnosticSource>(
     set: &mut HashSet<ModulePath>,
     source: &S,
 ) -> DiagPossible {
+    println!("+ Inner deps {}", master);
+
     let entry = ctx
         .build_ctx
         .tree

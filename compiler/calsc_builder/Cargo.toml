@@ -14,3 +14,4 @@ calsc_state = { path = "../calsc_state" }
 calsc_modules = { path = "../calsc_modules" }
 calsc_utils = { path = "../calsc_utils" }
 calsc_tree_build = { path = "../calsc_tree_build", features = ["debug"]}
+calsc_tree_low = { path = "../calsc_tree_low", features = ["debug"]}

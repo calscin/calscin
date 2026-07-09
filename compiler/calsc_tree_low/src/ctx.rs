@@ -1,7 +1,7 @@
 use std::{collections::HashMap, fmt::Display};
 
 use calsc_diagnostics::{
-    DiagResult, Diagnostic, DiagnosticSource,
+    DiagResult, DiagnosticSource,
     diags::errors::{build_cannot_find_element_no_closest, build_expected_entry_type},
 };
 use calsc_modules::{path::ModulePath, visibility::Visibility};
@@ -12,6 +12,8 @@ use calsc_typing::{
     types::{TypeKind, primitive::PrimitiveType},
 };
 use calsc_utils::hash::HashedString;
+
+use crate::prelude::apply_lower_prelude;
 
 pub struct TreeLowCtx {
     pub build_ctx: TreeBuildingCtx,
@@ -43,11 +45,15 @@ pub enum TreeLoweredEntry {
 
 impl TreeLowCtx {
     pub fn new(build_ctx: TreeBuildingCtx) -> Self {
-        Self {
+        let mut ctx = Self {
             build_ctx,
             type_ctx: TypeCtx::new(),
             lowered_map: HashMap::new(),
-        }
+        };
+
+        apply_lower_prelude(&mut ctx);
+
+        ctx
     }
 
     pub fn get_entry<'a, S: DiagnosticSource>(

@@ -121,10 +121,6 @@ impl Default for ModulePath {
 
 impl PartialEq for ModulePath {
     fn eq(&self, other: &Self) -> bool {
-        if self.is_prelude() || other.is_prelude() {
-            return true;
-        }
-
         return self.package == other.package && self.path == other.path;
     }
 }

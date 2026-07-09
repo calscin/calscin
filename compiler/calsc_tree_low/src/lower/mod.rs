@@ -4,6 +4,7 @@ use calsc_modules::path::ModulePath;
 
 use crate::{
     ctx::TreeLowCtx,
+    get_dependencies_of_entry,
     lower::{
         funcs::{lower_ast_extern_function_declaration, lower_ast_function_declaration},
         structs::lower_ast_struct_declaration,
@@ -30,11 +31,33 @@ pub fn lower_ast_entry(path: ModulePath, ctx: &mut TreeLowCtx) -> DiagPossible {
         return Ok(());
     }
 
+    // We lower the dependencies first
+
+    let deps = get_dependencies_of_entry(ctx, &path, &ctx.build_ctx.related_nodes[&path].1[0])?;
+
+    for dep in deps {
+        lower_ast_entry(dep, ctx)?;
+    }
+
     let (_, nodes) = ctx.build_ctx.related_nodes[&path].clone();
 
     // TODO: add priority sorting
     for node in nodes {
         lower_ast_node(node, ctx, path.clone())?;
+    }
+
+    Ok(())
+}
+
+pub fn lower_everything(ctx: &mut TreeLowCtx) -> DiagPossible {
+    for path in ctx
+        .build_ctx
+        .related_nodes
+        .keys()
+        .map(ModulePath::clone)
+        .collect::<Vec<_>>()
+    {
+        lower_ast_entry(path, ctx)?;
     }
 
     Ok(())

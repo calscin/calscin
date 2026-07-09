@@ -10,3 +10,6 @@ calsc_ast = { path = "../calsc_ast" }
 calsc_typing = { path = "../calsc_typing" }
 calsc_utils = { path = "../calsc_utils"}
 calsc_diagnostics = { path = "../calsc_diagnostics"}
+
+[features]
+debug = []

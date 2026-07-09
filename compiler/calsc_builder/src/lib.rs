@@ -16,6 +16,10 @@ use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
 use calsc_tree_build::ctx::TreeBuildingCtx;
+use calsc_tree_low::{
+    ctx::TreeLowCtx,
+    lower::{self, lower_everything},
+};
 
 pub fn setup_build_state(
     out: PathBuf,
@@ -64,6 +68,10 @@ pub fn build() {
             );
 
             calsc_tree_build::build_module_tree(path, &mut ctx).unwrap_cleanly();
+
+            let mut lowered_ctx = TreeLowCtx::new(ctx);
+
+            lower_everything(&mut lowered_ctx).unwrap_cleanly();
 
             //println!("{:#?}", ctx);
         }
