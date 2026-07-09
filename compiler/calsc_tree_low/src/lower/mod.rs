@@ -33,7 +33,7 @@ pub fn lower_ast_entry(path: ModulePath, ctx: &mut TreeLowCtx) -> DiagPossible {
     let (_, nodes) = ctx.build_ctx.related_nodes[&path].clone();
 
     // TODO: add priority sorting
-    for node in nodes {̣̣
+    for node in nodes {
         lower_ast_node(node, ctx, path.clone())?;
     }
 
