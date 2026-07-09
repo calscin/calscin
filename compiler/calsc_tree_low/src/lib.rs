@@ -44,18 +44,22 @@ fn get_dependencies_inner<S: DiagnosticSource>(
     set: &mut HashSet<ModulePath>,
     source: &S,
 ) -> DiagPossible {
-    let deps = ctx
+    let entry = ctx
         .build_ctx
         .tree
-        .get_entry(path, &ctx.build_ctx.arena, source)?
-        .get_dependencies()
-        .clone();
+        .get_entry(path, &ctx.build_ctx.arena, source)?;
 
-    for dep in deps {
+    for dep in entry.typing_dependencies.clone() {
         if &dep == master {
             return Err(build_type_infinite_size(&dep, source).into());
         }
 
+        get_dependencies_inner(ctx, master, &dep, set, source)?;
+
+        set.insert(dep);
+    }
+
+    for dep in entry.semantic_dependencies.clone() {
         get_dependencies_inner(ctx, master, &dep, set, source)?;
 
         set.insert(dep);
