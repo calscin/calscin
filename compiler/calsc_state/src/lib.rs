@@ -10,6 +10,7 @@ use calsc_utils::hash::HashedString;
 use crate::build::{BuildTargetMode, CompilerBuildState};
 
 pub mod build;
+pub mod session;
 
 thread_local! {
     pub static GLOBAL_STATE: RefCell<CompilerGlobalState> = RefCell::new(CompilerGlobalState::new(None, BuildTargetMode::Check))
@@ -55,6 +56,13 @@ impl CompilerGlobalState {
 
     pub fn get_tree_lowered<'a>(&'a self) -> &'a TreeLowCtx {
         self.tree_lowered.as_ref().expect(&format!(
+            "Lowered module tree is None in stage {:#?}!",
+            self.global_state
+        ))
+    }
+
+    pub fn get_tree_lowered_mut<'a>(&'a mut self) -> &'a mut TreeLowCtx {
+        self.tree_lowered.as_mut().expect(&format!(
             "Lowered module tree is None in stage {:#?}!",
             self.global_state
         ))

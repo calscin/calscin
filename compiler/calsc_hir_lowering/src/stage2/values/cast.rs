@@ -19,7 +19,7 @@ use calsc_hir::{
 use calsc_typing::into::{TypeCasting, TypeTransmutation};
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string};
 
-use crate::{stage1::types::lower_ast_type, stage2::values::lower_ast_value};
+use crate::stage2::values::lower_ast_value;
 
 pub fn lower_ast_cast(
     node: ASTNode,
