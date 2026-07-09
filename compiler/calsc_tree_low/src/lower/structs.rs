@@ -4,7 +4,6 @@ use calsc_modules::path::ModulePath;
 use calsc_typing::{
     allocs::STRUCT_CONTAINER_ALLOC,
     types::{
-        TypeKind,
         primitive::PrimitiveType,
         structs::{NamedField, StructContainer},
     },
