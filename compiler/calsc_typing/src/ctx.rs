@@ -1,7 +1,7 @@
 //! The context of the type system.
 
 use crate::{
-    allocs::{StructContainerArena, TypeKindArena, TypedFunctionArena},
+    allocs::{TypeKindArena, TypedFunctionArena},
     params::TypeParamCtx,
 };
 
