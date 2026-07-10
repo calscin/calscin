@@ -54,24 +54,21 @@ pub fn build() {
     let mut session = CompilerSession::new();
 
     // Building global module tree
-    if GLOBAL_STATE.with_borrow(|state| state.is_package_enabled) {
-        {
-            let path = GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap());
+    let path = GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap());
 
-            let mut ctx = TreeBuildingCtx::new(
-                GLOBAL_STATE.with_borrow(|f| f.package_name.clone()),
-                &PanicDiagnosticSource(),
-            );
+    let mut ctx = TreeBuildingCtx::new(
+        GLOBAL_STATE.with_borrow(|f| f.package_name.clone()),
+        &PanicDiagnosticSource(),
+        GLOBAL_STATE.with_borrow(|f| f.is_package_enabled),
+    );
 
-            calsc_tree_build::build_module_tree(path, &mut ctx).unwrap_cleanly();
+    calsc_tree_build::build_module_tree(path, &mut ctx).unwrap_cleanly();
 
-            let mut lowered_ctx = TreeLowCtx::new(ctx);
+    let mut lowered_ctx = TreeLowCtx::new(ctx);
 
-            lower_everything(&mut lowered_ctx).unwrap_cleanly();
+    lower_everything(&mut lowered_ctx).unwrap_cleanly();
 
-            session.tree_lowered = Some(lowered_ctx);
-        }
-    }
+    session.tree_lowered = Some(lowered_ctx);
 
     for file in session.get_tree_lowered().build_ctx.tree.used_files.clone() {
         let (out_file, s) = build_file(file, session);
