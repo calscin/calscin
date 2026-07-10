@@ -19,6 +19,8 @@ pub struct TreeBuildingCtx {
     pub import_nodes: HashMap<ModulePath, Vec<ASTNode>>,
     pub ast_contexts: HashMap<PathBuf, ASTContext>,
 
+    pub is_pkg_enabled: bool,
+
     /// The base of the module path based on the given file
     pub module_path_base: HashMap<PathBuf, ModulePath>,
 
@@ -27,7 +29,11 @@ pub struct TreeBuildingCtx {
 }
 
 impl TreeBuildingCtx {
-    pub fn new<S: DiagnosticSource>(package: HashedString, source: &S) -> Self {
+    pub fn new<S: DiagnosticSource>(
+        package: HashedString,
+        source: &S,
+        is_pkg_enabled: bool,
+    ) -> Self {
         let mut ctx = Self {
             tree: ModuleTree::new(),
             arena: ArenaAllocator::new(),
@@ -37,6 +43,7 @@ impl TreeBuildingCtx {
             module_path_base: HashMap::new(),
             current_path: ModulePath::new(package, vec![]),
             current_file: PathBuf::default(),
+            is_pkg_enabled,
         };
 
         apply_prelude(&mut ctx, source).unwrap_cleanly();

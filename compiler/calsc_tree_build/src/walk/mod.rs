@@ -2,7 +2,10 @@
 //! Basically processes the AST context in order to build the module tree
 
 use calsc_ast::{ASTContext, nodes::ASTNodeKind};
-use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
+use calsc_diagnostics::{
+    DiagPossible,
+    diags::errors::{build_internal_hir_node_leaked, importing_disabled_self_import},
+};
 use calsc_modules::treev2::entry::TreeEntryKind;
 use calsc_utils::alloc::arena::ArenaHandle;
 
@@ -103,7 +106,11 @@ pub fn walk_through_node(
             Ok(())
         }
 
-        ASTNodeKind::ImportStatement { .. } => {
+        ASTNodeKind::ImportStatement { path, kind: _ } => {
+            if &*path.members[0] != "std" && !ctx.is_pkg_enabled {
+                return Err(importing_disabled_self_import(node_ref).into());
+            }
+
             ctx.append_import_node(node_ref.clone());
 
             Ok(())

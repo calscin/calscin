@@ -3,7 +3,7 @@ use std::path::PathBuf;
 use calsc_ast::{ASTContext, nodes::ASTNodeKind};
 use calsc_diagnostics::{
     DiagResult, DiagnosticSource,
-    diags::errors::{build_module_no_files, build_multiple_files_one_module},
+    diags::errors::{build_module_no_files, build_multiple_files_one_module, importing_disabled},
 };
 use calsc_utils::hash::HashedString;
 
@@ -11,7 +11,7 @@ use crate::ctx::TreeBuildingCtx;
 
 pub fn discover_files(
     ast: &ASTContext,
-    _ctx: &mut TreeBuildingCtx,
+    ctx: &mut TreeBuildingCtx,
     parent_buff: PathBuf,
 ) -> DiagResult<Vec<PathBuf>> {
     let mut paths = vec![];
@@ -27,6 +27,10 @@ pub fn discover_files(
         {
             if *is_bodied {
                 continue;
+            }
+
+            if !ctx.is_pkg_enabled {
+                return Err(importing_disabled(node).into());
             }
 
             let path = get_file_path_for_module_name(&parent_buff, name, node)?;
