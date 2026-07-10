@@ -25,6 +25,7 @@ pub enum ErrorCode {
     // Importing
     AmbiguousImport,
     ImportingDisabled,
+    EntryPointWrong,
 
     // Typing
     UnexpectedType,
@@ -793,5 +794,16 @@ pub fn importing_disabled<S: DiagnosticSource>(source: &S) -> Diagnostic {
             "- using the build tool to build the project".to_string(),
             "- passing the --use-packages argument to the compiler".to_string(),
         ],
+    )
+}
+
+pub fn import_wrong_entry_point<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::EntryPointWrong as usize),
+        "when packages are enabled, the entry point must be named module.cal".to_string(),
+        None,
+        vec![],
+        vec!["this happens because your main file is not named module.cal".to_string()],
+        vec!["rename your main file module.cal".to_string()],
     )
 }

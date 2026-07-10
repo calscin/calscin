@@ -1,11 +1,11 @@
 #![deny(unsafe_code)]
 
-use std::{fs, path::PathBuf, process::Command};
+use std::{ffi::OsStr, fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::{
-    container::dump_and_stop_if_errors, file::FileDiagnosticPos, panics::PanicDiagnosticSource,
-    result::CalscinResult,
+    container::dump_and_stop_if_errors, diags::errors::import_wrong_entry_point,
+    file::FileDiagnosticPos, panics::PanicDiagnosticSource, result::CalscinResult,
 };
 use calsc_hir::{HIRContext, file::HIRFileContext};
 use calsc_hir_lowering::{stage1::import_everything_inside_module, stage2::lower_hir_stage_2};
@@ -52,6 +52,18 @@ pub fn build() {
     let mut out_files: Vec<PathBuf> = vec![];
 
     let mut session = CompilerSession::new();
+
+    if GLOBAL_STATE.with_borrow(|f| {
+        f.is_package_enabled
+            && f.build.origin_file_to_build.clone().unwrap().file_name()
+                != Some(OsStr::new("module.cal"))
+    }) {
+        import_wrong_entry_point(&FileDiagnosticPos::new(
+            GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap()),
+        ));
+
+        dump_and_stop_if_errors();
+    }
 
     // Building global module tree
     let path = GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap());
