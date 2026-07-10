@@ -38,8 +38,6 @@ pub fn import_everything_inside_module<S: DiagnosticSource>(
             .lowered_map
             .contains_key(&entry)
         {
-            println!("Entry path: {}", entry);
-
             import_entry_into_hir(
                 hir.state.get().get_tree_lowered().lowered_map[&entry].clone(),
                 entry.clone(),

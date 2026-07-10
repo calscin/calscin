@@ -56,11 +56,6 @@ pub fn handle_imports<S: DiagnosticSource>(
 
         let import_from = ModulePath::new(import.actual[0].clone(), import.actual[1..].to_vec());
 
-        println!(
-            "Resolving import {} -> {} inside {}",
-            import_from, import_to, mod_path
-        );
-
         let entry = hir.state.get().get_tree_lowered().lowered_map[&import_from].clone();
 
         import_entry_into_hir(entry, import_to, import_from, hir, origin)?;

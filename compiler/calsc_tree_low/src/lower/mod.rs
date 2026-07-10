@@ -36,8 +36,6 @@ pub fn lower_ast_entry(path: ModulePath, ctx: &mut TreeLowCtx) -> DiagPossible {
     let deps = get_dependencies_of_entry(ctx, &path, &ctx.build_ctx.related_nodes[&path].1[0])?;
 
     for dep in deps {
-        println!("Dependency of {}: {}", path, dep);
-
         lower_ast_entry(dep, ctx)?;
     }
 
