@@ -19,9 +19,15 @@ impl FileDiagnosticPos {
         let str = fs::read_to_string(&file).unwrap();
         let lines: Vec<_> = str.lines().collect();
 
-        let last_line_len = lines[lines.len() - 1].len();
+        let last_line = if lines.len() > 0 { lines.len() - 1 } else { 0 };
 
-        let end = FilePosition::new(file.clone(), lines.len() - 1, last_line_len);
+        let last_line_len = if lines.len() > 0 {
+            lines[last_line].len()
+        } else {
+            0
+        };
+
+        let end = FilePosition::new(file.clone(), last_line, last_line_len);
 
         Self {
             file: file.clone(),
