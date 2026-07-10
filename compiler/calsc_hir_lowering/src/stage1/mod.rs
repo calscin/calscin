@@ -1,3 +1,5 @@
+use std::path::PathBuf;
+
 use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_hir::{
     HIRContext,
@@ -8,6 +10,44 @@ use calsc_hir::{
 use calsc_modules::path::ModulePath;
 use calsc_tree_low::ctx::TreeLoweredEntry;
 
+pub fn import_everything_inside_module<S: DiagnosticSource>(
+    mod_path: ModulePath,
+    path: &PathBuf,
+    hir: &mut HIRContext,
+    origin: &S,
+) -> DiagPossible {
+    for entry in hir
+        .state
+        .get()
+        .get_tree_lowered()
+        .build_ctx
+        .tree
+        .collect_entries(
+            &mod_path,
+            &hir.state.get().get_tree_lowered().build_ctx.arena,
+            path,
+            origin,
+        )?
+    {
+        if hir
+            .state
+            .get()
+            .get_tree_lowered()
+            .lowered_map
+            .contains_key(&entry)
+        {
+            import_entry_into_hir(
+                hir.state.get().get_tree_lowered().lowered_map[&entry].clone(),
+                entry,
+                hir,
+                origin,
+            )?;
+        }
+    }
+
+    Ok(())
+}
+
 pub fn import_entry_into_hir<S: DiagnosticSource>(
     entry: TreeLoweredEntry,
     path: ModulePath,
@@ -15,7 +55,7 @@ pub fn import_entry_into_hir<S: DiagnosticSource>(
     origin: &S,
 ) -> DiagPossible {
     let name = path.last();
-    let key = GlobalContextKey::new(name.clone()).module_path(path.everything_but_last());
+    let mut key = GlobalContextKey::new(name.clone()).module_path(path.everything_but_last());
 
     match entry {
         TreeLoweredEntry::Type(ty) => {
@@ -26,6 +66,10 @@ pub fn import_entry_into_hir<S: DiagnosticSource>(
 
         TreeLoweredEntry::Function(container) => {
             let is_main_function = name == "main".into() && path.path.len() == 1;
+
+            if is_main_function {
+                key = GlobalContextKey::new("main".into());
+            }
 
             let mut arguments = vec![];
 

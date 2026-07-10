@@ -22,7 +22,7 @@ pub struct TreeLowCtx {
     pub lowered_map: HashMap<ModulePath, TreeLoweredEntry>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LoweredFunctionContainer(
     pub TypeKind,
     pub Vec<(TypeKind, HashedString)>,
@@ -30,7 +30,7 @@ pub struct LoweredFunctionContainer(
     pub Visibility,
 );
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LoweredExternFuncContainer(
     pub TypeKind,
     pub Vec<(TypeKind, HashedString)>,
@@ -38,10 +38,10 @@ pub struct LoweredExternFuncContainer(
     pub Visibility,
 );
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct LoweredTypeContainer(pub PrimitiveType, pub Visibility);
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TreeLoweredEntry {
     Function(LoweredFunctionContainer),
 

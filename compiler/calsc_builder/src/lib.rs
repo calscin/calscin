@@ -4,10 +4,11 @@ use std::{fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
 use calsc_diagnostics::{
-    container::dump_and_stop_if_errors, panics::PanicDiagnosticSource, result::CalscinResult,
+    container::dump_and_stop_if_errors, file::FileDiagnosticPos, panics::PanicDiagnosticSource,
+    result::CalscinResult,
 };
 use calsc_hir::{HIRContext, file::HIRFileContext};
-use calsc_hir_lowering::stage2::lower_hir_stage_2;
+use calsc_hir_lowering::{stage1::import_everything_inside_module, stage2::lower_hir_stage_2};
 use calsc_lexer::lexer_tokenize;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode, session::CompilerSession};
@@ -121,6 +122,14 @@ pub fn build_file(file: PathBuf, session: CompilerSession) -> (Option<PathBuf>, 
 
     let mut hir_ctx = HIRContext::new(session);
     let mut file_ctx = HIRFileContext::new(file.clone());
+
+    let _ = import_everything_inside_module(
+        file_ctx.current_module.clone(),
+        &file,
+        &mut hir_ctx,
+        &FileDiagnosticPos::new(file.clone()),
+    );
+    dump_and_stop_if_errors();
 
     let _ = lower_hir_stage_2(ast_ctx, &mut hir_ctx, &mut file_ctx);
     dump_and_stop_if_errors();
