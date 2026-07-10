@@ -3,7 +3,6 @@
 
 use std::{cell::RefCell, path::PathBuf};
 
-use calsc_modules::tree::ModuleTree;
 use calsc_tree_low::ctx::TreeLowCtx;
 use calsc_utils::hash::HashedString;
 
@@ -30,9 +29,6 @@ pub struct CompilerGlobalState {
 
     pub global_state: GlobalState,
 
-    #[deprecated]
-    pub module_tree: ModuleTree,
-
     /// Available after GlobalState::ModuleLow
     pub tree_lowered: Option<TreeLowCtx>,
 }
@@ -44,7 +40,6 @@ impl CompilerGlobalState {
             package_name: "test_pkg".into(),
             global_state: GlobalState::Pre,
             is_package_enabled: false,
-            module_tree: ModuleTree::new(),
             tree_lowered: Option::None,
         }
     }
