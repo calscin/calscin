@@ -8,8 +8,8 @@ use crate::path::PackageLessModulePath;
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone)]
 pub struct ImportFilter {
-    filter: Vec<HashedString>,
-    actual: Vec<HashedString>,
+    pub filter: Vec<HashedString>,
+    pub actual: Vec<HashedString>,
 }
 
 impl ImportFilter {

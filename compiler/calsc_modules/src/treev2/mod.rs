@@ -160,6 +160,44 @@ impl ModuleTree {
 
         Ok(entries)
     }
+
+    pub fn collect_modules<S: DiagnosticSource>(
+        &self,
+        path: &ModulePath,
+        arena: &ArenaAllocator<TreeEntry>,
+        path_buff: &PathBuf,
+        source: &S,
+    ) -> DiagResult<Vec<ModulePath>> {
+        let mut entries = vec![];
+        let entry = self.get_entry(path, arena, source)?;
+
+        collect_modules_inner(path, path_buff, entry, arena, &mut entries);
+
+        Ok(entries)
+    }
+}
+
+fn collect_modules_inner(
+    path: &ModulePath,
+    path_buff: &PathBuf,
+    entry: &TreeEntry,
+    arena: &ArenaAllocator<TreeEntry>,
+    entries: &mut Vec<ModulePath>,
+) {
+    match &entry.kind {
+        TreeEntryKind::Module(m) => {
+            for (name, entry) in &m.children {
+                let mut p = path.clone();
+                p.append_single_bit(name.clone());
+
+                collect_entries_inner(&p, path_buff, arena.get(entry), arena, entries);
+            }
+
+            entries.push(path.clone());
+        }
+
+        _ => {}
+    }
 }
 
 fn collect_entries_inner(

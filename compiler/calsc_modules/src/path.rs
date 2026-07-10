@@ -59,6 +59,12 @@ impl ModulePath {
         }
     }
 
+    pub fn append_packageless(&mut self, path: PackageLessModulePath) {
+        for path in path.0 {
+            self.path.push(path);
+        }
+    }
+
     pub fn append_single_bit(&mut self, bit: HashedString) {
         if self.package.is_empty() {
             self.package = bit;
