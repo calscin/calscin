@@ -24,6 +24,7 @@ pub enum ErrorCode {
 
     // Importing
     AmbiguousImport,
+    ImportingDisabled,
 
     // Typing
     UnexpectedType,
@@ -750,6 +751,47 @@ pub fn build_ambiguous_import_name<S: DiagnosticSource, I: Display>(
             "the import for {} collided with another import",
             import
         )],
-        vec![format!("remove one of the imports that resolve {}", import)],
+        vec![format!(
+            "remove one of the imports that resolve walk_through_module{}",
+            import
+        )],
+    )
+}
+
+pub fn importing_disabled_self_import<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ImportingDisabled as usize),
+        "the package system is currently disabled. Importing from anything else than std is disabled".to_string(),
+        Some("non-std import used here".to_string()),
+        vec![],
+        vec![
+            "importing is disabled because:".to_string(),
+            "- the build tool did not build using packages".to_string(),
+            "- you did not specify the --use-packages argument to the compiler".to_string(),
+        ],
+        vec![
+            "try the following to enable importing: ".to_string(),
+            "- using the build tool to build the project".to_string(),
+            "- passing the --use-packages argument to the compiler".to_string(),
+        ],
+    )
+}
+
+pub fn importing_disabled<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ImportingDisabled as usize),
+        "importing is currently disabled. This feature is then not permitted".to_string(),
+        Some("disabled feature used here".to_string()),
+        vec![],
+        vec![
+            "importing is disabled because:".to_string(),
+            "- the build tool did not build using packages".to_string(),
+            "- you did not specify the --use-packages argument to the compiler".to_string(),
+        ],
+        vec![
+            "try the following to enable importing: ".to_string(),
+            "- using the build tool to build the project".to_string(),
+            "- passing the --use-packages argument to the compiler".to_string(),
+        ],
     )
 }
