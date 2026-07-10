@@ -16,3 +16,11 @@ members = [
 	"tests/lexer",
 	"tests/typing",
 ]
+
+[profile.profiling]
+inherits = "dev"
+debug = 2
+strip = false
+lto = false
+opt-level = 2
+split-debuginfo = "packed"
