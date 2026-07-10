@@ -16,19 +16,15 @@ pub fn import_everything_inside_module<S: DiagnosticSource>(
     hir: &mut HIRContext,
     origin: &S,
 ) -> DiagPossible {
-    for entry in hir
-        .state
-        .get()
-        .get_tree_lowered()
-        .build_ctx
-        .tree
-        .collect_entries(
-            &mod_path,
-            &hir.state.get().get_tree_lowered().build_ctx.arena,
-            path,
-            origin,
-        )?
-    {
+    let tree_lowered = hir.state.get().get_tree_lowered();
+    let build_ctx = &tree_lowered.build_ctx;
+
+    for entry in build_ctx.tree.collect_entries(
+        &mod_path,
+        &hir.state.get().get_tree_lowered().build_ctx.arena,
+        path,
+        origin,
+    )? {
         if hir
             .state
             .get()

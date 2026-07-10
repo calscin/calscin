@@ -5,8 +5,6 @@ use std::{
 
 use calsc_utils::hash::HashedString;
 
-use crate::treev2::ModuleTree;
-
 #[cfg_attr(feature = "debug", derive(Debug))]
 #[derive(Clone, Hash, PartialEq, Eq)]
 pub struct PackageLessModulePath(pub Vec<HashedString>);
@@ -107,6 +105,22 @@ impl ModulePath {
                 self.path[0..self.path.len() - 1].to_vec(),
             )
         }
+    }
+
+    pub fn matches_prefix(&self, prefix: &PackageLessModulePath) -> bool {
+        if prefix.0.is_empty() {
+            return false;
+        }
+
+        self.package == prefix.0[0] && self.path == prefix.0[1..]
+    }
+
+    pub fn take_without_prefix(&self, prefix: &PackageLessModulePath) -> PackageLessModulePath {
+        if !self.matches_prefix(prefix) {
+            return self.clone().into();
+        }
+
+        PackageLessModulePath(self.path[prefix.0.len()..].to_vec())
     }
 }
 
