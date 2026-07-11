@@ -18,10 +18,15 @@ use crate::prelude::apply_lower_prelude;
 
 #[derive(Debug)]
 pub struct TreeLowCtx<'session> {
-    pub build_ctx: TreeBuildingCtx,
-    pub type_ctx: TypeCtx,
     pub type_interner: &'session mut TypingInterner,
 
+    pub data: TreeLowCtxData,
+}
+
+#[derive(Debug)]
+pub struct TreeLowCtxData {
+    pub build_ctx: TreeBuildingCtx,
+    pub type_ctx: TypeCtx,
     pub lowered_map: HashMap<ModulePath, TreeLoweredEntry>,
 }
 
@@ -56,10 +61,8 @@ pub enum TreeLoweredEntry {
 impl<'session> TreeLowCtx<'session> {
     pub fn new(build_ctx: TreeBuildingCtx, interner: &'session mut TypingInterner) -> Self {
         let mut ctx = Self {
-            build_ctx,
-            type_ctx: TypeCtx::new(),
             type_interner: interner,
-            lowered_map: HashMap::new(),
+            data: TreeLowCtxData::new(build_ctx),
         };
 
         apply_lower_prelude(&mut ctx);
@@ -72,11 +75,15 @@ impl<'session> TreeLowCtx<'session> {
         path: &ModulePath,
         source: &S,
     ) -> DiagResult<&'a TreeLoweredEntry> {
-        if !self.lowered_map.contains_key(path) {
+        if !self.data.lowered_map.contains_key(path) {
             return Err(build_cannot_find_element_no_closest(path, source).into());
         }
 
-        Ok(&self.lowered_map[path])
+        Ok(&self.data.lowered_map[path])
+    }
+
+    pub fn as_data(self) -> TreeLowCtxData {
+        self.data
     }
 }
 
@@ -100,5 +107,27 @@ impl Display for TreeLoweredEntry {
             Self::Function(_) => write!(f, "function"),
             Self::Type(_) => write!(f, "type"),
         }
+    }
+}
+
+impl TreeLowCtxData {
+    pub fn new(build_ctx: TreeBuildingCtx) -> Self {
+        Self {
+            build_ctx: build_ctx,
+            type_ctx: TypeCtx::new(),
+            lowered_map: HashMap::new(),
+        }
+    }
+
+    pub fn get_entry<'a, S: DiagnosticSource>(
+        &'a self,
+        path: &ModulePath,
+        source: &S,
+    ) -> DiagResult<&'a TreeLoweredEntry> {
+        if !self.lowered_map.contains_key(path) {
+            return Err(build_cannot_find_element_no_closest(path, source).into());
+        }
+
+        Ok(&self.lowered_map[path])
     }
 }

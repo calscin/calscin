@@ -27,12 +27,13 @@ pub fn lower_ast_struct_declaration(
         type_parameters,
     } = node.kind.clone()
     {
-        let group = ctx.type_ctx.type_params.start_param_group();
+        let group = ctx.data.type_ctx.type_params.start_param_group();
 
         let mut struct_container = StructContainer::new(name.clone(), path.clone());
 
         for type_parameter in type_parameters {
-            ctx.type_ctx
+            ctx.data
+                .type_ctx
                 .type_params
                 .append_type_param(type_parameter.clone(), &node)?;
 
@@ -54,12 +55,12 @@ pub fn lower_ast_struct_declaration(
 
         let primitive = PrimitiveType::Struct(struct_container);
 
-        ctx.lowered_map.insert(
+        ctx.data.lowered_map.insert(
             path,
             TreeLoweredEntry::Type(LoweredTypeContainer(primitive, visibility)),
         );
 
-        ctx.type_ctx.type_params.end_group(group);
+        ctx.data.type_ctx.type_params.end_group(group);
         Ok(())
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());

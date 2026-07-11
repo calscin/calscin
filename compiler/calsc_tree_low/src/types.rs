@@ -58,11 +58,13 @@ pub fn lower_ast_type_generic<S: DiagnosticSource>(
     // Handle type parameters
     if name.members.len() == 1 {
         if ctx
+            .data
             .type_ctx
             .type_params
             .has_type_parameter(&name.members[0])
         {
             let param = ctx
+                .data
                 .type_ctx
                 .type_params
                 .get_type_param(&name.members[0], source)?;
@@ -75,7 +77,7 @@ pub fn lower_ast_type_generic<S: DiagnosticSource>(
         }
     }
 
-    let path = resolve_path(name.clone(), &ctx.build_ctx, source)?;
+    let path = resolve_path(name.clone(), &ctx.data.build_ctx, source)?;
     let mut lowered_type_params: Vec<TypeKind> = vec![];
 
     for type_param in type_params {

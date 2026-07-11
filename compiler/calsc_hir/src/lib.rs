@@ -31,11 +31,11 @@ pub struct HIRContext<'session> {
     pub scope: GlobalContext,
 
     pub type_ctx: TypeCtx,
-    pub session: &'session mut CompilerSession<'session>,
+    pub session: &'session mut CompilerSession,
 }
 
 impl<'session> HIRContext<'session> {
-    pub fn new(session: &'session mut CompilerSession<'session>) -> Self {
+    pub fn new(session: &'session mut CompilerSession) -> Self {
         Self {
             nodes: ArenaAllocator::new(),
             scope: GlobalContext::new(),

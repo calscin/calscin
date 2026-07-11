@@ -27,21 +27,22 @@ pub fn lower_ast_node(node: ASTNode, ctx: &mut TreeLowCtx, path: ModulePath) -> 
 }
 
 pub fn lower_ast_entry(path: ModulePath, ctx: &mut TreeLowCtx) -> DiagPossible {
-    if !ctx.build_ctx.related_nodes.contains_key(&path) {
+    if !ctx.data.build_ctx.related_nodes.contains_key(&path) {
         return Ok(());
     }
 
     // We lower the dependencies first
 
-    let deps = get_dependencies_of_entry(ctx, &path, &ctx.build_ctx.related_nodes[&path].1[0])?;
+    let deps =
+        get_dependencies_of_entry(ctx, &path, &ctx.data.build_ctx.related_nodes[&path].1[0])?;
 
     for dep in deps {
         lower_ast_entry(dep, ctx)?;
     }
 
-    ctx.build_ctx.current_path = path.clone();
+    ctx.data.build_ctx.current_path = path.clone();
 
-    let (_, nodes) = ctx.build_ctx.related_nodes[&path].clone();
+    let (_, nodes) = ctx.data.build_ctx.related_nodes[&path].clone();
 
     // TODO: add priority sorting
     for node in nodes {
@@ -53,6 +54,7 @@ pub fn lower_ast_entry(path: ModulePath, ctx: &mut TreeLowCtx) -> DiagPossible {
 
 pub fn lower_everything(ctx: &mut TreeLowCtx) -> DiagPossible {
     for path in ctx
+        .data
         .build_ctx
         .related_nodes
         .keys()

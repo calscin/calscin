@@ -22,13 +22,14 @@ pub fn lower_ast_function_declaration(
         type_parameters,
     } = node.kind.clone()
     {
-        let group = ctx.type_ctx.type_params.start_param_group();
+        let group = ctx.data.type_ctx.type_params.start_param_group();
 
         let visibility = convert_visibility(visibility, &path);
         let mut owned_type_params = vec![];
 
         for type_parameter in type_parameters {
             let id = ctx
+                .data
                 .type_ctx
                 .type_params
                 .append_type_param(type_parameter, &node)?;
@@ -43,7 +44,7 @@ pub fn lower_ast_function_declaration(
             lowered_arugments.push((lower_ast_type(&argument.0, ctx, &node)?, argument.1));
         }
 
-        ctx.lowered_map.insert(
+        ctx.data.lowered_map.insert(
             path,
             TreeLoweredEntry::Function(LoweredFunctionContainer(
                 return_type,
@@ -53,7 +54,7 @@ pub fn lower_ast_function_declaration(
             )),
         );
 
-        ctx.type_ctx.type_params.end_group(group);
+        ctx.data.type_ctx.type_params.end_group(group);
         Ok(())
     } else {
         return Err(build_internal_hir_node_leaked(&node, &node).into());
@@ -82,7 +83,7 @@ pub fn lower_ast_extern_function_declaration(
             lowered_arguments.push((lower_ast_type(&argument.0, ctx, &node)?, argument.1));
         }
 
-        ctx.lowered_map.insert(
+        ctx.data.lowered_map.insert(
             path,
             TreeLoweredEntry::ExternFunc(LoweredExternFuncContainer(
                 return_type,

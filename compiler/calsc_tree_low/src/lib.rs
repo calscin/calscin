@@ -46,9 +46,10 @@ fn get_dependencies_inner<S: DiagnosticSource>(
     source: &S,
 ) -> DiagPossible {
     let entry = ctx
+        .data
         .build_ctx
         .tree
-        .get_entry(path, &ctx.build_ctx.arena, source)?;
+        .get_entry(path, &ctx.data.build_ctx.arena, source)?;
 
     for dep in entry.typing_dependencies.clone() {
         if &dep == master {

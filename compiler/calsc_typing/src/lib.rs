@@ -34,3 +34,9 @@ impl TypingInterner {
         }
     }
 }
+
+impl Default for TypingInterner {
+    fn default() -> Self {
+        TypingInterner::new()
+    }
+}

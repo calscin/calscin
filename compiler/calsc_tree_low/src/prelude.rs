@@ -5,7 +5,7 @@ use crate::ctx::{LoweredTypeContainer, TreeLowCtx, TreeLoweredEntry};
 
 macro_rules! register_prelude_type {
     ($ctx: expr, $name: literal, $val: expr) => {
-        $ctx.lowered_map.insert(
+        $ctx.data.lowered_map.insert(
             ModulePath::new_prelude_path(vec![$name.into()]),
             TreeLoweredEntry::Type(LoweredTypeContainer($val, Visibility::Uncopiable)),
         )

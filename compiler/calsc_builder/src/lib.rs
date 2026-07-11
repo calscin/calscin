@@ -12,7 +12,7 @@ use calsc_hir_lowering::{stage1::import_everything_inside_module, stage2::lower_
 use calsc_lexer::lexer_tokenize;
 use calsc_remir_lowering::compile_file;
 use calsc_state::{GLOBAL_STATE, build::BuildTargetMode, session::CompilerSession};
-use calsc_tree_build::ctx::TreeBuildingCtx;
+use calsc_tree_build::{build_module_tree, ctx::TreeBuildingCtx};
 use calsc_tree_low::{ctx::TreeLowCtx, lower::lower_everything};
 
 pub fn setup_build_state(
@@ -74,17 +74,21 @@ pub fn build() {
         GLOBAL_STATE.with_borrow(|f| f.is_package_enabled),
     );
 
-    calsc_tree_build::build_module_tree(path, &mut ctx).unwrap_cleanly();
+    build_module_tree(path, &mut ctx).unwrap_cleanly();
 
-    let mut lowered_ctx = TreeLowCtx::new(ctx);
+    let used_files = session.get_tree_lowered().build_ctx.tree.used_files.clone();
+
+    let mut typing_interner = std::mem::take(&mut session.type_interner);
+
+    let mut lowered_ctx = TreeLowCtx::new(ctx, &mut typing_interner);
 
     lower_everything(&mut lowered_ctx).unwrap_cleanly();
 
-    session.tree_lowered = Some(lowered_ctx);
+    session.tree_lowered = Some(lowered_ctx.data);
+    session.type_interner = typing_interner;
 
-    for file in session.get_tree_lowered().build_ctx.tree.used_files.clone() {
-        let (out_file, s) = build_file(file, session);
-        session = s;
+    for file in used_files {
+        let out_file = build_file(file, &mut session);
 
         if let Some(path) = out_file {
             out_files.push(path);
@@ -112,7 +116,10 @@ pub fn build() {
     }
 }
 
-pub fn build_file(file: PathBuf, session: CompilerSession) -> (Option<PathBuf>, CompilerSession) {
+pub fn build_file<'session>(
+    file: PathBuf,
+    session: &'session mut CompilerSession,
+) -> Option<PathBuf> {
     let target = get_target_type(); // Avoid borrows
     let out_destination = get_file_output(); // Avoid borrows
 
@@ -144,7 +151,7 @@ pub fn build_file(file: PathBuf, session: CompilerSession) -> (Option<PathBuf>, 
     dump_and_stop_if_errors();
 
     if !target.requires_remir() {
-        return (None, hir_ctx.state.take());
+        return None;
     }
 
     let mut out_file = match target {
@@ -160,8 +167,6 @@ pub fn build_file(file: PathBuf, session: CompilerSession) -> (Option<PathBuf>, 
         out_file = out_destination.join(out_file);
     }
 
-    let session = hir_ctx.state.take();
-
     let _ = compile_file(
         hir_ctx,
         out_file.clone(),
@@ -171,5 +176,5 @@ pub fn build_file(file: PathBuf, session: CompilerSession) -> (Option<PathBuf>, 
     );
     dump_and_stop_if_errors();
 
-    (Some(out_file), session)
+    Some(out_file)
 }

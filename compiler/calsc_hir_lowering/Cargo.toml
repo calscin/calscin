@@ -13,3 +13,4 @@ calsc_modules = { path = "../calsc_modules" }
 calsc_lexer = { path = "../calsc_lexer" }
 calsc_state = { path = "../calsc_state" }
 calsc_tree_low = { path = "../calsc_tree_low" }
+calsc_tree_build = { path = "../calsc_tree_build"}
