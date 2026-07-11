@@ -2,6 +2,7 @@
 //! This is favored instead of GlobalState since this allows for potentially parallel compilations
 
 use calsc_tree_low::ctx::TreeLowCtx;
+use calsc_typing::TypingInterner;
 
 use crate::GlobalState;
 
@@ -12,6 +13,8 @@ use crate::GlobalState;
 pub struct CompilerSession {
     pub state: GlobalState,
     pub tree_lowered: Option<TreeLowCtx>,
+
+    pub type_interner: TypingInterner,
 }
 
 impl CompilerSession {
@@ -19,6 +22,7 @@ impl CompilerSession {
         Self {
             state: GlobalState::Pre,
             tree_lowered: None,
+            type_interner: TypingInterner::new(),
         }
     }
 
@@ -39,9 +43,6 @@ impl CompilerSession {
 
 impl Default for CompilerSession {
     fn default() -> Self {
-        Self {
-            state: GlobalState::Pre,
-            tree_lowered: None,
-        }
+        Self::new()
     }
 }

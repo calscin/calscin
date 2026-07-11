@@ -27,6 +27,8 @@ pub fn resolve_path<S: DiagnosticSource>(
     ctx: &TreeBuildingCtx,
     source: &S,
 ) -> DiagResult<ModulePath> {
+    println!("- {:?}", path);
+
     if path.members.len() == 1 {
         // Check for prelude types
 
@@ -37,7 +39,7 @@ pub fn resolve_path<S: DiagnosticSource>(
         }
     }
 
-    if ctx.current_path.get_size() > 1 {
+    if ctx.current_path.get_size() >= 1 {
         let parent_module = ctx.current_path.everything_but_last();
         let parent_module = ctx.tree.get_entry(&parent_module, &ctx.arena, source)?;
 
@@ -65,7 +67,8 @@ pub fn resolve_path<S: DiagnosticSource>(
     curr_path.path.append(&mut path.members);
 
     if !ctx.tree.has_entry(&curr_path, &ctx.arena) {
-        return Err(build_cannot_find_element_no_closest(&path, source).into());
+        println!("{:#?}", &curr_path);
+        return Err(build_cannot_find_element_no_closest(&curr_path, source).into());
     }
 
     Ok(curr_path)
