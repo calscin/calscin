@@ -4,7 +4,6 @@ use calsc_utils::{DisplayWith, display_with_list, display_with_to_string};
 
 use crate::{
     TypingInterner,
-    allocs::STRUCT_CONTAINER_ALLOC,
     types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
 
@@ -16,11 +15,11 @@ impl DisplayWith<&TypingInterner> for PrimitiveType {
             Self::Boolean => write!(f, "bool"),
             Self::Str => write!(f, "str"),
             Self::Size => write!(f, "size"),
-            Self::Struct(container) => STRUCT_CONTAINER_ALLOC.with(|ff| {
-                let arena_ref = ff.borrow().get(container);
+            Self::Struct(container) => {
+                let handle = k.struct_container_arena.get(container);
 
-                write!(f, "{}::{}", arena_ref.module, arena_ref.name)
-            }),
+                write!(f, "{}::{}", handle.module, handle.name)
+            }
 
             Self::Function(func) => {
                 let arena_ref = k.func_arena.get(func);

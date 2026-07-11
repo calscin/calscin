@@ -1,12 +1,9 @@
 use calsc_ast::nodes::{ASTNode, ASTNodeKind};
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_modules::path::ModulePath;
-use calsc_typing::{
-    allocs::STRUCT_CONTAINER_ALLOC,
-    types::{
-        primitive::PrimitiveType,
-        structs::{NamedField, StructContainer},
-    },
+use calsc_typing::types::{
+    primitive::PrimitiveType,
+    structs::{NamedField, StructContainer},
 };
 
 use crate::{
@@ -50,8 +47,10 @@ pub fn lower_ast_struct_declaration(
                 .append_named(NamedField(field_name, field_type), &node)?;
         }
 
-        let struct_container =
-            STRUCT_CONTAINER_ALLOC.with(|f| f.borrow_mut().append(struct_container));
+        let struct_container = ctx
+            .type_interner
+            .struct_container_arena
+            .append(struct_container);
 
         let primitive = PrimitiveType::Struct(struct_container);
 

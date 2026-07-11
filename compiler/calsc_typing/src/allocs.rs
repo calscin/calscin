@@ -1,6 +1,6 @@
 //! Allocator definitions for typing system
 
-use calsc_utils::{alloc::arena::ArenaAllocator, unsafes::UnsafeMut};
+use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{
     funcs::TypedFunction,
@@ -10,7 +10,3 @@ use crate::{
 pub type TypeKindArena = ArenaAllocator<TypeKind>;
 pub type StructContainerArena = ArenaAllocator<StructContainer>;
 pub type TypedFunctionArena = ArenaAllocator<TypedFunction>;
-
-thread_local! {
-    pub static STRUCT_CONTAINER_ALLOC: UnsafeMut<StructContainerArena> = UnsafeMut::new(StructContainerArena::new());
-}

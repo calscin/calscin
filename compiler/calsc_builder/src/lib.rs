@@ -76,16 +76,12 @@ pub fn build() {
 
     build_module_tree(path, &mut ctx).unwrap_cleanly();
 
-    let used_files = session.get_tree_lowered().build_ctx.tree.used_files.clone();
-
-    let mut typing_interner = std::mem::take(&mut session.type_interner);
-
-    let mut lowered_ctx = TreeLowCtx::new(ctx, &mut typing_interner);
-
+    let mut lowered_ctx = TreeLowCtx::new(ctx, &mut session.type_interner);
     lower_everything(&mut lowered_ctx).unwrap_cleanly();
 
+    let used_files = lowered_ctx.data.build_ctx.tree.used_files.clone();
+
     session.tree_lowered = Some(lowered_ctx.data);
-    session.type_interner = typing_interner;
 
     for file in used_files {
         let out_file = build_file(file, &mut session);

@@ -2,7 +2,6 @@ use calsc_diagnostics::DiagResult;
 
 use calsc_typing::{
     TypingInterner,
-    allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
     traits::FieldedType,
     types::{HeldPrimitive, TypeKind, primitive::PrimitiveType},
@@ -22,7 +21,7 @@ pub fn lower_type_base(
         PrimitiveType::Str => Ok(ValueType::new_any_pointer()),
         PrimitiveType::Struct(container) => {
             let mut type_fields = vec![];
-            let container = STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).clone());
+            let container = interner.struct_container_arena.get(&container);
 
             for field in container.fields.get_fields(ctx, interner) {
                 let field_ty = unsafe { container.fields.get_field(&field, ctx, interner) }; // This is safe since get_fields return the list of fields
