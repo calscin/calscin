@@ -46,10 +46,12 @@ impl TypeParameteredType for TypeKind {
     fn get_type_params(&self, ctx: &TypeCtx) -> Vec<HashedString> {
         match self {
             Self::Primitive(primitive) => primitive.ty.get_type_params(ctx),
-            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).get_type_params(ctx),
-            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).get_type_params(ctx),
-            Self::Array(_, inner) => ctx.type_kind_arena.get(inner).get_type_params(ctx),
-            Self::Segment(inner) => ctx.type_kind_arena.get(inner).get_type_params(ctx),
+            Self::Reference(_, inner) => {
+                ctx.interner.type_kind_arena.get(inner).get_type_params(ctx)
+            }
+            Self::Pointer(_, inner) => ctx.interner.type_kind_arena.get(inner).get_type_params(ctx),
+            Self::Array(_, inner) => ctx.interner.type_kind_arena.get(inner).get_type_params(ctx),
+            Self::Segment(inner) => ctx.interner.type_kind_arena.get(inner).get_type_params(ctx),
             Self::Void => vec![],
         }
     }
@@ -57,10 +59,26 @@ impl TypeParameteredType for TypeKind {
     fn has_type_param(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
         match self {
             Self::Primitive(primitive) => primitive.ty.has_type_param(name, ctx),
-            Self::Reference(_, inner) => ctx.type_kind_arena.get(inner).has_type_param(name, ctx),
-            Self::Pointer(_, inner) => ctx.type_kind_arena.get(inner).has_type_param(name, ctx),
-            Self::Array(_, inner) => ctx.type_kind_arena.get(inner).has_type_param(name, ctx),
-            Self::Segment(inner) => ctx.type_kind_arena.get(inner).has_type_param(name, ctx),
+            Self::Reference(_, inner) => ctx
+                .interner
+                .type_kind_arena
+                .get(inner)
+                .has_type_param(name, ctx),
+            Self::Pointer(_, inner) => ctx
+                .interner
+                .type_kind_arena
+                .get(inner)
+                .has_type_param(name, ctx),
+            Self::Array(_, inner) => ctx
+                .interner
+                .type_kind_arena
+                .get(inner)
+                .has_type_param(name, ctx),
+            Self::Segment(inner) => ctx
+                .interner
+                .type_kind_arena
+                .get(inner)
+                .has_type_param(name, ctx),
             Self::Void => false,
         }
     }

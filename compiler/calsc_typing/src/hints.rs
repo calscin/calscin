@@ -65,8 +65,8 @@ impl TypeHintContainer {
 
             if !entry.get_type().can_transmute(master.get_type(), ctx) {
                 return Err(build_type_hint_coherce_not_transmutable(
-                    &display_with_to_string(master.get_type(), ctx),
-                    &display_with_to_string(entry.get_type(), ctx),
+                    &display_with_to_string(master.get_type(), ctx.interner),
+                    &display_with_to_string(entry.get_type(), ctx.interner),
                     source,
                 )
                 .into());
@@ -79,8 +79,8 @@ impl TypeHintContainer {
                 .can_transmute_weakly(master.get_type(), ctx)
             {
                 return Err(build_type_hint_coherce_not_transmutable(
-                    &display_with_to_string(master.get_type(), ctx),
-                    &display_with_to_string(entry.get_type(), ctx),
+                    &display_with_to_string(master.get_type(), ctx.interner),
+                    &display_with_to_string(entry.get_type(), ctx.interner),
                     source,
                 )
                 .into());

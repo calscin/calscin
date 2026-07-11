@@ -17,7 +17,7 @@ pub fn lower_ast_type<S: DiagnosticSource>(
     match ty {
         ASTType::Array(size, inner) => {
             let inner = lower_ast_type(&*inner, ctx, source)?;
-            let inner = ctx.type_ctx.type_kind_arena.append(inner);
+            let inner = ctx.type_ctx.interner.type_kind_arena.append(inner);
 
             if size.is_none() {
                 Ok(TypeKind::Segment(inner))
@@ -28,14 +28,14 @@ pub fn lower_ast_type<S: DiagnosticSource>(
 
         ASTType::Pointer(mutable, inner) => {
             let inner = lower_ast_type(&*inner, ctx, source)?;
-            let inner = ctx.type_ctx.type_kind_arena.append(inner);
+            let inner = ctx.type_ctx.interner.type_kind_arena.append(inner);
 
             Ok(TypeKind::Pointer(MutationState(*mutable), inner))
         }
 
         ASTType::Reference(mutable, inner) => {
             let inner = lower_ast_type(&*inner, ctx, source)?;
-            let inner = ctx.type_ctx.type_kind_arena.append(inner);
+            let inner = ctx.type_ctx.interner.type_kind_arena.append(inner);
 
             Ok(TypeKind::Reference(MutationState(*mutable), inner))
         }

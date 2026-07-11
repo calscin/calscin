@@ -61,8 +61,8 @@ pub trait FieldedType {
         if self_ty != *ty {
             return Err(build_expected_field_type(
                 field,
-                &display_with_to_string(ty, &ctx),
-                &display_with_to_string(&self_ty, &ctx),
+                &display_with_to_string(ty, &ctx.interner),
+                &display_with_to_string(&self_ty, &ctx.interner),
                 source,
             )
             .into());
