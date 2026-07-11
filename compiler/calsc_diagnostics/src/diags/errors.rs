@@ -18,6 +18,15 @@ pub enum ErrorCode {
     ExpectedToken,
     EmptyType,
 
+    // Module Tree
+    MultipleFilesModule,
+    NoFilesModule,
+
+    // Importing
+    AmbiguousImport,
+    ImportingDisabled,
+    EntryPointWrong,
+
     // Typing
     UnexpectedType,
     ExpectedType,
@@ -687,5 +696,114 @@ pub fn build_empty_type<S: DiagnosticSource>(source: &S) -> Diagnostic {
         vec![],
         vec!["this can be related to the type not being written correctly".to_string()],
         vec!["make sure the type is a valid written one".to_string()],
+    )
+}
+
+pub fn build_multiple_files_one_module<S: DiagnosticSource, M: Display>(
+    source: &S,
+    module: &M,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::MultipleFilesModule as usize),
+        format!("the module {} can potentially be two files", module),
+        None,
+        vec![],
+        vec![format!(
+            "both {}.cal and {}/module.cal exist!",
+            module, module
+        )],
+        vec![format!(
+            "remove either {}.cal or {}/module.cal!",
+            module, module
+        )],
+    )
+}
+
+pub fn build_module_no_files<S: DiagnosticSource, M: Display>(
+    source: &S,
+    module: &M,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::MultipleFilesModule as usize),
+        format!("the module {} cannot be found", module),
+        None,
+        vec![],
+        vec![format!(
+            "both {}.cal and {}/module.cal are missing!",
+            module, module
+        )],
+        vec![format!(
+            "create either {}.cal or {}/module.cal!",
+            module, module
+        )],
+    )
+}
+
+pub fn build_ambiguous_import_name<S: DiagnosticSource, I: Display>(
+    import: &I,
+    source: &S,
+) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::AmbiguousImport as usize),
+        format!("import {} cannot be resolved", import),
+        None,
+        vec![],
+        vec![format!(
+            "the import for {} collided with another import",
+            import
+        )],
+        vec![format!(
+            "remove one of the imports that resolve walk_through_module{}",
+            import
+        )],
+    )
+}
+
+pub fn importing_disabled_self_import<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ImportingDisabled as usize),
+        "the package system is currently disabled. Importing from anything else than std is disabled".to_string(),
+        Some("non-std import used here".to_string()),
+        vec![],
+        vec![
+            "importing is disabled because:".to_string(),
+            "- the build tool did not build using packages".to_string(),
+            "- you did not specify the --use-packages argument to the compiler".to_string(),
+        ],
+        vec![
+            "try the following to enable importing: ".to_string(),
+            "- using the build tool to build the project".to_string(),
+            "- passing the --use-packages argument to the compiler".to_string(),
+        ],
+    )
+}
+
+pub fn importing_disabled<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::ImportingDisabled as usize),
+        "importing is currently disabled. This feature is then not permitted".to_string(),
+        Some("disabled feature used here".to_string()),
+        vec![],
+        vec![
+            "importing is disabled because:".to_string(),
+            "- the build tool did not build using packages".to_string(),
+            "- you did not specify the --use-packages argument to the compiler".to_string(),
+        ],
+        vec![
+            "try the following to enable importing: ".to_string(),
+            "- using the build tool to build the project".to_string(),
+            "- passing the --use-packages argument to the compiler".to_string(),
+        ],
+    )
+}
+
+pub fn import_wrong_entry_point<S: DiagnosticSource>(source: &S) -> Diagnostic {
+    source.make_diagnostic_simple(
+        DiagnosticCode::new(Level::Error, ErrorCode::EntryPointWrong as usize),
+        "when packages are enabled, the entry point must be named module.cal".to_string(),
+        None,
+        vec![],
+        vec!["this happens because your main file is not named module.cal".to_string()],
+        vec!["rename your main file module.cal".to_string()],
     )
 }

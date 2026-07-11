@@ -8,7 +8,7 @@ use calsc_diagnostics::{
 use calsc_modules::path::ModulePath;
 use calsc_utils::hash::HashedString;
 
-use crate::{ctx::TypeCtx, traits::FieldedType, types::TypeKind};
+use crate::{TypingInterner, ctx::TypeCtx, traits::FieldedType, types::TypeKind};
 
 /// Represents a named field.
 #[cfg_attr(feature = "debug", derive(Debug))]
@@ -85,19 +85,29 @@ impl FieldContainer {
 }
 
 impl FieldedType for FieldContainer {
-    fn has_field(&self, name: &HashedString, _ctx: &TypeCtx) -> bool {
+    fn has_field(&self, name: &HashedString, _ctx: &TypeCtx, _interner: &TypingInterner) -> bool {
         self.fields.contains_key(&name)
     }
 
-    fn get_fields(&self, _ctx: &TypeCtx) -> Vec<HashedString> {
+    fn get_fields(&self, _ctx: &TypeCtx, _interner: &TypingInterner) -> Vec<HashedString> {
         self.fields_order.clone()
     }
 
-    unsafe fn get_field(&self, field: &HashedString, _ctx: &TypeCtx) -> TypeKind {
+    unsafe fn get_field(
+        &self,
+        field: &HashedString,
+        _ctx: &TypeCtx,
+        _interner: &TypingInterner,
+    ) -> TypeKind {
         self.fields[&field].0.0.clone()
     }
 
-    fn get_field_index(&self, field: &HashedString, _ctx: &TypeCtx) -> usize {
+    fn get_field_index(
+        &self,
+        field: &HashedString,
+        _ctx: &TypeCtx,
+        _interner: &TypingInterner,
+    ) -> usize {
         self.fields[&field].1
     }
 }

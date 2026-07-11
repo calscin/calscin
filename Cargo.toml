@@ -7,7 +7,7 @@ members = [
 	"compiler/calsc_hir_lowering",
 	"compiler/calsc_lexer", "compiler/calsc_modules",
 	"compiler/calsc_remir_lowering",
-	"compiler/calsc_state",
+	"compiler/calsc_state", "compiler/calsc_tree_build", "compiler/calsc_tree_low",
 	"compiler/calsc_typing",
 	"compiler/calsc_utils",
 	"compiler/cli",
@@ -16,3 +16,11 @@ members = [
 	"tests/lexer",
 	"tests/typing",
 ]
+
+[profile.profiling]
+inherits = "dev"
+debug = 2
+strip = false
+lto = false
+opt-level = 2
+split-debuginfo = "packed"

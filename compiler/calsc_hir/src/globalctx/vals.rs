@@ -9,7 +9,7 @@ use calsc_diagnostics::{
 
 use calsc_modules::path::ModulePath;
 use calsc_typing::{
-    ctx::TypeCtx,
+    TypingInterner,
     types::{SizeParameter, TypeKind, primitive::PrimitiveType},
 };
 
@@ -90,7 +90,7 @@ impl GlobalContextValue {
     pub fn craft_type<K: DiagnosticSource>(
         &self,
         origin: &K,
-        ctx: &mut TypeCtx,
+        interner: &mut TypingInterner,
         size_parameter: SizeParameter,
         type_parameters: Vec<TypeKind>,
     ) -> DiagResult<TypeKind> {
@@ -103,9 +103,13 @@ impl GlobalContextValue {
                 }
             }
 
-            Self::Type(ty) => {
-                TypeKind::new_primitive(ty.clone(), size_parameter, type_parameters, ctx, origin)
-            }
+            Self::Type(ty) => TypeKind::new_primitive(
+                ty.clone(),
+                size_parameter,
+                type_parameters,
+                interner,
+                origin,
+            ),
 
             _ => return Err(build_expected_entry_type(&"type".to_string(), self, origin).into()),
         }

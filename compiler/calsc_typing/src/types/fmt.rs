@@ -3,27 +3,26 @@ use std::fmt::Display;
 use calsc_utils::{DisplayWith, display_with_list, display_with_to_string};
 
 use crate::{
-    allocs::STRUCT_CONTAINER_ALLOC,
-    ctx::TypeCtx,
+    TypingInterner,
     types::{MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
 };
 
-impl DisplayWith<&TypeCtx> for PrimitiveType {
-    fn fmt(&self, k: &TypeCtx, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl DisplayWith<&TypingInterner> for PrimitiveType {
+    fn fmt(&self, k: &TypingInterner, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Int(signed) => write!(f, "{}", if *signed { "s" } else { "u" }),
             Self::Float => write!(f, "f"),
             Self::Boolean => write!(f, "bool"),
             Self::Str => write!(f, "str"),
             Self::Size => write!(f, "size"),
-            Self::Struct(container) => STRUCT_CONTAINER_ALLOC.with(|ff| {
-                let arena_ref = ff.borrow().get(container);
+            Self::Struct(container) => {
+                let handle = k.struct_container_arena.get(container);
 
-                write!(f, "{}::{}", arena_ref.module, arena_ref.name)
-            }),
+                write!(f, "{}::{}", handle.module, handle.name)
+            }
 
             Self::Function(func) => {
-                let arena_ref = k.typed_function_arena.get(func);
+                let arena_ref = k.func_arena.get(func);
 
                 write!(
                     f,
@@ -58,8 +57,8 @@ impl Display for SizeParameter {
     }
 }
 
-impl DisplayWith<&TypeCtx> for TypeKind {
-    fn fmt(&self, k: &TypeCtx, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+impl DisplayWith<&TypingInterner> for TypeKind {
+    fn fmt(&self, k: &TypingInterner, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             Self::Reference(mutation, handle) => {
                 k.type_kind_arena.get(handle).fmt(k, f)?;

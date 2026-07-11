@@ -1,6 +1,6 @@
 //! File utilities
 
-use std::fs;
+use std::{cmp::min, fs};
 
 use crate::pos::FilePosition;
 
@@ -20,5 +20,9 @@ pub fn get_line_between_positions(
         .map(|line| line.to_string())
         .collect();
 
-    Ok(lines[start.line..end.line + 1].to_vec())
+    if start.line == end.line {
+        Ok(vec![lines[start.line].clone()])
+    } else {
+        Ok(lines[start.line..min(lines.len() - 1, end.line + 1)].to_vec())
+    }
 }

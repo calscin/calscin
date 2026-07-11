@@ -105,9 +105,9 @@ pub fn lower_hir_literal(
 
         HIRNodeKind::TypedStructuredInit { ty, values } => {
             let mut vals = vec![];
-            let mir_ty = lower_type(ty.clone(), &hirctx.type_ctx)?;
+            let mir_ty = lower_type(ty.clone(), &hirctx.type_ctx, &hirctx.session.type_interner)?;
 
-            for field in ty.get_fields(&hirctx.type_ctx) {
+            for field in ty.get_fields(&hirctx.type_ctx, &hirctx.session.type_interner) {
                 vals.push(lower_hir_value(
                     values[&field].clone(),
                     ctx,

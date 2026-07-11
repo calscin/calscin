@@ -10,11 +10,10 @@ use calsc_ast::{
 use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
 use calsc_hir::{HIRContext, file::HIRFileContext};
 
-use crate::stage2::{funcs::lower_ast_function_decl, imports::lower::lower_import_statement};
+use crate::stage2::funcs::lower_ast_function_decl;
 
 pub mod control;
 pub mod funcs;
-pub mod imports;
 pub mod key;
 pub mod types;
 pub mod values;
@@ -25,6 +24,8 @@ pub fn lower_hir_stage_2(
     ctx: &mut HIRContext,
     file_ctx: &mut HIRFileContext,
 ) -> DiagPossible {
+    ctx.session.get_tree_lowered_mut().build_ctx.current_path = file_ctx.current_module.clone();
+
     for node in &ast_context.tree {
         lower_hir_stage_2_node(
             ASTNode::clone(ast_context.nodes.get(node)),
@@ -53,9 +54,7 @@ pub fn lower_hir_stage_2_node(
 
         ASTNodeKind::Module { .. } => lower_hir_stage_2_module(node, file_ctx, ctx, ast_context)?,
 
-        ASTNodeKind::ImportStatement { .. } => {
-            lower_import_statement(node, file_ctx, ctx, ast_context)?
-        }
+        ASTNodeKind::ImportStatement { .. } => return Ok(()),
 
         _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     }
@@ -79,7 +78,12 @@ pub fn lower_hir_stage_2_module(
             return Ok(());
         }
 
-        file_ctx.advance_module(name);
+        file_ctx.advance_module(name.clone());
+        ctx.session
+            .get_tree_lowered_mut()
+            .build_ctx
+            .current_path
+            .append_single_bit(name);
 
         for element in body {
             lower_hir_stage_2_node(
@@ -91,6 +95,12 @@ pub fn lower_hir_stage_2_module(
         }
 
         file_ctx.deadvance_module();
+        ctx.session
+            .get_tree_lowered_mut()
+            .build_ctx
+            .current_path
+            .path
+            .pop();
 
         Ok(())
     } else {

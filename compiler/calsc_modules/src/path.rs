@@ -5,6 +5,10 @@ use std::{
 
 use calsc_utils::hash::HashedString;
 
+#[cfg_attr(feature = "debug", derive(Debug))]
+#[derive(Clone, Hash, PartialEq, Eq)]
+pub struct PackageLessModulePath(pub Vec<HashedString>);
+
 /// Represents a path to a module
 #[derive(Clone)]
 pub struct ModulePath {
@@ -55,6 +59,12 @@ impl ModulePath {
         }
     }
 
+    pub fn append_packageless(&mut self, path: PackageLessModulePath) {
+        for path in path.0 {
+            self.path.push(path);
+        }
+    }
+
     pub fn append_single_bit(&mut self, bit: HashedString) {
         if self.package.is_empty() {
             self.package = bit;
@@ -72,8 +82,16 @@ impl ModulePath {
         }
     }
 
+    pub fn get_ref<'a>(&'a self, ind: usize) -> &'a HashedString {
+        if ind == 0 {
+            &self.package
+        } else {
+            &self.path[ind - 1]
+        }
+    }
+
     pub fn get_size(&self) -> usize {
-        self.path.len() + 1
+        self.path.len() + if self.package.is_empty() { 0 } else { 1 }
     }
 
     pub fn last(&self) -> HashedString {
@@ -94,6 +112,22 @@ impl ModulePath {
             )
         }
     }
+
+    pub fn matches_prefix(&self, prefix: &PackageLessModulePath) -> bool {
+        if prefix.0.is_empty() {
+            return false;
+        }
+
+        self.package == prefix.0[0] && self.path == prefix.0[1..]
+    }
+
+    pub fn take_without_prefix(&self, prefix: &PackageLessModulePath) -> PackageLessModulePath {
+        if !self.matches_prefix(prefix) {
+            return self.clone().into();
+        }
+
+        PackageLessModulePath(self.path[prefix.0.len()..].to_vec())
+    }
 }
 
 impl Default for ModulePath {
@@ -107,10 +141,6 @@ impl Default for ModulePath {
 
 impl PartialEq for ModulePath {
     fn eq(&self, other: &Self) -> bool {
-        if self.is_prelude() || other.is_prelude() {
-            return true;
-        }
-
         return self.package == other.package && self.path == other.path;
     }
 }
@@ -151,5 +181,19 @@ impl Debug for ModulePath {
         }
 
         Ok(())
+    }
+}
+
+impl Into<PackageLessModulePath> for ModulePath {
+    fn into(self) -> PackageLessModulePath {
+        let mut vec = vec![];
+
+        vec.push(self.package);
+
+        for bit in self.path {
+            vec.push(bit);
+        }
+
+        PackageLessModulePath(vec)
     }
 }

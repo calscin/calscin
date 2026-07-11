@@ -37,10 +37,10 @@ pub fn lower_ast_index_usage(
         let val_ref = ctx.nodes.get(&val).clone();
         let val_type = val_ref.get_type(local_ctx.clone(), ctx, Some(file_ctx))?;
 
-        if !val_type.is_iterable_at_all(&ctx.type_ctx) {
+        if !val_type.is_iterable_at_all(&ctx.session.type_interner) {
             return Err(build_not_iterable(
                 None,
-                &display_with_to_string(&val_type, &ctx.type_ctx),
+                &display_with_to_string(&val_type, &ctx.session.type_interner),
                 &val_ref,
             )
             .into());
@@ -58,7 +58,7 @@ pub fn lower_ast_index_usage(
 
         let index = index_ref
             .use_as(
-                &val_type.get_iterator_type(&ctx.type_ctx),
+                &val_type.get_iterator_type(&ctx.session.type_interner),
                 index.clone(),
                 None,
                 local_ctx.clone(),
@@ -67,7 +67,7 @@ pub fn lower_ast_index_usage(
             )?
             .push(ctx);
 
-        let output_type = val_type.get_iterator_output_type(&ctx.type_ctx);
+        let output_type = val_type.get_iterator_output_type(&ctx.session.type_interner);
 
         let node = HIRNode::new(
             HIRNodeKind::IndexUsage {

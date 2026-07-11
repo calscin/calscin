@@ -46,11 +46,12 @@ pub fn lower_ast_lru(
 
         match &right_expr_ref.kind {
             ASTNodeKind::ElementReference(name) => {
-                if !left_ty.has_field(&name, &ctx.type_ctx) {
+                if !left_ty.has_field(&name, &ctx.type_ctx, &ctx.session.type_interner) {
                     return Err(build_cannot_find_element_no_closest(&name, &node).into());
                 }
 
-                let field_ind = left_ty.get_field_index(&name, &ctx.type_ctx);
+                let field_ind =
+                    left_ty.get_field_index(&name, &ctx.type_ctx, &ctx.session.type_interner);
 
                 let node = HIRNode::new(
                     HIRNodeKind::FieldReference {

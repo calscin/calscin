@@ -4,4 +4,8 @@ version = "0.0.0"
 edition = "2024"
 
 [features]
-debug = []
+debug = ["cell-safety"]
+cell-safety = []
+
+[dependencies]
+debugtools = "0.1.0"

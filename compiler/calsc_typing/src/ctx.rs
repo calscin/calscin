@@ -1,29 +1,17 @@
 //! The context of the type system.
 
-use crate::{
-    allocs::{StructContainerArena, TypeKindArena, TypedFunctionArena},
-    params::TypeParamCtx,
-};
+use crate::params::TypeParamCtx;
 
 /// The typing context. Holds temporary / permanent information (eg: allocators).
 /// This context should be passed instead of individual references as it doesn't add additional cost to pass.
 #[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(Clone)]
 pub struct TypeCtx {
-    /// The arena allocator used for [`TypeKind`][`crate::types::TypeKind`]
-    pub type_kind_arena: TypeKindArena,
-
-    /// The arena allocator used for [`TypedFunction`][`crate::funcs::TypedFunction`]
-    pub typed_function_arena: TypedFunctionArena,
-
     pub type_params: TypeParamCtx,
 }
 
 impl TypeCtx {
     pub fn new() -> Self {
         Self {
-            type_kind_arena: TypeKindArena::new(),
-            typed_function_arena: TypedFunctionArena::new(),
             type_params: TypeParamCtx::new(),
         }
     }

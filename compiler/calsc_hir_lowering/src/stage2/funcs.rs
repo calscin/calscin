@@ -12,7 +12,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
-    BUILD_CACHE, HIRContext,
+    HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
@@ -25,16 +25,12 @@ use calsc_typing::{
 };
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string, hash::HashedString};
 
-use crate::{
-    stage1::types::lower_ast_type,
-    stage2::{
-        control::{
-            lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop,
-        },
-        key::lower_ast_key,
-        values::{lower_ast_value, lru::lower_ast_lru},
-        vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
-    },
+use crate::stage2::{
+    control::{lower_ast_for_loop, lower_ast_if_statement, lower_ast_loop, lower_ast_while_loop},
+    key::lower_ast_key,
+    types::lower_ast_type,
+    values::{lower_ast_value, lru::lower_ast_lru},
+    vars::{lower_ast_variable_assign, lower_ast_variable_declaration},
 };
 
 pub fn lower_ast_body_node(
@@ -226,7 +222,9 @@ pub fn lower_ast_function_call(
         // We then coherce them (get the determined type)
 
         for type_param in &type_params {
-            let coherced = type_param.1.determine_type(&ctx.type_ctx, &node)?;
+            let coherced = type_param
+                .1
+                .determine_type(&ctx.session.type_interner, &node)?;
 
             coherced_type_params.insert(type_param.0.clone(), coherced.clone());
         }
@@ -298,15 +296,15 @@ pub fn lower_ast_function_call(
                 for param_name in func_type_parameters {
                     let coherced = coherced_type_params[&param_name.1].clone();
 
-                    combinations.push(HashedTypeKind::new(coherced, &ctx.type_ctx));
+                    combinations.push(HashedTypeKind::new(coherced, &ctx.session.type_interner));
                 }
 
                 let mut module_path = key.module_path.clone();
                 module_path.append_single_bit(key.name.clone());
 
-                BUILD_CACHE.with_borrow_mut(|cache| {
-                    cache.append_used_type_param_combination(module_path, combinations)
-                })
+                ctx.session
+                    .build_cache_interner
+                    .append_used_type_param_combination(module_path, combinations);
             }
 
             HIRNodeKind::TypedParamFunctionCall {
@@ -444,13 +442,10 @@ pub fn lower_ast_function_decl(
         }
 
         let mut hir_arguments = vec![];
-        let ret_type = lower_ast_type(return_type, &node, file_ctx, ctx)?;
+        let ret_type = lower_ast_type(&return_type, &node, ctx)?;
 
         for argument in arguments {
-            hir_arguments.push((
-                lower_ast_type(argument.0.clone(), &node, file_ctx, ctx)?,
-                argument.1,
-            ));
+            hir_arguments.push((lower_ast_type(&argument.0, &node, ctx)?, argument.1));
         }
 
         let body = lower_ast_body(
@@ -476,7 +471,7 @@ pub fn lower_ast_function_decl(
 
         if !meets_ending_point {
             return Err(build_expected_return_error(
-                &display_with_to_string(&ret_type, &ctx.type_ctx),
+                &display_with_to_string(&ret_type, &ctx.session.type_interner),
                 &"void".to_string(),
                 &node,
             )

@@ -1,0 +1,67 @@
+use std::path::PathBuf;
+
+use calsc_diagnostics::DiagPossible;
+use calsc_modules::treev2::entry::TreeEntryKind;
+use calsc_utils::alloc::arena::ArenaHandle;
+
+use crate::{
+    ctx::TreeBuildingCtx,
+    walk_second_pass::nodes::{walk_second_pass_import, walk_second_pass_node},
+};
+
+pub mod nodes;
+pub mod types;
+
+pub fn lower_imports(ctx: &mut TreeBuildingCtx) -> DiagPossible {
+    for (path, nodes) in ctx.import_nodes.clone() {
+        let old = ctx.current_path.clone();
+        ctx.current_path = path;
+
+        for node in nodes {
+            walk_second_pass_import(&node, &ctx.current_file.clone(), ctx)?;
+        }
+
+        ctx.current_path = old;
+    }
+
+    Ok(())
+}
+
+pub fn walk_second_pass(path: &PathBuf, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+    // Set back the path to the base. We do this since the hashmap randomizes the order so we cannot use the same strategy as the first walk
+    ctx.current_path = ctx.module_path_base[path].clone();
+
+    for (_, entry) in ctx.tree.children.clone() {
+        walk_second_pass_entry(entry, ctx)?;
+    }
+
+    // Remove the appended module name
+    ctx.current_path.path.pop();
+
+    Ok(())
+}
+
+pub fn walk_second_pass_entry(entry: ArenaHandle, ctx: &mut TreeBuildingCtx) -> DiagPossible {
+    let entry = ctx.arena.get(&entry).clone();
+
+    ctx.current_path = entry.self_path.clone();
+
+    if let TreeEntryKind::Module(module) = &entry.kind {
+        for (_, child) in &module.children.clone() {
+            walk_second_pass_entry(child.clone(), ctx)?;
+        }
+
+        Ok(())
+    } else {
+        if !entry.has_related_nodes() {
+            return Ok(()); // Skip entries without related nodes
+        }
+
+        let (path, related_nodes) = ctx.related_nodes[&ctx.current_path].clone();
+        for entry in related_nodes {
+            walk_second_pass_node(&entry, &path, ctx)?;
+        }
+
+        Ok(())
+    }
+}

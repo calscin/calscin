@@ -1,128 +1,165 @@
-//! Declarations for the first stage of the HIR lowering. The stage 1 has a couple of responsibilities:
-//! - Add types to the global scope
-//! - Add stage 1 functions to the global scope
-//! - Add extern function to the global scope
-//!
-//! The stage 1 should only create the local context and append the arguments inside
+use std::path::PathBuf;
 
-use calsc_ast::{
-    ASTContext,
-    nodes::{ASTNode, ASTNodeKind},
-};
-use calsc_diagnostics::{DiagPossible, diags::errors::build_internal_hir_node_leaked};
+use calsc_diagnostics::{DiagPossible, DiagnosticSource};
 use calsc_hir::{
     HIRContext,
-    file::HIRFileContext,
+    funcs::HIRFunction,
     globalctx::{key::GlobalContextKey, vals::GlobalContextValue},
+    localctx::LocalContext,
 };
-use calsc_modules::visibility::Visibility;
-use calsc_typing::prelude::apply_prelude;
+use calsc_modules::path::ModulePath;
+use calsc_tree_low::ctx::TreeLoweredEntry;
 
-use crate::stage1::{
-    funcs::{lower_ast_extern_function, lower_ast_function_decl_first_stage},
-    types::lower_ast_struct_declaration,
-};
+use crate::stage1::imports::handle_imports_everything;
 
-pub mod funcs;
-pub mod types;
+pub mod imports;
 
-pub fn lower_hir_stage_1_node(
-    node: ASTNode,
-    file_ctx: &mut HIRFileContext,
-    ctx: &mut HIRContext,
-    ast_ctx: &ASTContext,
+pub fn import_everything_inside_module<S: DiagnosticSource>(
+    mod_path: ModulePath,
+    path: &PathBuf,
+    hir: &mut HIRContext,
+    origin: &S,
 ) -> DiagPossible {
-    match node.kind {
-        ASTNodeKind::FunctionDeclaration { .. } => {
-            lower_ast_function_decl_first_stage(ASTNode::clone(&node), file_ctx, ctx)?;
+    handle_imports_everything(mod_path.clone(), path, hir, origin)?;
+
+    let tree_lowered = hir.session.get_tree_lowered();
+    let build_ctx = &tree_lowered.build_ctx;
+
+    for entry in build_ctx.tree.collect_entries(
+        &mod_path,
+        &hir.session.get_tree_lowered().build_ctx.arena,
+        path,
+        origin,
+    )? {
+        if hir
+            .session
+            .get_tree_lowered()
+            .lowered_map
+            .contains_key(&entry)
+        {
+            import_entry_into_hir(
+                hir.session.get_tree_lowered().lowered_map[&entry].clone(),
+                entry.clone(),
+                entry,
+                hir,
+                origin,
+            )?;
+        }
+    }
+
+    Ok(())
+}
+
+pub fn import_entry_into_hir<S: DiagnosticSource>(
+    entry: TreeLoweredEntry,
+    path: ModulePath,
+    actual_path: ModulePath,
+    hir: &mut HIRContext,
+    origin: &S,
+) -> DiagPossible {
+    let name = path.last();
+    let fake_key = GlobalContextKey::new(name.clone()).module_path(path.everything_but_last());
+    let mut real_key = GlobalContextKey::new(actual_path.last().clone())
+        .module_path(actual_path.everything_but_last());
+
+    match entry {
+        TreeLoweredEntry::Type(ty) => {
+            let _ = hir.scope.append(
+                real_key.clone(),
+                GlobalContextValue::Type(ty.0),
+                ty.1.clone(),
+                origin,
+            )?;
+
+            if &fake_key != &real_key {
+                hir.scope.append(
+                    fake_key,
+                    GlobalContextValue::AnotherReference(real_key.clone()),
+                    ty.1,
+                    origin,
+                )?;
+            }
         }
 
-        ASTNodeKind::ExternFunctionDeclaration { .. } => {
-            lower_ast_extern_function(ASTNode::clone(&node), file_ctx, ctx)?
+        TreeLoweredEntry::Function(container) => {
+            let is_main_function = name == "main".into() && path.path.len() == 1;
+
+            if is_main_function {
+                real_key = GlobalContextKey::new("main".into());
+            }
+
+            let mut arguments = vec![];
+
+            for (ty, name) in container.1 {
+                arguments.push((name, ty));
+            }
+
+            let mut func = HIRFunction::new_stage_1(
+                real_key.clone(),
+                LocalContext::new(
+                    name.clone(),
+                    real_key.clone(),
+                    container.0.clone(),
+                    is_main_function,
+                ),
+                container.0,
+                arguments,
+                is_main_function,
+            );
+
+            func.type_parameters = container.2;
+
+            hir.scope.append(
+                real_key.clone(),
+                GlobalContextValue::Function(func),
+                container.3.clone(),
+                origin,
+            )?;
+
+            if &fake_key != &real_key && !is_main_function {
+                hir.scope.append(
+                    fake_key.clone(),
+                    GlobalContextValue::AnotherReference(real_key.clone()),
+                    container.3,
+                    origin,
+                )?;
+            }
         }
-        ASTNodeKind::StructDeclaration { .. } => {
-            lower_ast_struct_declaration(ASTNode::clone(&node), file_ctx, ctx)?
+
+        TreeLoweredEntry::ExternFunc(container) => {
+            let is_main_function = name == "main".into() && path.path.len() == 1;
+
+            let mut arguments = vec![];
+
+            for (ty, name) in container.1 {
+                arguments.push((name, ty));
+            }
+
+            let func = HIRFunction::new_extern(
+                real_key.clone(),
+                container.0,
+                arguments,
+                container.2,
+                is_main_function,
+            );
+
+            hir.scope.append(
+                real_key.clone(),
+                GlobalContextValue::Function(func),
+                container.3.clone(),
+                origin,
+            )?;
+
+            if &fake_key != &real_key && !is_main_function {
+                hir.scope.append(
+                    fake_key,
+                    GlobalContextValue::AnotherReference(real_key),
+                    container.3,
+                    origin,
+                )?;
+            }
         }
-
-        ASTNodeKind::Module { .. } => lower_hir_stage_1_module(node, file_ctx, ctx, ast_ctx)?,
-
-        ASTNodeKind::ImportStatement { .. } => {}
-
-        _ => return Err(build_internal_hir_node_leaked(&node, &node).into()),
     };
 
     Ok(())
-}
-
-pub fn lower_hir_stage_1(
-    ast_context: ASTContext,
-    ctx: &mut HIRContext,
-    file_ctx: &mut HIRFileContext,
-) -> DiagPossible {
-    let mut first = false;
-
-    for node in &ast_context.tree {
-        if !first {
-            first = true;
-
-            apply_prelude(&mut ctx.scope, ast_context.nodes.get(node))?;
-        }
-
-        lower_hir_stage_1_node(
-            ASTNode::clone(&ast_context.nodes.get(node)),
-            file_ctx,
-            ctx,
-            &ast_context,
-        )?;
-    }
-
-    Ok(())
-}
-
-pub fn lower_hir_stage_1_module(
-    node: ASTNode,
-    file_ctx: &mut HIRFileContext,
-    ctx: &mut HIRContext,
-    ast_ctx: &ASTContext,
-) -> DiagPossible {
-    if let ASTNodeKind::Module {
-        name,
-        body,
-        is_bodied,
-    } = node.kind.clone()
-    {
-        if !is_bodied {
-            let key =
-                GlobalContextKey::new(name.clone()).module_path(file_ctx.current_module.clone());
-
-            let mut path = file_ctx.current_module.clone();
-            path.path.push(name);
-
-            ctx.scope.append(
-                key,
-                GlobalContextValue::Module(path),
-                Visibility::Public,
-                &node,
-            )?;
-
-            return Ok(());
-        }
-
-        file_ctx.advance_module(name);
-
-        for element in body {
-            lower_hir_stage_1_node(
-                ASTNode::clone(&ast_ctx.nodes.get(&element)),
-                file_ctx,
-                ctx,
-                ast_ctx,
-            )?;
-        }
-
-        file_ctx.deadvance_module();
-
-        Ok(())
-    } else {
-        return Err(build_internal_hir_node_leaked(&node, &node).into());
-    }
 }

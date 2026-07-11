@@ -37,7 +37,7 @@ pub fn lower_hir_context(mut ctx: HIRContext, module: &mut Module) -> DiagPossib
     for key in keys {
         let entry = ctx
             .scope
-            .get_entry_no_visibility(key.clone(), &dummy_pos)?
+            .get_entry_directly_no_visibility(key.clone(), &dummy_pos)?
             .clone();
 
         if entry.is_function() {

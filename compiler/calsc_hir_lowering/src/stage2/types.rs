@@ -1,86 +1,111 @@
 use std::collections::HashMap;
 
+use calsc_ast::{path::ElementPath, types::ASTType};
 use calsc_diagnostics::{DiagResult, DiagnosticSource};
-use calsc_hir::{BUILD_CACHE, HIRContext};
-use calsc_modules::lazy::LazyLoadedType;
-use calsc_typing::{
-    traits::TypeParameteredType,
-    types::{HeldPrimitive, MutationState, SizeParameter, TypeKind, primitive::PrimitiveType},
+use calsc_hir::HIRContext;
+use calsc_tree_build::utils::resolve_path;
+use calsc_typing::types::{
+    HeldPrimitive, MutationState, SizeParameter, TypeKind, primitive::PrimitiveType,
 };
 
-pub fn lower_module_path_type<S: DiagnosticSource>(
-    ty: LazyLoadedType,
+pub fn lower_ast_type<'ctx, 'session: 'ctx, S: DiagnosticSource>(
+    ty: &ASTType,
     origin: &S,
-    hir_ctx: &mut HIRContext,
+    hir_ctx: &'ctx mut HIRContext<'session>,
 ) -> DiagResult<TypeKind> {
     match ty {
-        LazyLoadedType::TypeParameter { id: _, name } => {
-            let res = hir_ctx.type_ctx.type_params.get_type_param(&name, origin)?;
+        ASTType::Array(size, inner) => {
+            let inner = lower_ast_type(&*inner, origin, hir_ctx)?;
+            let inner = hir_ctx.session.type_interner.type_kind_arena.append(inner);
 
-            Ok(TypeKind::Primitive(HeldPrimitive {
-                ty: PrimitiveType::TypeParameter(res),
+            if size.is_none() {
+                Ok(TypeKind::Segment(inner))
+            } else {
+                Ok(TypeKind::Array(size.unwrap(), inner))
+            }
+        }
+
+        ASTType::Pointer(mutable, inner) => {
+            let inner = lower_ast_type(&*inner, origin, hir_ctx)?;
+            let inner = hir_ctx.session.type_interner.type_kind_arena.append(inner);
+
+            Ok(TypeKind::Pointer(MutationState(*mutable), inner))
+        }
+
+        ASTType::Reference(mutable, inner) => {
+            let inner = lower_ast_type(&*inner, origin, hir_ctx)?;
+            let inner = hir_ctx.session.type_interner.type_kind_arena.append(inner);
+
+            Ok(TypeKind::Reference(MutationState(*mutable), inner))
+        }
+
+        ASTType::Generic(name, size_spec, type_params) => {
+            lower_ast_type_generic_interner(name, size_spec, type_params, hir_ctx, origin)
+        }
+
+        ASTType::Void => Ok(TypeKind::Void),
+    }
+}
+
+pub fn lower_ast_type_generic_interner<'ctx, 'session: 'ctx, S: DiagnosticSource>(
+    name: &ElementPath,
+    size_spec: &Option<usize>,
+    type_params: &Vec<Box<ASTType>>,
+    ctx: &'ctx mut HIRContext<'session>,
+    source: &S,
+) -> DiagResult<TypeKind> {
+    // Handle type parameters
+    if name.members.len() == 1 {
+        if ctx
+            .session
+            .get_tree_lowered()
+            .type_ctx
+            .type_params
+            .has_type_parameter(&name.members[0])
+        {
+            let param = ctx
+                .session
+                .get_tree_lowered()
+                .type_ctx
+                .type_params
+                .get_type_param(&name.members[0], source)?;
+
+            return Ok(TypeKind::Primitive(HeldPrimitive {
+                ty: PrimitiveType::TypeParameter(param),
                 size: SizeParameter(0),
                 type_parameters: HashMap::new(),
-            }))
+            }));
         }
-
-        LazyLoadedType::Base {
-            module_path,
-            element_name,
-            size_specifiers,
-            type_parameters,
-        } => {
-            let mut new_path = module_path.clone();
-            new_path.append_single_bit(element_name);
-
-            let primitive =
-                BUILD_CACHE.with_borrow(|cache| cache.type_storage.map[&new_path].clone());
-
-            let primitive_type_parameters = primitive.get_type_params(&hir_ctx.type_ctx);
-
-            let mut lowered_type_parameters = HashMap::new();
-
-            for (ind, type_parameter) in type_parameters.iter().enumerate() {
-                let ty = lower_module_path_type(type_parameter.clone(), origin, hir_ctx)?;
-
-                lowered_type_parameters.insert(
-                    primitive_type_parameters[ind].clone(),
-                    hir_ctx.type_ctx.type_kind_arena.append(ty),
-                );
-            }
-
-            Ok(TypeKind::Primitive(HeldPrimitive {
-                ty: primitive,
-                size: SizeParameter(size_specifiers),
-                type_parameters: lowered_type_parameters,
-            }))
-        }
-
-        LazyLoadedType::Array { size, inner } => {
-            let inner = lower_module_path_type(*inner, origin, hir_ctx)?;
-            let inner = hir_ctx.type_ctx.type_kind_arena.append(inner);
-
-            if size.is_some() {
-                Ok(TypeKind::Array(size.unwrap(), inner))
-            } else {
-                Ok(TypeKind::Segment(inner))
-            }
-        }
-
-        LazyLoadedType::Pointer { mutable, inner } => {
-            let inner = lower_module_path_type(*inner, origin, hir_ctx)?;
-            let inner = hir_ctx.type_ctx.type_kind_arena.append(inner);
-
-            Ok(TypeKind::Pointer(MutationState(mutable), inner))
-        }
-
-        LazyLoadedType::Reference { mutable, inner } => {
-            let inner = lower_module_path_type(*inner, origin, hir_ctx)?;
-            let inner = hir_ctx.type_ctx.type_kind_arena.append(inner);
-
-            Ok(TypeKind::Reference(MutationState(mutable), inner))
-        }
-
-        LazyLoadedType::Void => Ok(TypeKind::Void),
     }
+
+    let path = resolve_path(
+        name.clone(),
+        &ctx.session.get_tree_lowered().build_ctx,
+        source,
+    )?;
+    let mut lowered_type_params: Vec<TypeKind> = vec![];
+
+    for type_param in type_params {
+        lowered_type_params.push(lower_ast_type(&*type_param, source, ctx)?);
+    }
+
+    let mut size_specifier = SizeParameter(0);
+
+    if size_spec.is_some() {
+        size_specifier = SizeParameter(size_spec.unwrap());
+    }
+
+    let primitive = ctx
+        .session
+        .get_tree_lowered()
+        .get_entry(&path, source)?
+        .as_type(source)?;
+
+    Ok(TypeKind::new_primitive(
+        primitive.0.clone(),
+        size_specifier,
+        lowered_type_params,
+        &mut ctx.session.type_interner,
+        source,
+    )?)
 }

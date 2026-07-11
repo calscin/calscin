@@ -7,7 +7,7 @@ use calsc_diagnostics::{
 };
 use calsc_utils::display_with_to_string;
 
-use crate::{ctx::TypeCtx, into::TypeTransmutation, types::TypeKind};
+use crate::{TypingInterner, into::TypeTransmutation, types::TypeKind};
 
 #[derive(Clone)]
 pub enum TypeHint {
@@ -51,7 +51,7 @@ impl TypeHintContainer {
     /// - Every other weak hint must be directly weakly transmutable into the "master" type.
     pub fn determine_type<S: DiagnosticSource>(
         &self,
-        ctx: &TypeCtx,
+        interner: &TypingInterner,
         source: &S,
     ) -> DiagResult<TypeKind> {
         let master = if !self.strong_hints.is_empty() {
@@ -63,10 +63,10 @@ impl TypeHintContainer {
         for ind in 1..self.strong_hints.len() {
             let entry = &self.strong_hints[ind];
 
-            if !entry.get_type().can_transmute(master.get_type(), ctx) {
+            if !entry.get_type().can_transmute(master.get_type(), interner) {
                 return Err(build_type_hint_coherce_not_transmutable(
-                    &display_with_to_string(master.get_type(), ctx),
-                    &display_with_to_string(entry.get_type(), ctx),
+                    &display_with_to_string(master.get_type(), interner),
+                    &display_with_to_string(entry.get_type(), interner),
                     source,
                 )
                 .into());
@@ -76,11 +76,11 @@ impl TypeHintContainer {
         for entry in &self.weak_hints {
             if !entry
                 .get_type()
-                .can_transmute_weakly(master.get_type(), ctx)
+                .can_transmute_weakly(master.get_type(), interner)
             {
                 return Err(build_type_hint_coherce_not_transmutable(
-                    &display_with_to_string(master.get_type(), ctx),
-                    &display_with_to_string(entry.get_type(), ctx),
+                    &display_with_to_string(master.get_type(), interner),
+                    &display_with_to_string(entry.get_type(), interner),
                     source,
                 )
                 .into());

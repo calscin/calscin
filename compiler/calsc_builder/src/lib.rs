@@ -1,18 +1,19 @@
 #![deny(unsafe_code)]
 
-use std::{fs, path::PathBuf, process::Command};
+use std::{ffi::OsStr, fs, path::PathBuf, process::Command};
 
 use calsc_ast::parser::ctx::parse_ast_whole;
-use calsc_diagnostics::{container::dump_and_stop_if_errors, result::CalscinResult};
-use calsc_hir::{HIRContext, file::HIRFileContext};
-use calsc_hir_lowering::{
-    modules::build_module_tree, modules_lower::lower_types_from_stage_0, stage1::lower_hir_stage_1,
-    stage2::lower_hir_stage_2,
+use calsc_diagnostics::{
+    container::dump_and_stop_if_errors, diags::errors::import_wrong_entry_point,
+    file::FileDiagnosticPos, panics::PanicDiagnosticSource, result::CalscinResult,
 };
+use calsc_hir::{HIRContext, file::HIRFileContext};
+use calsc_hir_lowering::{stage1::import_everything_inside_module, stage2::lower_hir_stage_2};
 use calsc_lexer::lexer_tokenize;
-use calsc_modules::tree::clean::TreeCleanable;
 use calsc_remir_lowering::compile_file;
-use calsc_state::{GLOBAL_STATE, build::BuildTargetMode};
+use calsc_state::{GLOBAL_STATE, build::BuildTargetMode, session::CompilerSession};
+use calsc_tree_build::{build_module_tree, ctx::TreeBuildingCtx};
+use calsc_tree_low::{ctx::TreeLowCtx, lower::lower_everything};
 
 pub fn setup_build_state(
     out: PathBuf,
@@ -50,26 +51,43 @@ pub(crate) fn get_linker() -> String {
 pub fn build() {
     let mut out_files: Vec<PathBuf> = vec![];
 
-    // Building global module tree
-    if GLOBAL_STATE.with_borrow(|state| state.is_package_enabled) {
-        let module_tree = build_module_tree(
+    let mut session = CompilerSession::new();
+
+    if GLOBAL_STATE.with_borrow(|f| {
+        f.is_package_enabled
+            && f.build.origin_file_to_build.clone().unwrap().file_name()
+                != Some(OsStr::new("module.cal"))
+    }) {
+        import_wrong_entry_point(&FileDiagnosticPos::new(
             GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap()),
-        );
+        ));
 
         dump_and_stop_if_errors();
-
-        let mut module_tree = module_tree.unwrap();
-
-        module_tree.clean();
-
-        lower_types_from_stage_0(&module_tree).unwrap_cleanly();
-
-        GLOBAL_STATE.with_borrow_mut(|state| state.module_tree = module_tree);
     }
 
-    loop {
-        if !consume_build_files(&mut out_files) {
-            break;
+    // Building global module tree
+    let path = GLOBAL_STATE.with_borrow(|f| f.build.origin_file_to_build.clone().unwrap());
+
+    let mut ctx = TreeBuildingCtx::new(
+        GLOBAL_STATE.with_borrow(|f| f.package_name.clone()),
+        &PanicDiagnosticSource(),
+        GLOBAL_STATE.with_borrow(|f| f.is_package_enabled),
+    );
+
+    build_module_tree(path, &mut ctx).unwrap_cleanly();
+
+    let mut lowered_ctx = TreeLowCtx::new(ctx, &mut session.type_interner);
+    lower_everything(&mut lowered_ctx).unwrap_cleanly();
+
+    let used_files = lowered_ctx.data.build_ctx.tree.used_files.clone();
+
+    session.tree_lowered = Some(lowered_ctx.data);
+
+    for file in used_files {
+        let out_file = build_file(file, &mut session);
+
+        if let Some(path) = out_file {
+            out_files.push(path);
         }
     }
 
@@ -94,26 +112,10 @@ pub fn build() {
     }
 }
 
-pub(crate) fn consume_build_files(out_files: &mut Vec<PathBuf>) -> bool {
-    let files = GLOBAL_STATE.with_borrow_mut(|state| state.build.consume_files());
-
-    if files.is_empty() {
-        return false;
-    }
-
-    for file in files {
-        let res = build_file(file);
-
-        match res {
-            Some(v) => out_files.push(v),
-            None => continue,
-        };
-    }
-
-    true
-}
-
-pub fn build_file(file: PathBuf) -> Option<PathBuf> {
+pub fn build_file<'session>(
+    file: PathBuf,
+    session: &'session mut CompilerSession,
+) -> Option<PathBuf> {
     let target = get_target_type(); // Avoid borrows
     let out_destination = get_file_output(); // Avoid borrows
 
@@ -130,10 +132,15 @@ pub fn build_file(file: PathBuf) -> Option<PathBuf> {
 
     let ast_ctx = ast_ctx.unwrap();
 
-    let mut hir_ctx = HIRContext::new();
+    let mut hir_ctx = HIRContext::new(session);
     let mut file_ctx = HIRFileContext::new(file.clone());
 
-    let _ = lower_hir_stage_1(ast_ctx.clone(), &mut hir_ctx, &mut file_ctx);
+    let _ = import_everything_inside_module(
+        file_ctx.current_module.clone(),
+        &file,
+        &mut hir_ctx,
+        &FileDiagnosticPos::new(file.clone()),
+    );
     dump_and_stop_if_errors();
 
     let _ = lower_hir_stage_2(ast_ctx, &mut hir_ctx, &mut file_ctx);

@@ -1,0 +1,15 @@
+[package]
+name = "calsc_tree_low"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+calsc_modules = { path = "../calsc_modules"}
+calsc_tree_build = { path = "../calsc_tree_build"}
+calsc_ast = { path = "../calsc_ast" }
+calsc_typing = { path = "../calsc_typing" }
+calsc_utils = { path = "../calsc_utils"}
+calsc_diagnostics = { path = "../calsc_diagnostics"}
+
+[features]
+debug = []

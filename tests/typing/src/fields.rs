@@ -4,7 +4,9 @@ use calsc_diagnostics::{PosDiagnosticSource, result::CalscinResult};
 #[cfg(test)]
 use calsc_modules::path::ModulePath;
 
+#[cfg(test)]
 use calsc_typing::allocs::STRUCT_CONTAINER_ALLOC;
+
 #[cfg(test)]
 use calsc_typing::{
     ctx::TypeCtx,

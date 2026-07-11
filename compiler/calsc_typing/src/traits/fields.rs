@@ -6,24 +6,34 @@ use calsc_diagnostics::{
 };
 use calsc_utils::{display_with_to_string, hash::HashedString};
 
-use crate::{ctx::TypeCtx, types::TypeKind};
+use crate::{TypingInterner, ctx::TypeCtx, types::TypeKind};
 
 /// A type that contains fields.
 pub trait FieldedType {
     /// Determines if the type has the field with the given name.
-    fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool;
+    fn has_field(&self, name: &HashedString, ctx: &TypeCtx, interner: &TypingInterner) -> bool;
 
     /// Gets the field type corresponding to the file with the given name.
     ///
     /// # Panics
     /// This function will panic if the field doesn't exist, this is why it is unsafe. Consider using [`FieldedType::get_field_safe`] instead.
     ///
-    unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind;
+    unsafe fn get_field(
+        &self,
+        field: &HashedString,
+        ctx: &TypeCtx,
+        interner: &TypingInterner,
+    ) -> TypeKind;
 
     /// gets the list of field names
-    fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString>;
+    fn get_fields(&self, ctx: &TypeCtx, interner: &TypingInterner) -> Vec<HashedString>;
 
-    fn get_field_index(&self, field: &HashedString, ctx: &TypeCtx) -> usize;
+    fn get_field_index(
+        &self,
+        field: &HashedString,
+        ctx: &TypeCtx,
+        interner: &TypingInterner,
+    ) -> usize;
 
     /// Safely gets the type of a field.
     ///
@@ -34,13 +44,14 @@ pub trait FieldedType {
         &self,
         field: &HashedString,
         ctx: &TypeCtx,
+        interner: &TypingInterner,
         source: &S,
     ) -> DiagResult<TypeKind> {
-        if !self.has_field(field, ctx) {
+        if !self.has_field(field, ctx, interner) {
             return Err(build_missing_field(field, source).into());
         }
 
-        unsafe { Ok(self.get_field(field, ctx)) }
+        unsafe { Ok(self.get_field(field, ctx, interner)) }
     }
 
     /// Enforces a field to exist with the given type.
@@ -54,15 +65,16 @@ pub trait FieldedType {
         field: &HashedString,
         ty: &TypeKind,
         ctx: &TypeCtx,
+        interner: &TypingInterner,
         source: &S,
     ) -> DiagPossible {
-        let self_ty = self.get_field_safe(field, ctx, source)?;
+        let self_ty = self.get_field_safe(field, ctx, interner, source)?;
 
         if self_ty != *ty {
             return Err(build_expected_field_type(
                 field,
-                &display_with_to_string(ty, &ctx),
-                &display_with_to_string(&self_ty, &ctx),
+                &display_with_to_string(ty, &interner),
+                &display_with_to_string(&self_ty, &interner),
                 source,
             )
             .into());
