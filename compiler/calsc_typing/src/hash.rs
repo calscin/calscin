@@ -4,7 +4,7 @@ use calsc_utils::display_with_to_string;
 
 use crate::{TypingInterner, types::TypeKind};
 
-#[derive(Clone)]
+#[derive(Clone, Debug)]
 pub struct HashedTypeKind {
     pub kind: TypeKind,
     hash: u64,

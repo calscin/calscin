@@ -8,9 +8,8 @@ use calsc_state::session::CompilerSession;
 use calsc_typing::ctx::TypeCtx;
 use calsc_utils::alloc::arena::ArenaAllocator;
 
-use crate::{buildcache::BuildCache, globalctx::GlobalContext, nodes::HIRNode};
+use crate::{globalctx::GlobalContext, nodes::HIRNode};
 
-pub mod buildcache;
 pub mod conv;
 pub mod file;
 pub mod funcs;
@@ -20,10 +19,6 @@ pub mod imports;
 pub mod localctx;
 pub mod nodes;
 pub mod prelude;
-
-thread_local! {
-    pub static BUILD_CACHE: RefCell<BuildCache> = RefCell::new(BuildCache::new());
-}
 
 #[cfg_attr(feature = "debug", derive(Debug))]
 pub struct HIRContext<'session> {

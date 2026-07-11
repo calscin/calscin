@@ -1,18 +1,14 @@
-//! The cache used to store HIR and AST states of built files to avoid recompiling
-//! This allows for individual lowering of types and allows for circular imports
-
 use std::collections::{HashMap, HashSet};
 
 use calsc_modules::path::ModulePath;
 use calsc_typing::hash::HashedTypeKind;
 
-pub mod types;
-
-pub struct BuildCache {
+#[derive(Debug)]
+pub struct BuildCacheInterner {
     pub used_type_params: HashMap<ModulePath, HashSet<Vec<HashedTypeKind>>>,
 }
 
-impl BuildCache {
+impl BuildCacheInterner {
     pub fn new() -> Self {
         Self {
             used_type_params: HashMap::new(),

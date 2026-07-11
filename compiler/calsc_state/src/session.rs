@@ -4,7 +4,7 @@
 use calsc_tree_low::ctx::TreeLowCtxData;
 use calsc_typing::TypingInterner;
 
-use crate::GlobalState;
+use crate::{GlobalState, interners::BuildCacheInterner};
 
 /// Represents a compilation session from the compiler.
 /// This is created once per compilation session and is shared accross module file builds for example.
@@ -15,6 +15,7 @@ pub struct CompilerSession {
     pub tree_lowered: Option<TreeLowCtxData>,
 
     pub type_interner: TypingInterner,
+    pub build_cache_interner: BuildCacheInterner,
 }
 
 impl CompilerSession {
@@ -23,6 +24,7 @@ impl CompilerSession {
             state: GlobalState::Pre,
             tree_lowered: None,
             type_interner: TypingInterner::new(),
+            build_cache_interner: BuildCacheInterner::new(),
         }
     }
 

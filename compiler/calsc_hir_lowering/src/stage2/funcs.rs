@@ -12,7 +12,7 @@ use calsc_diagnostics::{
     },
 };
 use calsc_hir::{
-    BUILD_CACHE, HIRContext,
+    HIRContext,
     file::HIRFileContext,
     globalctx::key::GlobalContextKey,
     nodes::{HIRNode, HIRNodeKind},
@@ -302,9 +302,9 @@ pub fn lower_ast_function_call(
                 let mut module_path = key.module_path.clone();
                 module_path.append_single_bit(key.name.clone());
 
-                BUILD_CACHE.with_borrow_mut(|cache| {
-                    cache.append_used_type_param_combination(module_path, combinations)
-                })
+                ctx.session
+                    .build_cache_interner
+                    .append_used_type_param_combination(module_path, combinations);
             }
 
             HIRNodeKind::TypedParamFunctionCall {

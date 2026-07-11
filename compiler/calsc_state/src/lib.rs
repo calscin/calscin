@@ -9,6 +9,7 @@ use calsc_utils::hash::HashedString;
 use crate::build::{BuildTargetMode, CompilerBuildState};
 
 pub mod build;
+pub mod interners;
 pub mod session;
 
 thread_local! {
