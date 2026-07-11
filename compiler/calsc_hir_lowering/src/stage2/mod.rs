@@ -3,8 +3,6 @@
 //!
 //! The stage 2 should propagate the function body implementations
 
-use std::clone;
-
 use calsc_ast::{
     ASTContext,
     nodes::{ASTNode, ASTNodeKind},
@@ -26,11 +24,7 @@ pub fn lower_hir_stage_2(
     ctx: &mut HIRContext,
     file_ctx: &mut HIRFileContext,
 ) -> DiagPossible {
-    ctx.state
-        .get_mut()
-        .get_tree_lowered_mut()
-        .build_ctx
-        .current_path = file_ctx.current_module.clone();
+    ctx.session.get_tree_lowered_mut().build_ctx.current_path = file_ctx.current_module.clone();
 
     for node in &ast_context.tree {
         lower_hir_stage_2_node(
@@ -85,8 +79,7 @@ pub fn lower_hir_stage_2_module(
         }
 
         file_ctx.advance_module(name.clone());
-        ctx.state
-            .get_mut()
+        ctx.session
             .get_tree_lowered_mut()
             .build_ctx
             .current_path
@@ -102,8 +95,7 @@ pub fn lower_hir_stage_2_module(
         }
 
         file_ctx.deadvance_module();
-        ctx.state
-            .get_mut()
+        ctx.session
             .get_tree_lowered_mut()
             .build_ctx
             .current_path

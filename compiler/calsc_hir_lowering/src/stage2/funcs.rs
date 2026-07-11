@@ -222,7 +222,9 @@ pub fn lower_ast_function_call(
         // We then coherce them (get the determined type)
 
         for type_param in &type_params {
-            let coherced = type_param.1.determine_type(&ctx.type_ctx, &node)?;
+            let coherced = type_param
+                .1
+                .determine_type(&ctx.session.type_interner, &node)?;
 
             coherced_type_params.insert(type_param.0.clone(), coherced.clone());
         }
@@ -294,7 +296,7 @@ pub fn lower_ast_function_call(
                 for param_name in func_type_parameters {
                     let coherced = coherced_type_params[&param_name.1].clone();
 
-                    combinations.push(HashedTypeKind::new(coherced, &ctx.type_ctx));
+                    combinations.push(HashedTypeKind::new(coherced, &ctx.session.type_interner));
                 }
 
                 let mut module_path = key.module_path.clone();
@@ -469,7 +471,7 @@ pub fn lower_ast_function_decl(
 
         if !meets_ending_point {
             return Err(build_expected_return_error(
-                &display_with_to_string(&ret_type, &ctx.type_ctx),
+                &display_with_to_string(&ret_type, &ctx.session.type_interner),
                 &"void".to_string(),
                 &node,
             )

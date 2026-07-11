@@ -11,7 +11,7 @@ use calsc_diagnostics::{
 };
 
 use calsc_typing::{
-    ctx::TypeCtx,
+    TypingInterner,
     into::TypeTransmutation,
     traits::FieldedType,
     types::{HeldPrimitive, TypeKind},
@@ -56,7 +56,11 @@ impl HIRNode {
         }
 
         if self.is_numerical_lit() && ty.is_directly_numeric() {
-            return convert_numerical_literal_into(self.clone(), ty.as_primitive(), &ctx.type_ctx);
+            return convert_numerical_literal_into(
+                self.clone(),
+                ty.as_primitive(),
+                &ctx.session.type_interner,
+            );
         }
 
         let self_type: TypeKind = self.get_type(local_func_key.clone(), ctx, Some(file_ctx))?;
@@ -65,7 +69,7 @@ impl HIRNode {
             return Ok(self.clone());
         }
 
-        if self_type.can_transmute(ty, &ctx.type_ctx) {
+        if self_type.can_transmute(ty, &ctx.session.type_interner) {
             let node = HIRNode::new(
                 HIRNodeKind::CastNode {
                     original: self.clone().push(ctx),
@@ -79,7 +83,9 @@ impl HIRNode {
             return Ok(node);
         }
 
-        if self.is_weakly_typed(ctx) && self_type.can_transmute_weakly(ty, &ctx.type_ctx) {
+        if self.is_weakly_typed(ctx)
+            && self_type.can_transmute_weakly(ty, &ctx.session.type_interner)
+        {
             weakly_transmute(curr_node, ty, ctx);
 
             return Ok(self.clone());
@@ -90,14 +96,14 @@ impl HIRNode {
                 .nodes
                 .get(other_node.as_ref().unwrap())
                 .is_weakly_typed(ctx)
-            && ty.can_transmute_weakly(&self_type, &ctx.type_ctx)
+            && ty.can_transmute_weakly(&self_type, &ctx.session.type_interner)
         {
             weakly_transmute(other_node.unwrap(), &self_type, ctx);
         }
 
         return Err(build_expected_type_error(
-            &display_with_to_string(ty, &ctx.type_ctx),
-            &display_with_to_string(&self_type, &ctx.type_ctx),
+            &display_with_to_string(ty, &ctx.session.type_interner),
+            &display_with_to_string(&self_type, &ctx.session.type_interner),
             self,
         )
         .into());
@@ -115,7 +121,7 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
     if let HIRNodeKind::StructuredInit { values } = structured_init.kind {
         let mut vals = HashMap::new();
 
-        for field in ty.get_fields(&ctx.type_ctx) {
+        for field in ty.get_fields(&ctx.type_ctx, &ctx.session.type_interner) {
             if !values.contains_key(&field) {
                 return Err(build_missing_field(&field, origin).into());
             }
@@ -126,7 +132,12 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
                 field.clone(),
                 field_node
                     .use_as(
-                        &ty.get_field_safe(&field, &ctx.type_ctx, origin)?,
+                        &ty.get_field_safe(
+                            &field,
+                            &ctx.type_ctx,
+                            &ctx.session.type_interner,
+                            origin,
+                        )?,
                         values[&field].clone(),
                         None,
                         local_func_key.clone(),
@@ -155,7 +166,7 @@ pub fn convert_structured_init_into<K: DiagnosticSource>(
 pub fn convert_numerical_literal_into(
     lit: HIRNode,
     ty: HeldPrimitive,
-    ctx: &TypeCtx,
+    interner: &TypingInterner,
 ) -> DiagResult<HIRNode> {
     assert!(ty.size.is_active() || ty.ty.is_size());
 
@@ -173,7 +184,7 @@ pub fn convert_numerical_literal_into(
                 HIRNodeKind::IntLiteral(*val, usize::BITS as usize, false)
             } else {
                 return Err(build_type_cast_failed_no_from(
-                    &display_with_to_string(&ty, ctx),
+                    &display_with_to_string(&ty, interner),
                     &lit,
                 )
                 .into());
@@ -187,7 +198,7 @@ pub fn convert_numerical_literal_into(
                 HIRNodeKind::FloatLiteral(*val, size, signed)
             } else {
                 return Err(build_type_cast_failed_no_from(
-                    &display_with_to_string(&ty, ctx),
+                    &display_with_to_string(&ty, interner),
                     &lit,
                 )
                 .into());
@@ -248,7 +259,7 @@ pub fn weakly_transmute(curr_node: ArenaHandle, ty: &TypeKind, ctx: &mut HIRCont
 
         HIRNodeKind::ArrayInit { vals } => {
             for val in vals {
-                let inner = ty.get_inner(&ctx.type_ctx).clone();
+                let inner = ty.get_inner(&ctx.session.type_interner).clone();
 
                 weakly_transmute(val.clone(), &inner, ctx);
             }

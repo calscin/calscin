@@ -22,24 +22,23 @@ pub fn import_everything_inside_module<S: DiagnosticSource>(
 ) -> DiagPossible {
     handle_imports_everything(mod_path.clone(), path, hir, origin)?;
 
-    let tree_lowered = hir.state.get().get_tree_lowered();
+    let tree_lowered = hir.session.get_tree_lowered();
     let build_ctx = &tree_lowered.build_ctx;
 
     for entry in build_ctx.tree.collect_entries(
         &mod_path,
-        &hir.state.get().get_tree_lowered().build_ctx.arena,
+        &hir.session.get_tree_lowered().build_ctx.arena,
         path,
         origin,
     )? {
         if hir
-            .state
-            .get()
+            .session
             .get_tree_lowered()
             .lowered_map
             .contains_key(&entry)
         {
             import_entry_into_hir(
-                hir.state.get().get_tree_lowered().lowered_map[&entry].clone(),
+                hir.session.get_tree_lowered().lowered_map[&entry].clone(),
                 entry.clone(),
                 entry,
                 hir,

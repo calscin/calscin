@@ -48,7 +48,7 @@ pub fn lower_ast_binary_expression(
         if left_expr_type == TypeKind::Void || !left_expr_type.is_directly_numeric() {
             return Err(build_expected_type_error(
                 &"numeric".to_string(),
-                &display_with_to_string(&left_expr_type, &ctx.type_ctx),
+                &display_with_to_string(&left_expr_type, &ctx.session.type_interner),
                 &left_expr_ref,
             )
             .into());

@@ -19,7 +19,9 @@ use crate::prelude::apply_lower_prelude;
 #[derive(Debug)]
 pub struct TreeLowCtx<'session> {
     pub build_ctx: TreeBuildingCtx,
-    pub type_ctx: TypeCtx<'session>,
+    pub type_ctx: TypeCtx,
+    pub type_interner: &'session mut TypingInterner,
+
     pub lowered_map: HashMap<ModulePath, TreeLoweredEntry>,
 }
 
@@ -55,7 +57,8 @@ impl<'session> TreeLowCtx<'session> {
     pub fn new(build_ctx: TreeBuildingCtx, interner: &'session mut TypingInterner) -> Self {
         let mut ctx = Self {
             build_ctx,
-            type_ctx: TypeCtx::new(interner),
+            type_ctx: TypeCtx::new(),
+            type_interner: interner,
             lowered_map: HashMap::new(),
         };
 

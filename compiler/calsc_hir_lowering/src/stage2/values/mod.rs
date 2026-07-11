@@ -126,7 +126,7 @@ pub fn lower_ast_range(
 
         if start_type == TypeKind::Void {
             return Err(build_unexpected_type_error(
-                &display_with_to_string(&TypeKind::Void, &ctx.type_ctx),
+                &display_with_to_string(&TypeKind::Void, &ctx.session.type_interner),
                 &start_ref,
             )
             .into());

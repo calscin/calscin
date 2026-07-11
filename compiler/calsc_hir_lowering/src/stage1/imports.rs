@@ -13,14 +13,13 @@ pub fn handle_imports_everything<S: DiagnosticSource>(
     origin: &S,
 ) -> DiagPossible {
     for path in hir
-        .state
-        .get()
+        .session
         .get_tree_lowered()
         .build_ctx
         .tree
         .collect_modules(
             &mod_path,
-            &hir.state.get().get_tree_lowered().build_ctx.arena,
+            &hir.session.get_tree_lowered().build_ctx.arena,
             path,
             origin,
         )?
@@ -37,14 +36,13 @@ pub fn handle_imports<S: DiagnosticSource>(
     origin: &S,
 ) -> DiagPossible {
     let entry = hir
-        .state
-        .get()
+        .session
         .get_tree_lowered()
         .build_ctx
         .tree
         .get_entry(
             &mod_path,
-            &hir.state.get().get_tree_lowered().build_ctx.arena,
+            &hir.session.get_tree_lowered().build_ctx.arena,
             origin,
         )?
         .kind
@@ -56,7 +54,7 @@ pub fn handle_imports<S: DiagnosticSource>(
 
         let import_from = ModulePath::new(import.actual[0].clone(), import.actual[1..].to_vec());
 
-        let entry = hir.state.get().get_tree_lowered().lowered_map[&import_from].clone();
+        let entry = hir.session.get_tree_lowered().lowered_map[&import_from].clone();
 
         import_entry_into_hir(entry, import_to, import_from, hir, origin)?;
     }

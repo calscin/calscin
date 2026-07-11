@@ -53,11 +53,11 @@ pub fn lower_ast_variable_reference(
     }
 }
 
-pub fn lower_ast_variable_declaration<'a>(
+pub fn lower_ast_variable_declaration<'session>(
     node: ASTNode,
     curr_ctx: Option<GlobalContextKey>,
     file_ctx: &mut HIRFileContext,
-    ctx: &mut HIRContext,
+    ctx: &mut HIRContext<'session>,
     ast_ctx: &ASTContext,
 ) -> DiagResult<ArenaHandle> {
     if let ASTNodeKind::VariableDeclaration {
@@ -210,7 +210,7 @@ pub fn lower_ast_variable_assign(
                 let node_type = node.get_type(curr_ctx, ctx, Some(file_ctx))?;
 
                 return Err(build_expected_mutable_reference(
-                    &display_with_to_string(&node_type, &ctx.type_ctx),
+                    &display_with_to_string(&node_type, &ctx.session.type_interner),
                     &node,
                 )
                 .into());

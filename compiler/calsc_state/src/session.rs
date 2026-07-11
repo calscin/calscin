@@ -33,7 +33,7 @@ impl<'session> CompilerSession<'session> {
         ))
     }
 
-    pub fn get_tree_lowered_mut<'a: 'session>(&'a mut self) -> &'a mut TreeLowCtx<'session> {
+    pub fn get_tree_lowered_mut<'a>(&'a mut self) -> &'a mut TreeLowCtx<'session> {
         self.tree_lowered.as_mut().expect(&format!(
             "Lowered module tree is None in stage {:#?}!",
             self.state

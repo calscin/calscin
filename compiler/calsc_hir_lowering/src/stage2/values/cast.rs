@@ -43,19 +43,19 @@ pub fn lower_ast_cast(
 
         let into = lower_ast_type(&into, &node, ctx)?;
 
-        if !val_type.can_cast(&into, &ctx.type_ctx) {
+        if !val_type.can_cast(&into, &ctx.session.type_interner) {
             return Err(build_type_cast_failed(
-                &display_with_to_string(&val_type, &ctx.type_ctx),
-                &display_with_to_string(&into, &ctx.type_ctx),
+                &display_with_to_string(&val_type, &ctx.session.type_interner),
+                &display_with_to_string(&into, &ctx.session.type_interner),
                 &node,
             )
             .into());
         }
 
-        if val_type.can_transmute(&into, &ctx.type_ctx) {
+        if val_type.can_transmute(&into, &ctx.session.type_interner) {
             build_useless_cast(
-                &display_with_to_string(&val_type, &ctx.type_ctx),
-                &display_with_to_string(&into, &ctx.type_ctx),
+                &display_with_to_string(&val_type, &ctx.session.type_interner),
+                &display_with_to_string(&into, &ctx.session.type_interner),
                 &node,
             );
         }
