@@ -12,6 +12,7 @@ use calsc_diagnostics::{
 use calsc_utils::{alloc::arena::ArenaHandle, display_with_to_string, hash::HashedString};
 
 use crate::{
+    TypingInterner,
     ctx::TypeCtx,
     traits::{FieldedType, TypeParameteredType},
     types::primitive::PrimitiveType,
@@ -101,26 +102,26 @@ impl TypeKind {
         primitive: PrimitiveType,
         param: SizeParameter,
         type_parameters: Vec<TypeKind>,
-        ctx: &mut TypeCtx,
+        interner: &mut TypingInterner,
         source: &S,
     ) -> DiagResult<Self> {
         if primitive.requires_size_parameter() != param.is_active() {
             if !primitive.requires_size_parameter() {
                 return Err(build_no_require_type_parameter(
-                    &display_with_to_string(&primitive, ctx.interner),
+                    &display_with_to_string(&primitive, interner),
                     source,
                 )
                 .into());
             }
 
             return Err(build_requires_type_parameter(
-                &display_with_to_string(&primitive, ctx.interner),
+                &display_with_to_string(&primitive, interner),
                 source,
             )
             .into());
         }
 
-        let ty_params = primitive.get_type_params(ctx);
+        let ty_params = primitive.get_type_params(interner);
 
         if type_parameters.len() != ty_params.len() {
             return Err(build_expected_type_parameters_error(
@@ -136,7 +137,7 @@ impl TypeKind {
         for (ind, param) in type_parameters.iter().enumerate() {
             type_params.insert(
                 ty_params[ind].clone(),
-                ctx.interner.type_kind_arena.append(param.clone()),
+                interner.type_kind_arena.append(param.clone()),
             );
         }
 
@@ -147,15 +148,15 @@ impl TypeKind {
         }));
     }
 
-    pub fn get_inner<'a>(&self, ctx: &'a TypeCtx) -> &'a TypeKind {
+    pub fn get_inner<'a>(&self, interner: &'a TypingInterner) -> &'a TypeKind {
         match self {
-            Self::Array(_, inner) => ctx.interner.type_kind_arena.get(inner),
-            Self::Pointer(_, inner) => ctx.interner.type_kind_arena.get(inner),
-            Self::Reference(_, inner) => ctx.interner.type_kind_arena.get(inner),
+            Self::Array(_, inner) => interner.type_kind_arena.get(inner),
+            Self::Pointer(_, inner) => interner.type_kind_arena.get(inner),
+            Self::Reference(_, inner) => interner.type_kind_arena.get(inner),
 
             _ => panic!(
                 "Type {} doesn't contain any inner type",
-                display_with_to_string(self, ctx.interner)
+                display_with_to_string(self, interner)
             ),
         }
     }
@@ -190,19 +191,19 @@ impl TypeKind {
         }
     }
 
-    pub fn is_static(&self, ctx: &TypeCtx) -> bool {
+    pub fn is_static(&self, interner: &TypingInterner) -> bool {
         match self {
             Self::Primitive(_) => true,
             Self::Reference(_, _) => false,
-            Self::Pointer(_, inner) => ctx.interner.type_kind_arena.get(inner).is_static(ctx),
-            Self::Array(_, inner) => ctx.interner.type_kind_arena.get(inner).is_static(ctx),
-            Self::Segment(inner) => ctx.interner.type_kind_arena.get(inner).is_static(ctx),
+            Self::Pointer(_, inner) => interner.type_kind_arena.get(inner).is_static(interner),
+            Self::Array(_, inner) => interner.type_kind_arena.get(inner).is_static(interner),
+            Self::Segment(inner) => interner.type_kind_arena.get(inner).is_static(interner),
             Self::Void => false,
         }
     }
 
-    pub fn is_safe_for_struct_storage(&self, ctx: &TypeCtx) -> bool {
-        self.is_static(ctx)
+    pub fn is_safe_for_struct_storage(&self, interner: &TypingInterner) -> bool {
+        self.is_static(interner)
     }
 
     pub fn is_directly_array(&self) -> bool {
@@ -213,32 +214,28 @@ impl TypeKind {
         matches!(self, Self::Primitive(_))
     }
 
-    pub fn lower_type_parameter_type(&self, ty: TypeKind, ctx: &TypeCtx) -> TypeKind {
+    pub fn lower_type_parameter_type(&self, ty: TypeKind, interner: &TypingInterner) -> TypeKind {
         match self {
-            Self::Primitive(primitive) => primitive.lower_type_parameter_type(ty, ctx),
-            Self::Array(_, inner) => ctx
-                .interner
+            Self::Primitive(primitive) => primitive.lower_type_parameter_type(ty, interner),
+            Self::Array(_, inner) => interner
                 .type_kind_arena
                 .get(inner)
-                .lower_type_parameter_type(ty, ctx),
+                .lower_type_parameter_type(ty, interner),
 
-            Self::Pointer(_, inner) => ctx
-                .interner
+            Self::Pointer(_, inner) => interner
                 .type_kind_arena
                 .get(inner)
-                .lower_type_parameter_type(ty, ctx),
+                .lower_type_parameter_type(ty, interner),
 
-            Self::Reference(_, inner) => ctx
-                .interner
+            Self::Reference(_, inner) => interner
                 .type_kind_arena
                 .get(inner)
-                .lower_type_parameter_type(ty, ctx),
+                .lower_type_parameter_type(ty, interner),
 
-            Self::Segment(inner) => ctx
-                .interner
+            Self::Segment(inner) => interner
                 .type_kind_arena
                 .get(inner)
-                .lower_type_parameter_type(ty, ctx),
+                .lower_type_parameter_type(ty, interner),
 
             Self::Void => ty,
         }
@@ -246,65 +243,81 @@ impl TypeKind {
 }
 
 impl FieldedType for TypeKind {
-    fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
+    fn has_field(&self, name: &HashedString, ctx: &TypeCtx, interner: &TypingInterner) -> bool {
         match self {
-            Self::Reference(_, inner) => {
-                ctx.interner.type_kind_arena.get(inner).has_field(name, ctx)
-            }
-            Self::Pointer(_, inner) => ctx.interner.type_kind_arena.get(inner).has_field(name, ctx),
-            Self::Primitive(primitive) => primitive.ty.has_field(name, ctx),
+            Self::Reference(_, inner) => interner
+                .type_kind_arena
+                .get(inner)
+                .has_field(name, ctx, interner),
+            Self::Pointer(_, inner) => interner
+                .type_kind_arena
+                .get(inner)
+                .has_field(name, ctx, interner),
+            Self::Primitive(primitive) => primitive.ty.has_field(name, ctx, interner),
 
             _ => false,
         }
     }
 
-    fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString> {
+    fn get_fields(&self, ctx: &TypeCtx, interner: &TypingInterner) -> Vec<HashedString> {
         match self {
-            Self::Reference(_, inner) => ctx.interner.type_kind_arena.get(inner).get_fields(ctx),
-            Self::Pointer(_, inner) => ctx.interner.type_kind_arena.get(inner).get_fields(ctx),
-            Self::Primitive(primitive) => primitive.ty.get_fields(ctx),
+            Self::Reference(_, inner) => interner
+                .type_kind_arena
+                .get(inner)
+                .get_fields(ctx, interner),
+            Self::Pointer(_, inner) => interner
+                .type_kind_arena
+                .get(inner)
+                .get_fields(ctx, interner),
+            Self::Primitive(primitive) => primitive.ty.get_fields(ctx, interner),
 
             _ => vec![],
         }
     }
 
-    fn get_field_index(&self, field: &HashedString, ctx: &TypeCtx) -> usize {
+    fn get_field_index(
+        &self,
+        field: &HashedString,
+        ctx: &TypeCtx,
+        interner: &TypingInterner,
+    ) -> usize {
         match self {
-            Self::Reference(_, inner) => ctx
-                .interner
+            Self::Reference(_, inner) => interner
                 .type_kind_arena
                 .get(inner)
-                .get_field_index(field, ctx),
-            Self::Pointer(_, inner) => ctx
-                .interner
+                .get_field_index(field, ctx, interner),
+            Self::Pointer(_, inner) => interner
                 .type_kind_arena
                 .get(inner)
-                .get_field_index(field, ctx),
-            Self::Primitive(primitive) => primitive.ty.get_field_index(field, ctx),
+                .get_field_index(field, ctx, interner),
+            Self::Primitive(primitive) => primitive.ty.get_field_index(field, ctx, interner),
 
             _ => panic!("Type cannot hold fields!"),
         }
     }
 
-    unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
+    unsafe fn get_field(
+        &self,
+        field: &HashedString,
+        ctx: &TypeCtx,
+        interner: &TypingInterner,
+    ) -> TypeKind {
         unsafe {
             let ty = match self {
-                Self::Reference(_, inner) => ctx
-                    .interner
+                Self::Reference(_, inner) => interner
                     .type_kind_arena
                     .get(inner)
-                    .get_field(field, ctx),
-                Self::Pointer(_, inner) => ctx
-                    .interner
+                    .get_field(field, ctx, interner),
+                Self::Pointer(_, inner) => interner
                     .type_kind_arena
                     .get(inner)
-                    .get_field(field, ctx),
-                Self::Primitive(primitive) => primitive.ty.get_field(field, ctx),
+                    .get_field(field, ctx, interner),
+                Self::Primitive(primitive) => primitive.ty.get_field(field, ctx, interner),
 
                 _ => panic!("Type cannot hold fields!"),
             };
 
-            self.lower_type_parameter_type(ty, ctx)
+            self.lower_type_parameter_type(ty, interner)
         }
     }
 }
@@ -313,13 +326,13 @@ impl HeldPrimitive {
     pub(crate) fn get_type_parameter_type_value(
         &self,
         name: HashedString,
-        ctx: &TypeCtx,
+        interner: &TypingInterner,
     ) -> Option<TypeKind> {
         if !self.type_parameters.contains_key(&name) {
             None
         } else {
             Some(
-                ctx.interner
+                interner
                     .type_kind_arena
                     .get(&self.type_parameters[&name])
                     .clone(),
@@ -327,10 +340,10 @@ impl HeldPrimitive {
         }
     }
 
-    pub fn lower_type_parameter_type(&self, ty: TypeKind, ctx: &TypeCtx) -> TypeKind {
+    pub fn lower_type_parameter_type(&self, ty: TypeKind, interner: &TypingInterner) -> TypeKind {
         if let TypeKind::Primitive(primitive) = &ty {
             if let PrimitiveType::TypeParameter(param) = &primitive.ty {
-                let lowered = self.get_type_parameter_type_value(param.1.clone(), ctx);
+                let lowered = self.get_type_parameter_type_value(param.1.clone(), interner);
 
                 if lowered.is_some() {
                     return lowered.unwrap();

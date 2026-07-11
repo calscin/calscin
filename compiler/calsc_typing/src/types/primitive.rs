@@ -3,8 +3,7 @@
 use calsc_utils::{alloc::arena::ArenaHandle, hash::HashedString};
 
 use crate::{
-    allocs::STRUCT_CONTAINER_ALLOC, ctx::TypeCtx, params::TypeParameterId, traits::FieldedType,
-    types::TypeKind,
+    TypingInterner, ctx::TypeCtx, params::TypeParameterId, traits::FieldedType, types::TypeKind,
 };
 
 #[cfg_attr(feature = "debug", derive(Debug))]
@@ -76,39 +75,60 @@ impl PrimitiveType {
 }
 
 impl FieldedType for PrimitiveType {
-    fn has_field(&self, name: &HashedString, ctx: &TypeCtx) -> bool {
+    fn has_field(&self, name: &HashedString, ctx: &TypeCtx, interner: &TypingInterner) -> bool {
         match self {
-            Self::Struct(container) => STRUCT_CONTAINER_ALLOC
-                .with(|f| f.borrow().get(container).fields.has_field(name, ctx)),
+            Self::Struct(container) => interner
+                .struct_container_arena
+                .get(container)
+                .fields
+                .has_field(name, ctx, interner),
 
             _ => false,
         }
     }
 
-    fn get_fields(&self, ctx: &TypeCtx) -> Vec<HashedString> {
+    fn get_fields(&self, ctx: &TypeCtx, interner: &TypingInterner) -> Vec<HashedString> {
         match self {
-            Self::Struct(container) => {
-                STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(container).fields.get_fields(ctx))
-            }
+            Self::Struct(container) => interner
+                .struct_container_arena
+                .get(container)
+                .fields
+                .get_fields(ctx, interner),
 
             _ => vec![],
         }
     }
 
-    fn get_field_index(&self, field: &HashedString, ctx: &TypeCtx) -> usize {
+    fn get_field_index(
+        &self,
+        field: &HashedString,
+        ctx: &TypeCtx,
+        interner: &TypingInterner,
+    ) -> usize {
         match self {
-            Self::Struct(container) => STRUCT_CONTAINER_ALLOC
-                .with(|f| f.borrow().get(container).fields.get_field_index(field, ctx)),
+            Self::Struct(container) => interner
+                .struct_container_arena
+                .get(container)
+                .fields
+                .get_field_index(field, ctx, interner),
 
             _ => panic!("Type cannot hold field"),
         }
     }
 
-    unsafe fn get_field(&self, field: &HashedString, ctx: &TypeCtx) -> TypeKind {
+    unsafe fn get_field(
+        &self,
+        field: &HashedString,
+        ctx: &TypeCtx,
+        interner: &TypingInterner,
+    ) -> TypeKind {
         match self {
             Self::Struct(container) => unsafe {
-                STRUCT_CONTAINER_ALLOC
-                    .with(|f| f.borrow().get(container).fields.get_field(field, ctx))
+                interner
+                    .struct_container_arena
+                    .get(container)
+                    .fields
+                    .get_field(field, ctx, interner)
             },
 
             _ => panic!("Type cannot hold field"),

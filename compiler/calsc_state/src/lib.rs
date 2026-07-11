@@ -12,7 +12,7 @@ pub mod build;
 pub mod session;
 
 thread_local! {
-    pub static GLOBAL_STATE: RefCell<CompilerGlobalState> = RefCell::new(CompilerGlobalState::new(None, BuildTargetMode::Check))
+    pub static GLOBAL_STATE: RefCell<CompilerGlobalState<'static>> = RefCell::new(CompilerGlobalState::new(None, BuildTargetMode::Check))
 }
 
 #[derive(Clone, Debug)]
@@ -22,7 +22,7 @@ pub enum GlobalState {
     HIR,
 }
 
-pub struct CompilerGlobalState {
+pub struct CompilerGlobalState<'session> {
     pub build: CompilerBuildState,
     pub package_name: HashedString,
     pub is_package_enabled: bool,
@@ -30,10 +30,10 @@ pub struct CompilerGlobalState {
     pub global_state: GlobalState,
 
     /// Available after GlobalState::ModuleLow
-    pub tree_lowered: Option<TreeLowCtx>,
+    pub tree_lowered: Option<TreeLowCtx<'session>>, // 'static is fine because CompilerGlobalState lives infinitely
 }
 
-impl CompilerGlobalState {
+impl<'session> CompilerGlobalState<'session> {
     pub fn new(out: Option<PathBuf>, target: BuildTargetMode) -> Self {
         Self {
             build: CompilerBuildState::new(out, target, "".to_string()),
@@ -49,14 +49,14 @@ impl CompilerGlobalState {
         self.build.target = target;
     }
 
-    pub fn get_tree_lowered<'a>(&'a self) -> &'a TreeLowCtx {
+    pub fn get_tree_lowered<'a>(&'a self) -> &'a TreeLowCtx<'a> {
         self.tree_lowered.as_ref().expect(&format!(
             "Lowered module tree is None in stage {:#?}!",
             self.global_state
         ))
     }
 
-    pub fn get_tree_lowered_mut<'a>(&'a mut self) -> &'a mut TreeLowCtx {
+    pub fn get_tree_lowered_mut<'a: 'session>(&'a mut self) -> &'a mut TreeLowCtx<'a> {
         self.tree_lowered.as_mut().expect(&format!(
             "Lowered module tree is None in stage {:#?}!",
             self.global_state

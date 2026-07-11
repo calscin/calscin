@@ -5,8 +5,7 @@
 use std::cell::RefCell;
 
 use calsc_state::session::CompilerSession;
-use calsc_typing::ctx::TypeCtx;
-use calsc_utils::{alloc::arena::ArenaAllocator, containers::NoCloneContainer};
+use calsc_utils::alloc::arena::ArenaAllocator;
 
 use crate::{buildcache::BuildCache, globalctx::GlobalContext, nodes::HIRNode};
 
@@ -26,24 +25,19 @@ thread_local! {
 }
 
 #[cfg_attr(feature = "debug", derive(Debug))]
-#[derive(Clone)] // For MIR
-pub struct HIRContext {
+pub struct HIRContext<'session> {
     pub nodes: ArenaAllocator<HIRNode>,
-    pub type_ctx: TypeCtx,
     pub scope: GlobalContext,
 
-    /// This pointer is safe and is only used to avoid using lifetimes here.
-    /// TODO: change this in the future
-    pub state: NoCloneContainer<CompilerSession>,
+    pub session: &'session mut CompilerSession<'session>,
 }
 
-impl HIRContext {
-    pub fn new(session: CompilerSession) -> Self {
+impl<'session> HIRContext<'session> {
+    pub fn new(session: &'session mut CompilerSession<'session>) -> Self {
         Self {
             nodes: ArenaAllocator::new(),
-            type_ctx: TypeCtx::new(),
             scope: GlobalContext::new(),
-            state: NoCloneContainer::new(session),
+            session,
         }
     }
 }

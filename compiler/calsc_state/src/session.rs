@@ -10,14 +10,14 @@ use crate::GlobalState;
 /// This is created once per compilation session and is shared accross module file builds for example.
 /// This is passed onto the HIR and every layer that requires it
 #[derive(Debug)]
-pub struct CompilerSession {
+pub struct CompilerSession<'session> {
     pub state: GlobalState,
-    pub tree_lowered: Option<TreeLowCtx>,
+    pub tree_lowered: Option<TreeLowCtx<'session>>,
 
     pub type_interner: TypingInterner,
 }
 
-impl CompilerSession {
+impl<'session> CompilerSession<'session> {
     pub fn new() -> Self {
         Self {
             state: GlobalState::Pre,
@@ -26,14 +26,14 @@ impl CompilerSession {
         }
     }
 
-    pub fn get_tree_lowered<'a>(&'a self) -> &'a TreeLowCtx {
+    pub fn get_tree_lowered<'a>(&'a self) -> &'a TreeLowCtx<'session> {
         self.tree_lowered.as_ref().expect(&format!(
             "Lowered module tree is None in stage {:#?}!",
             self.state
         ))
     }
 
-    pub fn get_tree_lowered_mut<'a>(&'a mut self) -> &'a mut TreeLowCtx {
+    pub fn get_tree_lowered_mut<'a: 'session>(&'a mut self) -> &'a mut TreeLowCtx<'session> {
         self.tree_lowered.as_mut().expect(&format!(
             "Lowered module tree is None in stage {:#?}!",
             self.state
@@ -41,7 +41,7 @@ impl CompilerSession {
     }
 }
 
-impl Default for CompilerSession {
+impl<'session> Default for CompilerSession<'session> {
     fn default() -> Self {
         Self::new()
     }

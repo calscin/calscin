@@ -238,7 +238,7 @@ impl HIRNode {
                 let val = ctx.nodes.get(&val).clone();
 
                 let ty = val.get_type(local_func_key, ctx, file_ctx)?;
-                let ty = ctx.type_ctx.type_kind_arena.append(ty);
+                let ty = ctx.session.type_interner.type_kind_arena.append(ty);
 
                 TypeKind::Reference(mutable, ty)
             }
@@ -247,7 +247,7 @@ impl HIRNode {
                 let val = ctx.nodes.get(&val).clone();
 
                 val.get_type(local_func_key, ctx, file_ctx)?
-                    .get_inner(&ctx.type_ctx)
+                    .get_inner(&ctx.session.type_interner)
                     .clone()
             }
 
