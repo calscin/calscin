@@ -1,13 +1,13 @@
 //! Type convertions for primitives
 
 use crate::{
-    ctx::TypeCtx,
+    TypingInterner,
     into::{TypeCasting, TypeTransmutation},
     types::primitive::PrimitiveType,
 };
 
 impl TypeTransmutation for PrimitiveType {
-    fn can_transmute(&self, into: &Self, _ctx: &TypeCtx) -> bool {
+    fn can_transmute(&self, into: &Self, _interner: &TypingInterner) -> bool {
         if self == into {
             return true;
         }
@@ -20,8 +20,8 @@ impl TypeTransmutation for PrimitiveType {
         }
     }
 
-    fn can_transmute_weakly(&self, into: &Self, ctx: &TypeCtx) -> bool {
-        if self.can_transmute(into, ctx) {
+    fn can_transmute_weakly(&self, into: &Self, interner: &TypingInterner) -> bool {
+        if self.can_transmute(into, interner) {
             return true;
         }
 
@@ -34,7 +34,7 @@ impl TypeTransmutation for PrimitiveType {
 }
 
 impl TypeCasting for PrimitiveType {
-    fn can_cast(&self, into: &Self, _ctx: &TypeCtx) -> bool {
+    fn can_cast(&self, into: &Self, _interner: &TypingInterner) -> bool {
         if self == into {
             return true;
         }

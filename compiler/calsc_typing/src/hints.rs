@@ -7,7 +7,7 @@ use calsc_diagnostics::{
 };
 use calsc_utils::display_with_to_string;
 
-use crate::{ctx::TypeCtx, into::TypeTransmutation, types::TypeKind};
+use crate::{TypingInterner, ctx::TypeCtx, into::TypeTransmutation, types::TypeKind};
 
 #[derive(Clone)]
 pub enum TypeHint {
@@ -52,6 +52,7 @@ impl TypeHintContainer {
     pub fn determine_type<S: DiagnosticSource>(
         &self,
         ctx: &TypeCtx,
+        interner: &TypingInterner,
         source: &S,
     ) -> DiagResult<TypeKind> {
         let master = if !self.strong_hints.is_empty() {
@@ -65,8 +66,8 @@ impl TypeHintContainer {
 
             if !entry.get_type().can_transmute(master.get_type(), ctx) {
                 return Err(build_type_hint_coherce_not_transmutable(
-                    &display_with_to_string(master.get_type(), ctx.interner),
-                    &display_with_to_string(entry.get_type(), ctx.interner),
+                    &display_with_to_string(master.get_type(), interner),
+                    &display_with_to_string(entry.get_type(), interner),
                     source,
                 )
                 .into());
@@ -79,8 +80,8 @@ impl TypeHintContainer {
                 .can_transmute_weakly(master.get_type(), ctx)
             {
                 return Err(build_type_hint_coherce_not_transmutable(
-                    &display_with_to_string(master.get_type(), ctx.interner),
-                    &display_with_to_string(entry.get_type(), ctx.interner),
+                    &display_with_to_string(master.get_type(), interner),
+                    &display_with_to_string(entry.get_type(), interner),
                     source,
                 )
                 .into());

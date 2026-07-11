@@ -2,7 +2,7 @@ use std::hash::{DefaultHasher, Hash, Hasher};
 
 use calsc_utils::display_with_to_string;
 
-use crate::{ctx::TypeCtx, types::TypeKind};
+use crate::{TypingInterner, types::TypeKind};
 
 #[derive(Clone)]
 pub struct HashedTypeKind {
@@ -11,10 +11,10 @@ pub struct HashedTypeKind {
 }
 
 impl HashedTypeKind {
-    pub fn new(kind: TypeKind, ctx: &TypeCtx) -> Self {
+    pub fn new(kind: TypeKind, interner: &TypingInterner) -> Self {
         let mut state = DefaultHasher::new();
 
-        display_with_to_string(&kind, ctx.interner).hash(&mut state); // TODO: check if this does collisions
+        display_with_to_string(&kind, interner).hash(&mut state); // TODO: check if this does collisions
 
         Self {
             kind,
