@@ -35,7 +35,7 @@ pub fn lower_hir_for_loop(
     } = node_ref.kind.clone()
     {
         let iterated = lower_hir_range(iterated, local_ctx, module, ctx)?;
-        let iterator_type = lower_type(iterator_type, &ctx.type_ctx)?;
+        let iterator_type = lower_type(iterator_type, &ctx.type_ctx, &ctx.session.type_interner)?;
 
         // We use the following technique to lower a for loop:
         // - A loop header block that contains the Phi code for the iterator index and condition

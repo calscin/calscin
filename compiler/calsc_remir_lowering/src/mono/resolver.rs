@@ -44,7 +44,10 @@ pub fn lower_hir_typed_function_call(
         let mut suffix = DefaultHasher::new();
 
         for param in type_params_function {
-            let ty = HashedTypeKind::new(type_parameters[&param.1].clone(), &hirctx.type_ctx);
+            let ty = HashedTypeKind::new(
+                type_parameters[&param.1].clone(),
+                &hirctx.session.type_interner,
+            );
 
             ty.hash(&mut suffix);
         }

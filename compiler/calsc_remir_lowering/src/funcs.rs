@@ -78,7 +78,11 @@ pub fn lower_hir_function_decl_none(
     let panic_source = PanicDiagnosticSource();
 
     let mut mir_arguments = vec![];
-    let mut mir_return_type = lower_type(return_type, &context.type_ctx)?;
+    let mut mir_return_type = lower_type(
+        return_type,
+        &context.type_ctx,
+        &context.session.type_interner,
+    )?;
 
     let name = context
         .scope
@@ -88,7 +92,11 @@ pub fn lower_hir_function_decl_none(
         .clone();
 
     for argument in arguments {
-        mir_arguments.push(lower_type(argument, &context.type_ctx)?);
+        mir_arguments.push(lower_type(
+            argument,
+            &context.type_ctx,
+            &context.session.type_interner,
+        )?);
     }
 
     if is_main_function {

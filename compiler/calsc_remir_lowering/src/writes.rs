@@ -126,7 +126,7 @@ pub fn lower_hir_pointer_writable(
 
         if !ty.is_mutation_compatible() {
             return Err(build_expected_mutable_reference(
-                &display_with_to_string(&ty, &ctx.type_ctx),
+                &display_with_to_string(&ty, &ctx.session.type_interner),
                 &node_ref,
             )
             .into());

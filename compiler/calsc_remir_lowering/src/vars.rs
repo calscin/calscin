@@ -92,7 +92,8 @@ pub fn lower_hir_variable_declaration(
         let mut variable: BlockVariable;
         let is_array = var_type.is_directly_array();
 
-        let var_type = lower_type(var_type, &hirctx.type_ctx).unwrap();
+        let var_type =
+            lower_type(var_type, &hirctx.type_ctx, &hirctx.session.type_interner).unwrap();
 
         if mutable || ctx.variables[variable_index].reference_count > 0 || is_array {
             // Uses a stack variable for mutable variables.

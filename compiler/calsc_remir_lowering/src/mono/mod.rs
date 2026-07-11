@@ -56,10 +56,18 @@ impl Monomorphizer {
             name += &format!("#__{}__", suffix);
 
             let mut mir_arguments = vec![];
-            let mir_return_type = lower_type(func.return_type.clone(), &context.type_ctx)?;
+            let mir_return_type = lower_type(
+                func.return_type.clone(),
+                &context.type_ctx,
+                &context.session.type_interner,
+            )?;
 
             for argument in &func.arguments {
-                mir_arguments.push(lower_type(argument.1.clone(), &context.type_ctx)?);
+                mir_arguments.push(lower_type(
+                    argument.1.clone(),
+                    &context.type_ctx,
+                    &context.session.type_interner,
+                )?);
             }
 
             let _ = module.create_function(name, mir_arguments, mir_return_type);

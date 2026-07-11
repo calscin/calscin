@@ -1,6 +1,7 @@
 use calsc_diagnostics::DiagResult;
 
 use calsc_typing::{
+    TypingInterner,
     allocs::STRUCT_CONTAINER_ALLOC,
     ctx::TypeCtx,
     traits::FieldedType,
@@ -9,7 +10,11 @@ use calsc_typing::{
 use remir::values::ValueType;
 
 #[allow(unsafe_code)]
-pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType> {
+pub fn lower_type_base(
+    ty: HeldPrimitive,
+    ctx: &TypeCtx,
+    interner: &TypingInterner,
+) -> DiagResult<ValueType> {
     match ty.ty {
         PrimitiveType::Boolean => Ok(ValueType::Int(false, 1)),
         PrimitiveType::Int(signed) => Ok(ValueType::Int(signed, ty.size.0)),
@@ -19,11 +24,11 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
             let mut type_fields = vec![];
             let container = STRUCT_CONTAINER_ALLOC.with(|f| f.borrow().get(&container).clone());
 
-            for field in container.fields.get_fields(ctx) {
-                let field_ty = unsafe { container.fields.get_field(&field, ctx) }; // This is safe since get_fields return the list of fields
-                let field_ty = ty.lower_type_parameter_type(field_ty, ctx);
+            for field in container.fields.get_fields(ctx, interner) {
+                let field_ty = unsafe { container.fields.get_field(&field, ctx, interner) }; // This is safe since get_fields return the list of fields
+                let field_ty = ty.lower_type_parameter_type(field_ty, interner);
 
-                type_fields.push(Box::new(lower_type(field_ty, ctx)?))
+                type_fields.push(Box::new(lower_type(field_ty, ctx, interner)?))
             }
 
             Ok(ValueType::Struct(type_fields))
@@ -32,40 +37,47 @@ pub fn lower_type_base(ty: HeldPrimitive, ctx: &TypeCtx) -> DiagResult<ValueType
         PrimitiveType::Size => Ok(ValueType::new_int(false, usize::BITS as usize)),
         PrimitiveType::Function(_) => Ok(ValueType::new_any_pointer()),
         PrimitiveType::TypeParameter(param) => {
-            lower_type(ctx.type_params.get_resolved(&param.1), ctx)
+            lower_type(ctx.type_params.get_resolved(&param.1), ctx, interner)
         }
     }
 }
 
-pub fn lower_type(ty: TypeKind, ctx: &TypeCtx) -> DiagResult<ValueType> {
+pub fn lower_type(ty: TypeKind, ctx: &TypeCtx, interner: &TypingInterner) -> DiagResult<ValueType> {
     match ty {
-        TypeKind::Primitive(primitive) => lower_type_base(primitive, ctx),
+        TypeKind::Primitive(primitive) => lower_type_base(primitive, ctx, interner),
 
         TypeKind::Reference(_, inner) => {
-            let inner = ctx.type_kind_arena.get(&inner).clone();
+            let inner = interner.type_kind_arena.get(&inner).clone();
 
-            return Ok(ValueType::Pointer(Box::new(lower_type(inner, ctx)?)));
+            return Ok(ValueType::Pointer(Box::new(lower_type(
+                inner, ctx, interner,
+            )?)));
         }
 
         TypeKind::Pointer(_, inner) => {
-            let inner = ctx.type_kind_arena.get(&inner).clone();
+            let inner = interner.type_kind_arena.get(&inner).clone();
 
-            return Ok(ValueType::Pointer(Box::new(lower_type(inner, ctx)?)));
+            return Ok(ValueType::Pointer(Box::new(lower_type(
+                inner, ctx, interner,
+            )?)));
         }
 
         TypeKind::Array(size, inner) => {
-            let inner = ctx.type_kind_arena.get(&inner).clone();
+            let inner = interner.type_kind_arena.get(&inner).clone();
 
             Ok(ValueType::Array(
-                Box::new(lower_type(inner, ctx)?),
+                Box::new(lower_type(inner, ctx, interner)?),
                 Some(size),
             ))
         }
 
         TypeKind::Segment(inner) => {
-            let inner = ctx.type_kind_arena.get(&inner).clone();
+            let inner = interner.type_kind_arena.get(&inner).clone();
 
-            Ok(ValueType::Array(Box::new(lower_type(inner, ctx)?), None))
+            Ok(ValueType::Array(
+                Box::new(lower_type(inner, ctx, interner)?),
+                None,
+            ))
         }
 
         TypeKind::Void => Ok(ValueType::Void),
