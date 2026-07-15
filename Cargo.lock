@@ -136,6 +136,7 @@ dependencies = [
  "calsc_lexer",
  "calsc_modules",
  "calsc_state",
+ "calsc_tree_build",
  "calsc_tree_low",
  "calsc_typing",
  "calsc_utils",
@@ -177,6 +178,7 @@ version = "0.1.0"
 dependencies = [
  "calsc_modules",
  "calsc_tree_low",
+ "calsc_typing",
  "calsc_utils",
 ]
 
