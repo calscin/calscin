@@ -107,7 +107,7 @@ pub fn import_entry_into_hir<S: DiagnosticSource>(
                 is_main_function,
             );
 
-            func.type_parameters = container.2;
+            for type_parameter in container.2 {}
 
             hir.scope.append(
                 real_key.clone(),

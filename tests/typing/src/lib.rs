@@ -2,10 +2,10 @@
 use calsc_diagnostics::{panics::PanicDiagnosticSource, result::CalscinResult};
 
 #[cfg(test)]
-use calsc_typing::{
-    ctx::TypeCtx,
-    types::{SizeParameter, TypeKind, primitive::PrimitiveType},
-};
+use calsc_typing::TypingInterner;
+
+#[cfg(test)]
+use calsc_typing::types::{SizeParameter, TypeKind, primitive::PrimitiveType};
 
 pub mod fields;
 
@@ -18,14 +18,15 @@ fn test_base_type_required_size_params() {
 
 #[test]
 fn test_base_type_creation() {
-    let mut type_ctx = TypeCtx::new();
+    let mut type_interner = TypingInterner::new();
+
     let fake_source = PanicDiagnosticSource();
 
     let _ = TypeKind::new_primitive(
         PrimitiveType::Int(true),
         SizeParameter(40),
         vec![],
-        &mut type_ctx,
+        &mut type_interner,
         &fake_source,
     )
     .unwrap_cleanly();

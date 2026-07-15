@@ -302,6 +302,8 @@ pub fn lower_ast_function_call(
                 let mut module_path = key.module_path.clone();
                 module_path.append_single_bit(key.name.clone());
 
+                println!("Adding stuff to {}", module_path);
+
                 ctx.session
                     .build_cache_interner
                     .append_used_type_param_combination(module_path, combinations);

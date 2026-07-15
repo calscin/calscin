@@ -8,7 +8,7 @@ use calsc_hir::globalctx::key::GlobalContextKey;
 use calsc_hir::localctx::LocalContext;
 
 #[cfg(test)]
-use calsc_typing::ctx::TypeCtx;
+use calsc_typing::TypingInterner;
 
 #[cfg(test)]
 use calsc_typing::types::primitive::PrimitiveType;
@@ -36,14 +36,15 @@ fn test_alive_variable() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut type_ctx = TypeCtx::new();
+    let mut typing_interner = TypingInterner::new();
+
     let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
     let sample_type = TypeKind::new_primitive(
         PrimitiveType::Boolean,
         SizeParameter(0),
         vec![],
-        &mut type_ctx,
+        &mut typing_interner,
         &origin,
     )
     .unwrap_cleanly();
@@ -66,14 +67,15 @@ fn test_alive_variable_next_branch() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut type_ctx = TypeCtx::new();
+    let mut typing_interner = TypingInterner::new();
+
     let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
     let sample_type = TypeKind::new_primitive(
         PrimitiveType::Boolean,
         SizeParameter(0),
         vec![],
-        &mut type_ctx,
+        &mut typing_interner,
         &origin,
     )
     .unwrap_cleanly();
@@ -101,14 +103,15 @@ fn test_variable_gather() {
     let origin = PosDiagnosticSource::new(Default::default(), Default::default());
     let key = GlobalContextKey::new("test".into());
 
-    let mut type_ctx = TypeCtx::new();
+    let mut typing_interner = TypingInterner::new();
+
     let mut ctx = LocalContext::new("test".into(), key, TypeKind::Void, false);
 
     let sample_type = TypeKind::new_primitive(
         PrimitiveType::Boolean,
         SizeParameter(0),
         vec![],
-        &mut type_ctx,
+        &mut typing_interner,
         &origin,
     )
     .unwrap_cleanly();
